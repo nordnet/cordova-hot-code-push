@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+           id="cordova-hot-code-push-plugin"
+      version="1.0.0">
+
+    <name>Hot Code Push Plugin</name>
+    <description>Plugin for Nordnet-Cordova integration</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,code,update</keywords>
+
+    <engines>
+      <engine name="cordova-android" version=">=4" />
+      <engine name="cordova-plugman" version=">=4.2.0" /><!-- needed for gradleReference support -->
+    </engines>
+
+    <platform name="android">
+        
+        <!-- Plugin preferences in Cordova config.xml -->
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="HotCodePush">
+                <param name="android-package" value="com.nordnetab.chcp.HotCodePushPlugin" />
+                <param name="onload" value="true" />
+            </feature>
+
+            <preference name="hot_code_push_config_url" value="YOUR_APPLICATION_CONFIG_URL" />
+            <preference name="hot_code_push_local_dir" value="www" />
+        </config-file>
+        
+
+        
+        <!-- Gradle config -->
+        <framework src="src/android/chcp.gradle" custom="true" type="gradleReference" />
+        
+        <!-- Manifest changes -->
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+        </config-file>
+
+        <!-- Library sources -->
+        <!-- sources for package: com.nordnetab.chcp.config -->
+        <source-file src="src/android/src/com/nordnetab/chcp/config/ApplicationConfig.java"
+            target-dir="src/com/nordnetab/chcp/config" />
+        <source-file src="src/android/src/com/nordnetab/chcp/config/ContentConfig.java"
+            target-dir="src/com/nordnetab/chcp/config" />
+        <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
+            target-dir="src/com/nordnetab/chcp/config" />
+        
+        <!-- sources for package: com.nordnetab.chcp.network -->
+        <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
+            target-dir="src/com/nordnetab/chcp/network" />
+        <source-file src="src/android/src/com/nordnetab/chcp/network/ContentManifestDownloader.java"
+            target-dir="src/com/nordnetab/chcp/network" />
+        <source-file src="src/android/src/com/nordnetab/chcp/network/FileDownloader.java"
+            target-dir="src/com/nordnetab/chcp/network" />
+        <source-file src="src/android/src/com/nordnetab/chcp/network/JsonDownloader.java"
+            target-dir="src/com/nordnetab/chcp/network" />
+        
+        <!-- sources for package: com.nordnetab.chcp.storage -->
+        <source-file src="src/android/src/com/nordnetab/chcp/storage/ApplicationConfigStorage.java"
+            target-dir="src/com/nordnetab/chcp/storage" />
+        <source-file src="src/android/src/com/nordnetab/chcp/storage/ContentManifestStorage.java"
+            target-dir="src/com/nordnetab/chcp/storage" />
+        <source-file src="src/android/src/com/nordnetab/chcp/storage/Storage.java"
+            target-dir="src/com/nordnetab/chcp/storage" />
+        
+        <!-- sources for package: com.nordnetab.chcp.utils -->
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/AssetsHelper.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/FilesUtility.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/MD5.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/Paths.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+        
+        <!-- sources for package: com.nordnetab.chcp -->
+        <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
+            target-dir="src/com/nordnetab/chcp" />
+        <source-file src="src/android/src/com/nordnetab/chcp/UpdatesInstaller.java"
+            target-dir="src/com/nordnetab/chcp" />
+        <source-file src="src/android/src/com/nordnetab/chcp/UpdatesLoader.java"
+            target-dir="src/com/nordnetab/chcp" />
+
+    </platform>
+</plugin>

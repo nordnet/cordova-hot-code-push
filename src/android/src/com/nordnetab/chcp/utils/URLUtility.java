@@ -28,14 +28,21 @@ public class URLUtility {
         }
 
         StringBuilder builder = new StringBuilder();
+
         String startingPart = removeStartingDash(urlParts[0]);
+        startingPart = removeEndingDash(startingPart);
         if (!startingPart.startsWith("http")) {
             builder.append("http://");
         }
         builder.append(startingPart);
 
         for (int i=1, len=urlParts.length; i<len; i++) {
-            builder.append(removeEndingDash(urlParts[i]));
+            String urlPart = removeEndingDash(urlParts[i]);
+            if (!urlPart.startsWith("/")) {
+                builder.append("/");
+            }
+
+            builder.append(urlPart);
         }
 
         return builder.toString();

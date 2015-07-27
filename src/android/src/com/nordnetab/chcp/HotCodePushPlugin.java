@@ -1,13 +1,20 @@
 package com.nordnetab.chcp;
 
+import android.app.ProgressDialog;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
 
+import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.utils.Paths;
 
+import org.apache.cordova.ConfigXmlParser;
 import org.apache.cordova.CordovaPlugin;
 
 import java.io.File;
+
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.
@@ -15,6 +22,8 @@ import java.io.File;
  * Plugin entry point.
  */
 public class HotCodePushPlugin extends CordovaPlugin {
+
+    // TODO: remove www folder after native update
 
     public static final String FILE_PREFIX = "file://";
     public static final String WWW_FOLDER = "www";
@@ -27,6 +36,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private static String configUrl;
     private static String contentFolderLocation;
+    private static String startingPage;
+
+
+    private ProgressDialog installProgressDialog;
 
     private static class PreferenceKeys {
         public static final String CONFIG_URL = "hot_code_push_config_url";
@@ -72,8 +85,17 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onStart() {
         super.onStart();
 
-        //redirectToLocalStorage();
-        //runUpdateProcedure();
+        EventBus.getDefault().register(this);
+
+        redirectToLocalStorage();
+        fetchUpdate();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        EventBus.getDefault().unregister(this);
     }
 
     private void redirectToLocalStorage() {
@@ -93,8 +115,100 @@ public class HotCodePushPlugin extends CordovaPlugin {
         webView.clearHistory();
     }
 
-    private void runUpdateProcedure() {
+    private void fetchUpdate() {
         UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), getWwwFolder(),
                 getDownloadFolderLocation(), getApplicationConfigUrl());
     }
+
+    private void installUpdate() {
+        if (installProgressDialog != null && installProgressDialog.isShowing()) {
+            // already in progress
+            return;
+        }
+
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait...", true, false);
+            }
+        });
+
+        UpdatesInstaller.install(cordova.getActivity(), getDownloadFolderLocation(), getWwwFolder());
+    }
+
+    private String getStartingPage() {
+        if (TextUtils.isEmpty(startingPage)) {
+            ConfigXmlParser parser = new ConfigXmlParser();
+            parser.parse(cordova.getActivity());
+            String url = parser.getLaunchUrl();
+
+            startingPage = url.replace(LOCAL_ASSETS_FOLDER, "");
+        }
+
+        return startingPage;
+    }
+
+    // region Events
+
+    public void onEvent(UpdatesLoader.UpdateIsReadyToInstallEvent event) {
+        Log.d("CHCP", "Update is ready for installation");
+
+        if (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW) {
+            installUpdate();
+        }
+    }
+
+    public void onEvent(UpdatesLoader.NothingToUpdateEvent event) {
+        Log.d("CHCP", "Nothing to update");
+    }
+
+    public void onEvent(UpdatesLoader.UpdateErrorEvent event) {
+        Log.d("CHCP", "Failed to update");
+    }
+
+    public void onEvent(UpdatesInstaller.UpdateInstalledEvent event) {
+        Log.d("CHCP", "Update is installed");
+
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                //TODO: call page reload from javascript
+
+                String startingPage = Paths.get(getWwwFolder(), getStartingPage());
+                webView.loadUrlIntoView(FILE_PREFIX + startingPage, false);
+
+                webView.clearHistory();
+                webView.clearCache();
+
+                Log.d("CHCP", "Can go back: " + webView.canGoBack());
+
+                // hide dialog and show WebView
+                if (installProgressDialog != null && installProgressDialog.isShowing()) {
+                    installProgressDialog.dismiss();
+                    installProgressDialog = null;
+                }
+            }
+        });
+    }
+
+    public void onEvent(UpdatesInstaller.InstallationErrorEvent event) {
+        Log.d("CHCP", "Failed to install");
+
+
+    }
+
+    @Override
+    public Boolean shouldAllowNavigation(String url) {
+        Log.d("CHCP", "shouldAllowNavigation");
+        return super.shouldAllowNavigation(url);
+    }
+
+    @Override
+    public boolean onOverrideUrlLoading(String url) {
+        Log.d("CHCP", "onOverrideUrlLoading");
+        return super.onOverrideUrlLoading(url);
+    }
+
+    // endregion
 }

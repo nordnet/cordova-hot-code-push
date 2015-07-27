@@ -16,6 +16,7 @@ import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.URLUtility;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -30,7 +31,7 @@ public class UpdatesLoader {
 
     // region Events
 
-    public enum Error {
+    public enum ErrorType {
         FAILED_TO_DOWNLOAD_APPLICATION_CONFIG,
         APPLICATION_BUILD_VERSION_TOO_LOW,
         FAILED_TO_DOWNLOAD_CONTENT_MANIFEST,
@@ -60,9 +61,9 @@ public class UpdatesLoader {
     }
 
     public static class UpdateErrorEvent extends UpdateProgressEvent {
-        public final Error error;
+        public final ErrorType error;
 
-        public UpdateErrorEvent(ApplicationConfig config, Error error) {
+        public UpdateErrorEvent(ApplicationConfig config, ErrorType error) {
             super(config);
             this.error = error;
         }
@@ -77,7 +78,7 @@ public class UpdatesLoader {
 
     public static void addUpdateTaskToQueue(Context context, String wwwFolder, String downloadFolder, String configUrl) {
         UpdateWorker task = new UpdateWorker(context, wwwFolder, downloadFolder, configUrl);
-        queue.add(task);
+        getQueue().add(task);
 
         if (!isExecuting) {
             executeTaskFromQueue();
@@ -152,7 +153,7 @@ public class UpdatesLoader {
             // download new application config
             newAppConfig = downloadApplicationConfig();
             if (newAppConfig == null) {
-                EventBus.getDefault().post(new UpdateErrorEvent(null, Error.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG));
+                EventBus.getDefault().post(new UpdateErrorEvent(null, ErrorType.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG));
                 return;
             }
 
@@ -164,26 +165,39 @@ public class UpdatesLoader {
 
             // check if current native version supports new content
             if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appBuildVersion) {
-                EventBus.getDefault().post(new UpdateErrorEvent(newAppConfig, Error.APPLICATION_BUILD_VERSION_TOO_LOW));
+                EventBus.getDefault().post(new UpdateErrorEvent(newAppConfig, ErrorType.APPLICATION_BUILD_VERSION_TOO_LOW));
                 return;
             }
-
-            appConfigStorage.storeInPreference(newAppConfig);
 
             // download new content manifest
             newContentManifest = downloadContentManifest(newAppConfig);
             if (newContentManifest == null) {
-                EventBus.getDefault().post(new UpdateErrorEvent(newAppConfig, Error.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST));
+                EventBus.getDefault().post(new UpdateErrorEvent(newAppConfig, ErrorType.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST));
                 return;
             }
-            manifestStorage.storeInPreference(newContentManifest);
 
             // find files that were updated
-            List<ContentManifest.DiffFile> updatedFiles = oldContentManifest.calculateDifference(newContentManifest);
+            ContentManifest.ManifestDiff diff = oldContentManifest.calculateDifference(newContentManifest);
+            if (diff.isEmpty()) {
+                EventBus.getDefault().post(new NothingToUpdateEvent(newAppConfig));
+                manifestStorage.storeOnFS(newContentManifest);
+                appConfigStorage.storeOnFS(newAppConfig);
+                return;
+            }
 
-            // download new content
-            FilesUtility.delete(downloadFolder);
-            FileDownloader.downloadFiles(downloadFolder, newAppConfig.getContentConfig().getContentUrl(), updatedFiles);
+            recreateDownloadFolder(downloadFolder);
+
+            // download files
+            boolean isDownloaded = downloadNewAndChagedFiles(diff);
+            if (!isDownloaded) {
+                new File(downloadFolder).delete();
+                EventBus.getDefault().post(new UpdateErrorEvent(newAppConfig, ErrorType.FAILED_TO_DOWNLOAD_UPDATE_FILES));
+                return;
+            }
+
+            // store configs
+            manifestStorage.storeInPreference(newContentManifest);
+            appConfigStorage.storeInPreference(newAppConfig);
 
             // notify that we are done
             EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(newAppConfig));
@@ -224,6 +238,27 @@ public class UpdatesLoader {
             }
 
             return downloadResult.manifest;
+        }
+
+        private void recreateDownloadFolder(final String folder) {
+            FilesUtility.delete(downloadFolder);
+
+            new File(downloadFolder).mkdirs();
+        }
+
+        private boolean downloadNewAndChagedFiles(ContentManifest.ManifestDiff diff) {
+            final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
+            List<ContentManifest.File> downloadFiles = diff.getUpdateFiles();
+
+            boolean isFinishedWithSuccess = true;
+            try {
+                FileDownloader.downloadFiles(downloadFolder, contentUrl, downloadFiles);
+            } catch (IOException e) {
+                e.printStackTrace();
+                isFinishedWithSuccess = false;
+            }
+
+            return isFinishedWithSuccess;
         }
     }
 

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -46,13 +47,40 @@ public class ContentManifest {
         }
     }
 
-    public static class DiffFile extends File {
-        public final boolean isRemoved;
+    public static class ManifestDiff {
 
-        public DiffFile(File file, boolean isRemoved) {
-            super (file.name, file.hash);
+        private List<File> deleted;
+        private List<File> changed;
+        private List<File> added;
 
-            this.isRemoved = isRemoved;
+        private ManifestDiff() {
+            added = new ArrayList<File>();
+            changed = new ArrayList<File>();
+            deleted = new ArrayList<File>();
+        }
+
+        public List<File> deletedFiles() {
+            return deleted;
+        }
+
+        public List<File> changedFiles() {
+            return changed;
+        }
+
+        public List<File> addedFiles() {
+            return added;
+        }
+
+        public boolean isEmpty() {
+            return added.isEmpty() && changed.isEmpty() && deleted.isEmpty();
+        }
+
+        public List<File> getUpdateFiles() {
+            List<File> updateList = new ArrayList<File>();
+            updateList.addAll(added);
+            updateList.addAll(changed);
+
+            return updateList;
         }
     }
 
@@ -117,45 +145,45 @@ public class ContentManifest {
     }
 
     // TODO: need more cleaner way to find differences between two lists
-    public List<DiffFile> calculateDifference(ContentManifest manifest) {
+    public ManifestDiff calculateDifference(ContentManifest manifest) {
         final List<File> oldManifestFiles = files;
         final List<File> newManifestFiles = (manifest != null && manifest.getFiles() != null)
                 ? manifest.getFiles() : new ArrayList<File>();
-        final List<DiffFile> diffFilesList =  new ArrayList<DiffFile>();
 
-        // find all removed and updated files
+        final ManifestDiff diff = new ManifestDiff();
+
+        // find deleted and updated files
         for (File oldFile : oldManifestFiles) {
             boolean isDeleted = true;
             for (File newFile : newManifestFiles) {
-                if (newFile.name.equals(oldFile.name)) {
+                if (oldFile.name.equals(newFile.name)) {
                     isDeleted = false;
                     if (!newFile.hash.equals(oldFile.hash)) {
-                        diffFilesList.add(new DiffFile(newFile, false));
+                        diff.changed.add(newFile);
                     }
 
                     break;
                 }
             }
-
             if (isDeleted) {
-                diffFilesList.add(new DiffFile(oldFile, true));
+                diff.deleted.add(oldFile);
             }
         }
 
-        // add new files
+        // find new files
         for (File newFile : newManifestFiles) {
-            boolean isInList = false;
-            for (DiffFile diffFile : diffFilesList) {
-                if (diffFile.name.equals(newFile.name)) {
-                    isInList = true;
+            boolean isFound = false;
+            for (File oldFile : oldManifestFiles) {
+                if (newFile.name.equals(oldFile.name)) {
+                    isFound = true;
                     break;
                 }
             }
-            if (!isInList) {
-                diffFilesList.add(new DiffFile(newFile, false));
+            if (!isFound) {
+                diff.added.add(newFile);
             }
         }
 
-        return diffFilesList;
+        return diff;
     }
 }

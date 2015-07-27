@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.network;
 
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.MD5;
 import com.nordnetab.chcp.utils.Paths;
 import com.nordnetab.chcp.utils.URLUtility;
@@ -23,31 +24,13 @@ import java.util.List;
  */
 public class FileDownloader {
 
+    //TODO: add feature to continue previous download
 
-
-    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, final List<ContentManifest.DiffFile> files) {
-        boolean didFailDownload = false;
-        for (ContentManifest.DiffFile file : files) {
-            if (file.isRemoved) {
-                continue;
-            }
-
-            //TODO: add feature to continue previous download
+    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ContentManifest.File> files) throws IOException {
+        for (ContentManifest.File file : files) {
             String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
             String filePath = Paths.get(downloadFolder, file.name);
-
-            try {
-                download(fileUrl, filePath, file.hash);
-            } catch (IOException e) {
-                didFailDownload = true;
-                break;
-            }
-        }
-
-        if (didFailDownload) {
-
-        } else {
-
+            download(fileUrl, filePath, file.hash);
         }
     }
 
@@ -60,10 +43,9 @@ public class FileDownloader {
      * @return true - if file is downloaded and not corrupted; otherwise - false
      */
     public static void download(String urlFrom, String filePath, String checkSum) throws IOException {
-        final File file = new File(filePath);
-        if (file.exists()) {
-            file.delete();
-        }
+        File downloadFile = new File(filePath);
+        FilesUtility.delete(downloadFile);
+        FilesUtility.ensureDirectoryExists(downloadFile.getParentFile());
 
         MD5 md5 = new MD5();
 

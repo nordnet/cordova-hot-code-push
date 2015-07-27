@@ -62,23 +62,23 @@ public class UpdatesInstaller {
         ApplicationConfigStorage appConfigStorage = new ApplicationConfigStorage(context, wwwFolder);
         ApplicationConfig newConfig = appConfigStorage.loadFromPreference();
 
-        List<ContentManifest.DiffFile> updatedFiles = oldManifest.calculateDifference(newManifest);
+        ContentManifest.ManifestDiff diff = oldManifest.calculateDifference(newManifest);
 
-        install(downloadFolder, wwwFolder, updatedFiles, newConfig, appConfigStorage, newManifest, manifestStorage);
+        install(downloadFolder, wwwFolder, diff, newConfig, appConfigStorage, newManifest, manifestStorage);
     }
 
-    public static void install(final String downloadFolder, final String wwwFolder, final List<ContentManifest.DiffFile> updatedFiles,
+    public static void install(final String downloadFolder, final String wwwFolder, final ContentManifest.ManifestDiff manifestDiff,
                                final ApplicationConfig appConfig, final ApplicationConfigStorage appConfigStorage,
                                final ContentManifest manifest, final ContentManifestStorage manifestStorage) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (!isUpdateValid(downloadFolder, updatedFiles)) {
+                if (!isUpdateValid(downloadFolder, manifestDiff)) {
                     EventBus.getDefault().post(new InstallationErrorEvent(appConfig, Error.UPDATE_IS_INVALID));
                     return;
                 }
 
-                deleteUnusedFiles(wwwFolder, updatedFiles);
+                deleteUnusedFiles(wwwFolder, manifestDiff.deletedFiles());
 
                 boolean isInstalled = moveFilesToNewDirectory(downloadFolder, wwwFolder);
                 if (!isInstalled) {
@@ -100,12 +100,8 @@ public class UpdatesInstaller {
         }).start();
     }
 
-    private static void deleteUnusedFiles(final String wwwFolder, List<ContentManifest.DiffFile> files) {
-        for (ContentManifest.DiffFile file : files) {
-            if (!file.isRemoved) {
-                continue;
-            }
-
+    private static void deleteUnusedFiles(final String wwwFolder, List<ContentManifest.File> files) {
+        for (ContentManifest.File file : files) {
             String path = Paths.get(wwwFolder, file.name);
             FilesUtility.delete(new File(path));
         }
@@ -127,17 +123,15 @@ public class UpdatesInstaller {
         }
     }
 
-    private static boolean isUpdateValid(final String downloadFolder, List<ContentManifest.DiffFile> filesList) {
+    private static boolean isUpdateValid(final String downloadFolder, ContentManifest.ManifestDiff manifestDiff) {
         if (!new File(downloadFolder).exists()) {
             return false;
         }
 
         boolean isValid = true;
-        for (ContentManifest.DiffFile updatedFile : filesList) {
-            if (updatedFile.isRemoved) {
-                continue;
-            }
+        List<ContentManifest.File> updateFileList = manifestDiff.getUpdateFiles();
 
+        for (ContentManifest.File updatedFile : updateFileList) {
             File file = new File(Paths.get(downloadFolder, updatedFile.name));
 
             try {

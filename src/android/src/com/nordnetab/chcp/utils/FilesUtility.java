@@ -23,6 +23,10 @@ public class FilesUtility {
     }
 
     public static void delete(File fileOrDirectory) {
+        if (!fileOrDirectory.exists()) {
+            return;
+        }
+
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles())
                 delete(child);
@@ -40,6 +44,8 @@ public class FilesUtility {
             dir.mkdirs();
         }
     }
+
+
 
     public static void copy(File src, File dst) throws IOException {
         ensureDirectoryExists(dst);

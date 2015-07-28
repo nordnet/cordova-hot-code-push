@@ -34,8 +34,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // TODO: remove www folder after native update
 
-    public static final String FILE_PREFIX = "file://";
+    private static final String FILE_PREFIX = "file://";
     public static final String WWW_FOLDER = "www";
+    private static final String WWW_DOWNLOAD_FOLDER = "www_tmp";
+    private static final String WWW_BACKUP_FOLDER = "www_backup";
     public static final String LOCAL_ASSETS_FOLDER = "file:///android_asset/www";
     public static final String APPLICATION_CONFIG_FILE_NAME = "chcp.json";
     public static final String CONTENT_MANIFEST_FILE_NAME = "chcp.manifest";
@@ -47,6 +49,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static String contentFolderLocation;
     private static String startingPage;
     private static ApplicationConfigStorage appConfigStorage;
+    private static String wwwFolder;
+    private static String backupFolder;
+    private static String downloadFolder;
 
     private ProgressDialog installProgressDialog;
 
@@ -68,15 +73,27 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     public static String getWwwFolder() {
-        return Paths.get(contentFolderLocation, WWW_FOLDER);
+        if (wwwFolder == null) {
+            wwwFolder = Paths.get(getContentFolderLocation(), WWW_FOLDER);
+        }
+
+        return wwwFolder;
     }
 
     public static String getDownloadFolder() {
-        return Paths.get(contentFolderLocation, "www_tmp");
+        if (downloadFolder == null) {
+            downloadFolder = Paths.get(getContentFolderLocation(), WWW_DOWNLOAD_FOLDER);
+        }
+
+        return downloadFolder;
     }
 
     public static String getBackupFolder() {
-        return Paths.get(contentFolderLocation, "www_backup");
+        if (backupFolder == null) {
+            backupFolder = Paths.get(getContentFolderLocation(), WWW_BACKUP_FOLDER);
+        }
+
+        return backupFolder;
     }
 
     public static String getApplicationConfigUrl() {
@@ -155,8 +172,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
         configUrl = preferences.getString(PreferenceKeys.CONFIG_URL, "");
 
         // get folder, where all data is stored
-        String contentFolder = preferences.getString(PreferenceKeys.CONTENT_FOLDER, CONTENT_FOLDER_DEFAULT);
-        contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), contentFolder);
+        String contentFolderName = preferences.getString(PreferenceKeys.CONTENT_FOLDER, CONTENT_FOLDER_DEFAULT);
+        //contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), contentFolderName);
+        contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), contentFolderName);
     }
 
     private void redirectToLocalStorage() {

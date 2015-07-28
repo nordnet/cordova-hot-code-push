@@ -2,6 +2,7 @@ package com.nordnetab.chcp.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
 import com.nordnetab.chcp.utils.FilesUtility;
 
@@ -35,6 +36,9 @@ abstract class Storage<T> {
 
     public T loadFromPreference() {
         String prefValue = preferences.getString(prefName, "");
+        if (TextUtils.isEmpty(prefValue)) {
+            return null;
+        }
 
         return createInstance(prefValue);
     }

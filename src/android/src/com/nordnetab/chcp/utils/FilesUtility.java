@@ -45,12 +45,10 @@ public class FilesUtility {
         }
     }
 
-
-
     public static void copy(File src, File dst) throws IOException {
-        ensureDirectoryExists(dst);
-
         if (src.isDirectory()) {
+            ensureDirectoryExists(dst);
+
             String[] filesList = src.list();
             for (String file : filesList) {
                 File srcFile = new File(src, file);

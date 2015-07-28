@@ -4,15 +4,24 @@ import android.app.ProgressDialog;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
+import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentConfig;
+import com.nordnetab.chcp.storage.ApplicationConfigStorage;
+import com.nordnetab.chcp.updater.UpdatesInstaller;
+import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.Paths;
 
+import org.apache.cordova.CallbackContext;
 import org.apache.cordova.ConfigXmlParser;
+import org.apache.cordova.CordovaArgs;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
+import org.json.JSONException;
 
 import java.io.File;
+import java.util.HashMap;
 
 import de.greenrobot.event.EventBus;
 
@@ -37,13 +46,21 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static String configUrl;
     private static String contentFolderLocation;
     private static String startingPage;
-
+    private static ApplicationConfigStorage appConfigStorage;
 
     private ProgressDialog installProgressDialog;
+
+    private HashMap<String, CallbackContext> fetchTasks;
+    private CallbackContext installJsCallback;
 
     private static class PreferenceKeys {
         public static final String CONFIG_URL = "hot_code_push_config_url";
         public static final String CONTENT_FOLDER = "hot_code_push_local_dir";
+    }
+
+    private static class JSActions {
+        public static final String FETCH_UPDATE = "fetchUpdate";
+        public static final String INSTALL_UPDATE = "installUpdate";
     }
 
     public static String getContentFolderLocation() {
@@ -54,8 +71,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return Paths.get(contentFolderLocation, WWW_FOLDER);
     }
 
-    public static String getDownloadFolderLocation() {
+    public static String getDownloadFolder() {
         return Paths.get(contentFolderLocation, "www_tmp");
+    }
+
+    public static String getBackupFolder() {
+        return Paths.get(contentFolderLocation, "www_backup");
     }
 
     public static String getApplicationConfigUrl() {
@@ -63,8 +84,65 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     @Override
-    protected void pluginInitialize() {
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
+
         processCordovaConfig();
+
+        fetchTasks = new HashMap<String, CallbackContext>();
+
+        if (appConfigStorage == null) {
+            appConfigStorage = new ApplicationConfigStorage(cordova.getActivity(), getWwwFolder());
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        EventBus.getDefault().register(this);
+
+        redirectToLocalStorage();
+
+        ApplicationConfig appConfig = appConfigStorage.loadFromPreference();
+        if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_START) {
+            installUpdate(null);
+        }
+    }
+
+    @Override
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+
+        ApplicationConfig appConfig = appConfigStorage.loadFromPreference();
+        if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_RESUME) {
+            installUpdate(null);
+        }
+
+        fetchUpdate(null);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
+        Log.d("CHCP", "Action from JS: " + action);
+
+        boolean cmdProcessed = true;
+        if (JSActions.FETCH_UPDATE.equals(action)) {
+            fetchUpdate(callbackContext);
+        } else if (JSActions.INSTALL_UPDATE.equals(action)) {
+            installUpdate(callbackContext);
+        } else {
+            cmdProcessed = false;
+        }
+
+        return cmdProcessed;
     }
 
     private void processCordovaConfig() {
@@ -79,23 +157,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // get folder, where all data is stored
         String contentFolder = preferences.getString(PreferenceKeys.CONTENT_FOLDER, CONTENT_FOLDER_DEFAULT);
         contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), contentFolder);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        EventBus.getDefault().register(this);
-
-        redirectToLocalStorage();
-        fetchUpdate();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        EventBus.getDefault().unregister(this);
     }
 
     private void redirectToLocalStorage() {
@@ -115,25 +176,33 @@ public class HotCodePushPlugin extends CordovaPlugin {
         webView.clearHistory();
     }
 
-    private void fetchUpdate() {
-        UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), getWwwFolder(),
-                getDownloadFolderLocation(), getApplicationConfigUrl());
+    private void fetchUpdate(CallbackContext jsCallback) {
+        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), getWwwFolder(),
+                getDownloadFolder(), getApplicationConfigUrl());
+
+        if (jsCallback != null) {
+            fetchTasks.put(taskId, jsCallback);
+        }
     }
 
-    private void installUpdate() {
+    private void installUpdate(CallbackContext jsCallback) {
+        if (jsCallback != null) {
+            installJsCallback = jsCallback;
+        }
+
         if (installProgressDialog != null && installProgressDialog.isShowing()) {
             // already in progress
             return;
         }
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait...", true, false);
-            }
-        });
-
-        UpdatesInstaller.install(cordova.getActivity(), getDownloadFolderLocation(), getWwwFolder());
+        if (UpdatesInstaller.install(cordova.getActivity(), getDownloadFolder(), getWwwFolder(), getBackupFolder())) {
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait...", true, false);
+                }
+            });
+        }
     }
 
     private String getStartingPage() {
@@ -148,40 +217,76 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return startingPage;
     }
 
-    // region Events
+    // region Update download events
+
+    private CallbackContext pollFetchTaskJsCallback(String taskId) {
+        if (!fetchTasks.containsKey(taskId)) {
+            return null;
+        }
+
+        CallbackContext jsCallback = fetchTasks.get(taskId);
+        fetchTasks.remove(taskId);
+
+        return jsCallback;
+    }
 
     public void onEvent(UpdatesLoader.UpdateIsReadyToInstallEvent event) {
         Log.d("CHCP", "Update is ready for installation");
 
+        // notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            jsCallback.success();
+        }
+
+        //perform installation if allowed
         if (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW) {
-            installUpdate();
+            installUpdate(null);
         }
     }
 
     public void onEvent(UpdatesLoader.NothingToUpdateEvent event) {
         Log.d("CHCP", "Nothing to update");
+
+        //notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            jsCallback.success();
+        }
     }
 
     public void onEvent(UpdatesLoader.UpdateErrorEvent event) {
         Log.d("CHCP", "Failed to update");
+
+        // notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            // TODO: add message
+            jsCallback.error("Some error message");
+        }
     }
+
+    // endregion
+
+    // region Update installation events
 
     public void onEvent(UpdatesInstaller.UpdateInstalledEvent event) {
         Log.d("CHCP", "Update is installed");
+
+        if (installJsCallback != null) {
+            installJsCallback.success();
+            installJsCallback = null;
+        }
 
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                //TODO: call page reload from javascript
-
-                String startingPage = Paths.get(getWwwFolder(), getStartingPage());
-                webView.loadUrlIntoView(FILE_PREFIX + startingPage, false);
-
-                webView.clearHistory();
-                webView.clearCache();
-
-                Log.d("CHCP", "Can go back: " + webView.canGoBack());
+//                String startingPage = Paths.get(getWwwFolder(), getStartingPage());
+//                webView.loadUrlIntoView(FILE_PREFIX + startingPage, false);
+//
+//                webView.clearHistory();
+//                webView.clearCache();
 
                 // hide dialog and show WebView
                 if (installProgressDialog != null && installProgressDialog.isShowing()) {
@@ -194,20 +299,29 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     public void onEvent(UpdatesInstaller.InstallationErrorEvent event) {
         Log.d("CHCP", "Failed to install");
+        if (installJsCallback != null) {
+            installJsCallback.error("Some error of installation");
+            installJsCallback = null;
+        }
 
-
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // hide dialog and show WebView
+                if (installProgressDialog != null && installProgressDialog.isShowing()) {
+                    installProgressDialog.dismiss();
+                    installProgressDialog = null;
+                }
+            }
+        });
     }
 
-    @Override
-    public Boolean shouldAllowNavigation(String url) {
-        Log.d("CHCP", "shouldAllowNavigation");
-        return super.shouldAllowNavigation(url);
-    }
-
-    @Override
-    public boolean onOverrideUrlLoading(String url) {
-        Log.d("CHCP", "onOverrideUrlLoading");
-        return super.onOverrideUrlLoading(url);
+    public void onEvent(UpdatesInstaller.NothingToInstallEvent event) {
+        Log.d("CHCP", "Nothing to install");
+        if (installJsCallback != null) {
+            installJsCallback.success();
+            installJsCallback = null;
+        }
     }
 
     // endregion

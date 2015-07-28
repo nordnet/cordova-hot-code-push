@@ -26,9 +26,7 @@
             <preference name="hot_code_push_config_url" value="YOUR_APPLICATION_CONFIG_URL" />
             <preference name="hot_code_push_local_dir" value="www" />
         </config-file>
-        
-
-        
+    
         <!-- Gradle config -->
         <framework src="src/android/chcp.gradle" custom="true" type="gradleReference" />
         
@@ -39,8 +37,13 @@
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
+        
+        <!-- JavaScrip Library Sources -->
+        <js-module src="www/chcp.js" name="chcp">
+            <clobbers target="chcp" />
+        </js-module>
 
-        <!-- Library sources -->
+        <!-- Java Library Sources -->
         <!-- sources for package: com.nordnetab.chcp.config -->
         <source-file src="src/android/src/com/nordnetab/chcp/config/ApplicationConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
@@ -78,13 +81,19 @@
             target-dir="src/com/nordnetab/chcp/utils" />
         <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
             target-dir="src/com/nordnetab/chcp/utils" />
+            
+        <!-- sources for package: com.nordnetab.chcp.updater -->
+        <source-file src="src/android/src/com/nordnetab/chcp/updater/InstallationWorker.java"
+            target-dir="src/com/nordnetab/chcp/updater" />
+        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdateLoaderWorker.java"
+            target-dir="src/com/nordnetab/chcp/updater" />
+        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesInstaller.java"
+            target-dir="src/com/nordnetab/chcp/updater" />
+        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesLoader.java"
+            target-dir="src/com/nordnetab/chcp/updater" />
         
         <!-- sources for package: com.nordnetab.chcp -->
         <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
-            target-dir="src/com/nordnetab/chcp" />
-        <source-file src="src/android/src/com/nordnetab/chcp/UpdatesInstaller.java"
-            target-dir="src/com/nordnetab/chcp" />
-        <source-file src="src/android/src/com/nordnetab/chcp/UpdatesLoader.java"
             target-dir="src/com/nordnetab/chcp" />
 
     </platform>

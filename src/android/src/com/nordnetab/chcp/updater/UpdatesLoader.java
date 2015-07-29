@@ -33,10 +33,26 @@ public class UpdatesLoader {
     // region Events
 
     public enum ErrorType {
-        FAILED_TO_DOWNLOAD_APPLICATION_CONFIG,
-        APPLICATION_BUILD_VERSION_TOO_LOW,
-        FAILED_TO_DOWNLOAD_CONTENT_MANIFEST,
-        FAILED_TO_DOWNLOAD_UPDATE_FILES
+        FAILED_TO_DOWNLOAD_APPLICATION_CONFIG(-1, "Failed to download application configuration file"),
+        APPLICATION_BUILD_VERSION_TOO_LOW(-2, "Application build version is too low for this update"),
+        FAILED_TO_DOWNLOAD_CONTENT_MANIFEST(-3, "Failed to download content manifest file"),
+        FAILED_TO_DOWNLOAD_UPDATE_FILES(-4, "Failed to download update files");
+
+        private String errorDescription;
+        private int errorCode;
+
+        ErrorType(int errorCode, String errorDescription) {
+            this.errorCode = errorCode;
+            this.errorDescription = errorDescription;
+        }
+
+        public String getErrorDescription() {
+            return errorDescription;
+        }
+
+        public int getErrorCode() {
+            return errorCode;
+        }
     }
 
     private static class UpdateProgressEvent {

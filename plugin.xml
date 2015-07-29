@@ -24,7 +24,6 @@
             </feature>
 
             <preference name="hot_code_push_config_url" value="YOUR_APPLICATION_CONFIG_URL" />
-            <preference name="hot_code_push_local_dir" value="www" />
         </config-file>
     
         <!-- Gradle config -->
@@ -91,6 +90,10 @@
             target-dir="src/com/nordnetab/chcp/updater" />
         <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesLoader.java"
             target-dir="src/com/nordnetab/chcp/updater" />
+        
+        <!-- sources for package: com.nordnetab.chcp.js -->
+        <source-file src="src/android/src/com/nordnetab/chcp/js/PluginResultHelper.java"
+            target-dir="src/com/nordnetab/chcp/js" />
         
         <!-- sources for package: com.nordnetab.chcp -->
         <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"

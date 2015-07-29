@@ -44,6 +44,10 @@ abstract class Storage<T> {
     }
 
     public boolean storeOnFS(T object) {
+        if (TextUtils.isEmpty(pathToStorableFile)) {
+            return false;
+        }
+
         try {
             FilesUtility.writeToFile(object.toString(), pathToStorableFile);
 
@@ -56,6 +60,10 @@ abstract class Storage<T> {
     }
 
     public T loadFromFS() {
+        if (TextUtils.isEmpty(pathToStorableFile)) {
+            return null;
+        }
+
         T result = null;
         try {
             String json = FilesUtility.readFromFile(pathToStorableFile);

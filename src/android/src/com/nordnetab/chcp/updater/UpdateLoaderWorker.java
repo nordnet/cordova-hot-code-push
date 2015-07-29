@@ -84,7 +84,6 @@ class UpdateLoaderWorker implements Runnable {
     public void run() {
         waitForInstallationToFinish();
 
-        ensureWwwFolderExists();
         loadConfigs();
 
         // download new application config
@@ -138,14 +137,6 @@ class UpdateLoaderWorker implements Runnable {
 
         // notify that we are done
         EventBus.getDefault().post(new UpdatesLoader.UpdateIsReadyToInstallEvent(newAppConfig, getWorkerId()));
-    }
-
-    private void ensureWwwFolderExists() {
-        if (new File(wwwFolder).exists()) {
-            return;
-        }
-
-        AssetsHelper.copyAssetDirectoryToAppDirectory(context.getAssets(), HotCodePushPlugin.WWW_FOLDER, wwwFolder);
     }
 
     private void loadConfigs() {

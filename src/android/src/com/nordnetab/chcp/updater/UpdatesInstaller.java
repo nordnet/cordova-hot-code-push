@@ -25,9 +25,25 @@ public class UpdatesInstaller {
     // region Events
 
     public enum Error {
-        UPDATE_IS_INVALID,
-        FAILED_TO_CREATE_BACKUP,
-        FAILED_TO_COPY_NEW_CONTENT_FILES
+        UPDATE_IS_INVALID(-100, "Update package is broken"),
+        FAILED_TO_CREATE_BACKUP(-101, "Could not create backup before the installation"),
+        FAILED_TO_COPY_NEW_CONTENT_FILES(-102, "Failed to copy new files to content directory");
+
+        private int errorCode;
+        private String errorDescription;
+
+        Error(int errorCode, String errorDescription) {
+            this.errorCode = errorCode;
+            this.errorDescription = errorDescription;
+        }
+
+        public int getErrorCode() {
+            return errorCode;
+        }
+
+        public String getErrorDescription() {
+            return errorDescription;
+        }
     }
 
     private static class InstallProgressEvent {

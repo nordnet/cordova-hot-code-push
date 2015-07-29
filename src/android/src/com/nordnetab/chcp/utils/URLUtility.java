@@ -9,6 +9,7 @@ import java.net.URLDecoder;
  */
 public class URLUtility {
 
+    // TODO: make it URLEncode?
     public static URL stringToUrl(String urlString) {
         try {
             return new URL(URLDecoder.decode(urlString, "UTF-8"));

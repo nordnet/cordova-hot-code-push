@@ -50,7 +50,10 @@
             target-dir="src/com/nordnetab/chcp/config" />
         <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        
+        <source-file src="src/android/src/com/nordnetab/chcp/config/PluginConfig.java"
+            target-dir="src/com/nordnetab/chcp/config" />
+
+
         <!-- sources for package: com.nordnetab.chcp.network -->
         <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
             target-dir="src/com/nordnetab/chcp/network" />
@@ -67,6 +70,8 @@
         <source-file src="src/android/src/com/nordnetab/chcp/storage/ContentManifestStorage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
         <source-file src="src/android/src/com/nordnetab/chcp/storage/Storage.java"
+            target-dir="src/com/nordnetab/chcp/storage" />
+        <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginConfigStorage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
         
         <!-- sources for package: com.nordnetab.chcp.utils -->

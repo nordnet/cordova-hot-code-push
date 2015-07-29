@@ -118,8 +118,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // location of the cache folder
         if (contentFolderLocation == null) {
-            contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
-            //contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
+            //contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
+            contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
         }
 
         if (appConfigStorage == null) {

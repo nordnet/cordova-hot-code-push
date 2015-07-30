@@ -4,8 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Environment;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentConfig;
@@ -62,11 +64,15 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static PluginConfig pluginConfig;
     private static PluginConfigStorage pluginConfigStorage;
 
-    private ProgressDialog installProgressDialog;
+    private ProgressDialog progressDialog;
 
     private HashMap<String, CallbackContext> fetchTasks;
     private CallbackContext installJsCallback;
     private CallbackContext jsDefaultCallback;
+
+    private Handler handler;
+
+    private boolean isPluginReadyForWork;
 
     private static class JSActions {
         public static final String FETCH_UPDATE = "fetchUpdate";
@@ -108,10 +114,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+    public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
         super.initialize(cordova, webView);
 
         fetchTasks = new HashMap<String, CallbackContext>();
+        handler = new Handler();
 
         loadPluginConfig();
 
@@ -124,18 +131,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
         if (appConfigStorage == null) {
             appConfigStorage = new ApplicationConfigStorage(cordova.getActivity(), getWwwFolder());
         }
-
-        ensureWwwFolderExists();
     }
 
     // TODO: move to background thread
-    private void ensureWwwFolderExists() {
+    private boolean isWwwFolderExists() {
         String externalWwwFolder = getWwwFolder();
-        if (new File(externalWwwFolder).exists()) {
-            return;
-        }
 
-        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), HotCodePushPlugin.WWW_FOLDER, externalWwwFolder);
+        return new File(externalWwwFolder).exists();
     }
 
     private void loadPluginConfig() {
@@ -158,6 +160,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         EventBus.getDefault().register(this);
 
+        isPluginReadyForWork = isWwwFolderExists();
+        if (!isPluginReadyForWork) {
+            installWwwFolder();
+
+            return;
+        }
+
         redirectToLocalStorage();
 
         if (pluginConfig.isAutoInstallIsAllowed()) {
@@ -172,6 +181,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onResume(boolean multitasking) {
         super.onResume(multitasking);
 
+        if (!isPluginReadyForWork) {
+            return;
+        }
+
         if (pluginConfig.isAutoInstallIsAllowed()) {
             ApplicationConfig appConfig = appConfigStorage.loadFromPreference();
             if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_RESUME) {
@@ -181,6 +194,40 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (pluginConfig.isAutoDownloadIsAllowed()) {
             fetchUpdate(null);
+        }
+    }
+
+    private void installWwwFolder() {
+        showProgressDialog();
+        webView.getView().setVisibility(View.INVISIBLE);
+
+        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), HotCodePushPlugin.WWW_FOLDER, getWwwFolder());
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog == null) {
+            return;
+        }
+
+        progressDialog.dismiss();
+        progressDialog = null;
+    }
+
+    private void showProgressDialog() {
+        if (progressDialog != null) {
+            return;
+        }
+
+        Context context = cordova.getActivity();
+        Resources resources = context.getResources();
+        String packageName = context.getPackageName();
+        int msgIdentifier = resources.getIdentifier("chcp_installation_progress_message", "string", packageName);
+        String progressMessage = context.getString(msgIdentifier);
+
+        try {
+            progressDialog = ProgressDialog.show(context, "", progressMessage, true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -194,6 +241,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         Log.d("CHCP", "Action from JS: " + action);
+
+        if (!isPluginReadyForWork) {
+            return false;
+        }
 
         boolean cmdProcessed = true;
         if (JSActions.FETCH_UPDATE.equals(action)) {
@@ -223,7 +274,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
         // TODO: send correct message back to JS
         try {
-            JSONObject jsonObject = (JSONObject)arguments.get(0);
+            JSONObject jsonObject = (JSONObject) arguments.get(0);
             pluginConfig.mergeOptionsFromJs(jsonObject);
             pluginConfigStorage.storeInPreference(pluginConfig);
         } catch (JSONException e) {
@@ -243,7 +294,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         currentUrl = currentUrl.replace(LOCAL_ASSETS_FOLDER, "");
         String external = Paths.get(getWwwFolder(), currentUrl);
         if (!new File(external).exists()) {
-            webView.loadUrlIntoView(BLANK_PAGE, false);
             return;
         }
 
@@ -253,6 +303,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void fetchUpdate(CallbackContext jsCallback) {
+        if (!isPluginReadyForWork) {
+            return;
+        }
+
         String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), getWwwFolder(),
                 getDownloadFolder(), getApplicationConfigUrl());
 
@@ -267,17 +321,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), getDownloadFolder(), getWwwFolder(), getBackupFolder());
-        if (didLaunchInstall && installProgressDialog == null) {
-            cordova.getActivity().runOnUiThread(new Runnable() {
+        if (didLaunchInstall) {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Context context = cordova.getActivity();
-                    Resources resources = context.getResources();
-                    String packageName = context.getPackageName();
-                    int msgIdentifier = resources.getIdentifier("chcp_installation_progress_message", "string", packageName);
-                    String progressMessage = context.getString(msgIdentifier);
-
-                    installProgressDialog = ProgressDialog.show(context, "", progressMessage, true, false);
+                    showProgressDialog();
                 }
             });
         }
@@ -295,6 +343,42 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         return startingPage;
     }
+
+    // region Assets installation events
+
+    public void onEvent(AssetsHelper.AssetsInstalledEvent event) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                resetApplicationToStartingPage();
+                isPluginReadyForWork = true;
+
+                // we need small delay to let webview to reload the page
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        webView.getView().setVisibility(View.VISIBLE);
+                        dismissProgressDialog();
+                        fetchUpdate(null);
+                    }
+                }, 150);
+            }
+        });
+    }
+
+    public void onEvent(AssetsHelper.AssetsInstallationFailedEvent event) {
+        Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                webView.getView().setVisibility(View.VISIBLE);
+                dismissProgressDialog();
+            }
+        });
+    }
+
+    // endregion
 
     // region Update download events
 
@@ -392,15 +476,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
             shouldReloadOnInit = true;
         }
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
-
                 // hide dialog and show WebView
-                if (installProgressDialog != null && installProgressDialog.isShowing()) {
-                    installProgressDialog.dismiss();
-                    installProgressDialog = null;
-                }
+                dismissProgressDialog();
             }
         });
     }
@@ -431,14 +511,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsDefaultCallback.sendPluginResult(jsResult);
         }
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 // hide dialog and show WebView
-                if (installProgressDialog != null && installProgressDialog.isShowing()) {
-                    installProgressDialog.dismiss();
-                    installProgressDialog = null;
-                }
+                dismissProgressDialog();
             }
         });
     }

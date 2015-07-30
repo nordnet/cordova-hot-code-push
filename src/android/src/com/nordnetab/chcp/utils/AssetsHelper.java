@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import de.greenrobot.event.EventBus;
+
 /**
  * Created by Nikolay Demyankov on 21.07.15.
  *
@@ -14,19 +16,28 @@ import java.io.OutputStream;
  */
 public class AssetsHelper {
 
+    public static class AssetsInstalledEvent {
+    }
+
+    public static class AssetsInstallationFailedEvent {
+    }
+
     private AssetsHelper() {
     }
 
-    public static boolean copyAssetDirectoryToAppDirectory(final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
-        try {
-            copyAssetDirectory(assetManager, fromDirectory, toDirectory);
-
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return false;
+    public static void copyAssetDirectoryToAppDirectory(final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    copyAssetDirectory(assetManager, fromDirectory, toDirectory);
+                    EventBus.getDefault().post(new AssetsInstalledEvent());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    EventBus.getDefault().post(new AssetsInstallationFailedEvent());
+                }
+            }
+        }).start();
     }
 
     private static void copyAssetDirectory(AssetManager assetManager, String fromDirectory, String toDirectory) throws IOException {

@@ -1,8 +1,8 @@
 package com.nordnetab.chcp;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -17,21 +17,18 @@ import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.AssetsHelper;
 import com.nordnetab.chcp.utils.Paths;
-import com.nordnetab.chcp.utils.URLUtility;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.ConfigXmlParser;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 import de.greenrobot.event.EventBus;
@@ -219,9 +216,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (shouldReloadOnInit) {
             shouldReloadOnInit = false;
-            PluginResult jsResult = PluginResultHelper.getReloadPageAction(getStartingPage());
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
+            resetApplicationToStartingPage();
         }
     }
 
@@ -276,8 +271,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
             cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO: move to resources
-                    installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait", true, false);
+                    Context context = cordova.getActivity();
+                    Resources resources = context.getResources();
+                    String packageName = context.getPackageName();
+                    int msgIdentifier = resources.getIdentifier("chcp_installation_progress_message", "string", packageName);
+                    String progressMessage = context.getString(msgIdentifier);
+
+                    installProgressDialog = ProgressDialog.show(context, "", progressMessage, true, false);
                 }
             });
         }
@@ -386,9 +386,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsResult.setKeepCallback(true);
             jsDefaultCallback.sendPluginResult(jsResult);
 
-            PluginResult reloadAction = PluginResultHelper.getReloadPageAction(getStartingPage());
-            reloadAction.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(reloadAction);
+            // reset page to the starting one
+            resetApplicationToStartingPage();
         } else {
             shouldReloadOnInit = true;
         }
@@ -404,6 +403,16 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 }
             }
         });
+    }
+
+    private void resetApplicationToStartingPage() {
+        if (jsDefaultCallback == null) {
+            return;
+        }
+
+        PluginResult reloadAction = PluginResultHelper.getReloadPageAction(getStartingPage());
+        reloadAction.setKeepCallback(true);
+        jsDefaultCallback.sendPluginResult(reloadAction);
     }
 
     public void onEvent(UpdatesInstaller.InstallationErrorEvent event) {
@@ -449,7 +458,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsResult.setKeepCallback(true);
             jsDefaultCallback.sendPluginResult(jsResult);
         }
-
     }
 
     // endregion

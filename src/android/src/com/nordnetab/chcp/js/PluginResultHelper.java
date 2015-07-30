@@ -12,8 +12,34 @@ import org.apache.cordova.PluginResult;
 
 /**
  * Created by Nikolay Demyankov on 29.07.15.
+ *
+ *
  */
 public class PluginResultHelper {
+
+    private static class JsAction {
+        public static final String UPDATE_INSTALLED = "update_installed";
+        public static final String UPDATE_INSTALLATION_ERROR = "installation_error";
+        public static final String NOTHING_TO_INSTALL = "nothing_to_install";
+        public static final String UPDATE_IS_LOADED = "update_load_success";
+        public static final String UPDATE_LOAD_ERROR = "update_load_error";
+        public static final String NOTHING_TO_UPDATE = "nothing_to_update";
+        public static final String RESET_PAGE = "reset_page";
+    }
+
+    private static class JsParams {
+
+        private static class General {
+            public static final String ACTION = "action";
+            public static final String ERROR = "error";
+            public static final String DATA = "data";
+        }
+
+        private static class Error {
+            public static final String CODE = "code";
+            public static final String DESCRIPTION = "description";
+        }
+    }
 
     public static PluginResult getResultForInstallationSuccess() {
         JsonNodeFactory factory = JsonNodeFactory.instance;
@@ -21,13 +47,13 @@ public class PluginResultHelper {
         ObjectNode dataContent = factory.objectNode();
         dataContent.set("status", factory.numberNode(1));
 
-        return getResult("update_installed", dataContent, null);
+        return getResult(JsAction.UPDATE_INSTALLED, dataContent, null);
     }
 
     public static PluginResult getResultForInstallationError(UpdatesInstaller.Error error) {
         JsonNode errorNode = createErrorNode(error.getErrorCode(), error.getErrorDescription());
 
-        return getResult("installation_error", null, errorNode);
+        return getResult(JsAction.UPDATE_INSTALLATION_ERROR, null, errorNode);
     }
 
     public static PluginResult getResultForNothingToInstall() {
@@ -36,7 +62,7 @@ public class PluginResultHelper {
         ObjectNode dataContent = factory.objectNode();
         dataContent.set("status", factory.numberNode(0));
 
-        return getResult("nothing_to_install", dataContent, null);
+        return getResult(JsAction.NOTHING_TO_INSTALL, dataContent, null);
     }
 
     public static PluginResult getResultForUpdateLoadSuccess() {
@@ -45,13 +71,13 @@ public class PluginResultHelper {
         ObjectNode dataContent = factory.objectNode();
         dataContent.set("status", factory.numberNode(1));
 
-        return getResult("update_load_success", dataContent, null);
+        return getResult(JsAction.UPDATE_IS_LOADED, dataContent, null);
     }
 
     public static PluginResult getResultForUpdateLoadError(UpdatesLoader.ErrorType errorType) {
         JsonNode errorNode = createErrorNode(errorType.getErrorCode(), errorType.getErrorDescription());
 
-        return getResult("update_load_error", null, errorNode);
+        return getResult(JsAction.UPDATE_LOAD_ERROR, null, errorNode);
     }
 
     public static PluginResult getResultForNothingToUpdate() {
@@ -60,7 +86,7 @@ public class PluginResultHelper {
         ObjectNode dataContent = factory.objectNode();
         dataContent.set("status", factory.numberNode(0));
 
-        return getResult("nothing_to_update", dataContent, null);
+        return getResult(JsAction.NOTHING_TO_UPDATE, dataContent, null);
     }
 
     public static PluginResult getReloadPageAction(String url) {
@@ -71,15 +97,15 @@ public class PluginResultHelper {
             dataNode.set("url", factory.textNode(url));
         }
 
-        return getResult("reload_page", dataNode, null);
+        return getResult(JsAction.RESET_PAGE, dataNode, null);
     }
 
     private static JsonNode createErrorNode(int errorCode, String errorDescription) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
 
         ObjectNode errorData = factory.objectNode();
-        errorData.set("code", factory.numberNode(errorCode));
-        errorData.set("description", factory.textNode(errorDescription));
+        errorData.set(JsParams.Error.CODE, factory.numberNode(errorCode));
+        errorData.set(JsParams.Error.DESCRIPTION, factory.textNode(errorDescription));
 
         return errorData;
     }
@@ -89,9 +115,9 @@ public class PluginResultHelper {
 
         ObjectNode resultObject = factory.objectNode();
 
-        resultObject.set("action", factory.textNode(action));
-        resultObject.set("data", data);
-        resultObject.set("error", error);
+        resultObject.set(JsParams.General.ACTION, factory.textNode(action));
+        resultObject.set(JsParams.General.DATA, data);
+        resultObject.set(JsParams.General.ERROR, error);
 
         return new PluginResult(PluginResult.Status.OK, resultObject.toString());
     }

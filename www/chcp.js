@@ -14,10 +14,10 @@ function processMessageFromNative(msg) {
   try {
     var resultObj = JSON.parse(msg);
     if (resultObj.hasOwnProperty('error')) {
-      errorContent = resultObj.params.erorr;
+      errorContent = resultObj.error;
     }
     if (resultObj.hasOwnProperty('data')) {
-      dataContent = resultObj.params.data;
+      dataContent = resultObj.data;
     }
     if (resultObj.hasOwnProperty('action')) {
       actionId = resultObj.action;
@@ -33,6 +33,7 @@ function nativeCallback(msg) {
 
   var resultObj = processMessageFromNative(msg);
   if (resultObj.action == null) {
+    console.log('Action is not provided, skipping');
     return;
   }
 
@@ -57,8 +58,8 @@ function nativeCallback(msg) {
       processUpdateInstalledAction(resultObj);
       break;
 
-    case 'reload_page':
-      processPageReloadAction(resultObj.params);
+    case 'reset_page':
+      processPageResetAction(resultObj);
       break;
 
     default:
@@ -90,15 +91,15 @@ function processInstallationErrorAction(nativeMessage) {
 
 // region Private API
 
-function processPageReloadAction(nativeMessage) {
+function processPageResetAction(nativeMessage) {
   if (nativeMessage.data == null) {
     return;
   }
 
-  console.log(nativeMessage);
-  var historyLen=history.length;
+  var historyLen = history.length;
   history.go(-historyLen);
   window.location.href = nativeMessage.data.url;
+  window.location.reload(true);
 }
 
 // endregion

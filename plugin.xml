@@ -23,7 +23,7 @@
                 <param name="onload" value="true" />
             </feature>
 
-            <preference name="hot_code_push_config_url" value="YOUR_APPLICATION_CONFIG_URL" />
+            <preference name="hot_code_push_config_url" value="" />
         </config-file>
     
         <!-- Gradle config -->

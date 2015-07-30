@@ -8,11 +8,10 @@ Cordova plugin for auto-updates of web-based functionality.
 
 ## Plugin Installation
 
-1. Clone this repository to your hard disk
-2. Create cordova progect with Android platform support.
-3. Go to the projects folder.
-4. Install plugin with command:
+1. Create cordova project with Android platform support.
+2. Go to the projects folder.
+3. Install plugin with command:
 
-        plugman install --platform android --project platforms/android/ --plugin /path/to/HotCodePushPlugin/
+        cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
 
 ## Plugin Setup

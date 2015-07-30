@@ -8,11 +8,19 @@
     <description>Plugin for Nordnet-Cordova integration</description>
     <license>Apache 2.0</license>
     <keywords>cordova,code,update</keywords>
+    
+    <repo>https://github.com/nordnet/cordova-hot-code-push</repo>
+    <issue>https://github.com/nordnet/cordova-hot-code-push/issues</issue>
 
     <engines>
       <engine name="cordova-android" version=">=4" />
       <engine name="cordova-plugman" version=">=4.2.0" /><!-- needed for gradleReference support -->
     </engines>
+
+    <!-- JavaScrip Library Sources -->
+    <js-module src="www/chcp.js" name="chcp">
+        <clobbers target="chcp" />
+    </js-module>
 
     <platform name="android">
         
@@ -37,16 +45,10 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         </config-file>
         
-        <!-- JavaScrip Library Sources -->
-        <js-module src="www/chcp.js" name="chcp">
-            <clobbers target="chcp" />
-        </js-module>
-        
         <!-- String resources -->
         <config-file target="res/values/strings.xml" parent="/resources">
             <string name="chcp_installation_progress_message">Loading, please wait…</string>
         </config-file>
-
 
         <!-- Java Library Sources -->
         <!-- sources for package: com.nordnetab.chcp.config -->

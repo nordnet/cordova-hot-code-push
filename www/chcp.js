@@ -63,28 +63,40 @@ function nativeCallback(msg) {
       break;
 
     default:
-      console.log("Unsupported action: " + resultObj.action);
+      console.log('Unsupported action: '  + resultObj.action);
   }
 }
 
 // region Update/Install events
 
 function processUpdateInstalledAction(nativeMessage) {
+  var event = new CustomEvent('chcp_updateInstalled', {});
+  document.dispatchEvent(event);
 }
 
 function processUpdateIsReadyForInstallationAction(nativeMessage) {
+  var event = new CustomEvent('chcp_updateIsReadyToInstall', {});
+  document.dispatchEvent(event);
 }
 
 function processNothingToUpdateAction(nativeMessage) {
+  var event = new CustomEvent('chcp_nothingToUpdate', {});
+  document.dispatchEvent(event);
 }
 
 function processUpdateLoadErrorAction(nativeMessage) {
+  var event = new CustomEvent('chcp_updateLoadFailed', {'error': nativeMessage.error});
+  document.dispatchEvent(event);
 }
 
 function processNothingToInstallAction(nativeMessage) {
+  var event = new CustomEvent('chcp_nothingToUpdate', {});
+  document.dispatchEvent(event);
 }
 
 function processInstallationErrorAction(nativeMessage) {
+  var event = new CustomEvent('chcp_updateInstallFailed', {'error': nativeMessage.error});
+  document.dispatchEvent(event);
 }
 
 // endregion
@@ -106,7 +118,7 @@ function processPageResetAction(nativeMessage) {
 
 /*
 pluginOptions = {
-  config_url: "some_url",
+  config_url: 'some_url',
   allow_auto_install: true,
   allow_auto_download: true
 }
@@ -162,3 +174,4 @@ var chcp = {
 };
 
 module.exports = chcp;
+

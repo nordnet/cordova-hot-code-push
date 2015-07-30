@@ -1,6 +1,7 @@
 package com.nordnetab.chcp;
 
 import android.app.ProgressDialog;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
@@ -27,6 +28,7 @@ import org.apache.cordova.CordovaResourceApi;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,8 +120,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // location of the cache folder
         if (contentFolderLocation == null) {
-            //contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
-            contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
+            contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
+            //contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
         }
 
         if (appConfigStorage == null) {
@@ -202,7 +204,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         } else if (JSActions.INSTALL_UPDATE.equals(action)) {
             installUpdate(callbackContext);
         } else if (JSActions.CONFIGURE.equals(action)) {
-            // TODO: add configure
+            jsSetPluginOptions(args, callbackContext);
         } else if (JSActions.INIT.equals(action)) {
             initJs(callbackContext);
         } else {
@@ -221,6 +223,19 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsResult.setKeepCallback(true);
             jsDefaultCallback.sendPluginResult(jsResult);
         }
+    }
+
+    private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
+        // TODO: send correct message back to JS
+        try {
+            JSONObject jsonObject = (JSONObject)arguments.get(0);
+            pluginConfig.mergeOptionsFromJs(jsonObject);
+            pluginConfigStorage.storeInPreference(pluginConfig);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        callback.success();
     }
 
     private void redirectToLocalStorage() {
@@ -261,7 +276,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait...", true, false);
+                    // TODO: move to resources
+                    installProgressDialog = ProgressDialog.show(cordova.getActivity(), "", "Loading, please wait", true, false);
                 }
             });
         }

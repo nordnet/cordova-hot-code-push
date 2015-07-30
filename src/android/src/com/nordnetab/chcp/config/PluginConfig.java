@@ -2,6 +2,7 @@ package com.nordnetab.chcp.config;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.cordova.CordovaPreferences;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -20,8 +23,8 @@ import java.io.IOException;
 public class PluginConfig {
 
     private static class JsonKeys {
-        public static final String ALLOW_UPDATES_AUTO_DOWNLOAD = "allow_updates_auto_download";
-        public static final String ALLOW_UPDATE_AUTO_INSTALL = "allow_updates_auto_install";
+        public static final String ALLOW_UPDATES_AUTO_DOWNLOAD = "allow_auto_download";
+        public static final String ALLOW_UPDATE_AUTO_INSTALL = "allow_auto_install";
         public static final String CONFIG_URL = "config_url";
         public static final String APPLICATION_BUILD_VERSION = "app_build_version";
     }
@@ -61,14 +64,29 @@ public class PluginConfig {
         return config;
     }
 
+    public void mergeOptionsFromJs(JSONObject jsOptions) throws JSONException {
+        if (jsOptions.has(JsonKeys.CONFIG_URL)) {
+            String configUrl = jsOptions.getString(JsonKeys.CONFIG_URL);
+            if (!TextUtils.isEmpty(configUrl)) {
+                setConfigUrl(configUrl);
+            }
+        }
+
+        if (jsOptions.has(JsonKeys.ALLOW_UPDATE_AUTO_INSTALL)) {
+            allowUpdatesAutoInstall(jsOptions.getBoolean(JsonKeys.ALLOW_UPDATE_AUTO_INSTALL));
+        }
+
+        if (jsOptions.has(JsonKeys.ALLOW_UPDATES_AUTO_DOWNLOAD)) {
+            allowUpdatesAutoDownload(jsOptions.getBoolean(JsonKeys.ALLOW_UPDATES_AUTO_DOWNLOAD));
+        }
+    }
+
     public static PluginConfig createDefaultConfig(Context context, CordovaPreferences cordovaPreferences) {
         PluginConfig config = new PluginConfig();
         config.allowUpdatesAutoInstall(true);
         config.allowUpdatesAutoDownload(true);
 
-        config.setConfigUrl(
-                cordovaPreferences.getString(CordovaPreferenceKeys.CONFIG_URL, "")
-        );
+        config.setConfigUrl(cordovaPreferences.getString(CordovaPreferenceKeys.CONFIG_URL, ""));
 
         // get version code of the app
         int versionCode = 0;

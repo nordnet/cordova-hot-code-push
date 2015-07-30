@@ -41,6 +41,12 @@
         <js-module src="www/chcp.js" name="chcp">
             <clobbers target="chcp" />
         </js-module>
+        
+        <!-- String resources -->
+        <config-file target="res/values/strings.xml" parent="/resources">
+            <string name="chcp_installation_progress_message">Loading, please wait…</string>
+        </config-file>
+
 
         <!-- Java Library Sources -->
         <!-- sources for package: com.nordnetab.chcp.config -->

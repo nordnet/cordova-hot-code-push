@@ -3,129 +3,161 @@ var exec = require('cordova/exec');
 var channel = require('cordova/channel');
 
 channel.onCordovaReady.subscribe(function() {
-    exec(nativeCallback, null, 'HotCodePush', 'init', []);
+  exec(nativeCallback, null, 'HotCodePush', 'init', []);
 });
 
 function processMessageFromNative(msg) {
-    try {
-        return JSON.parse(msg);
-    } catch (err) {
-        console.log(err);
-        return null;
+  var errorContent = null;
+  var dataContent = null;
+  var actionId = null;
+
+  try {
+    var resultObj = JSON.parse(msg);
+    if (resultObj.hasOwnProperty('error')) {
+      errorContent = resultObj.params.erorr;
     }
+    if (resultObj.hasOwnProperty('data')) {
+      dataContent = resultObj.params.data;
+    }
+    if (resultObj.hasOwnProperty('action')) {
+      actionId = resultObj.action;
+    }
+  } catch (err) {
+  }
+
+  return {action: actionId, error: errorContent, data: dataContent};
 }
 
 function nativeCallback(msg) {
-    console.log(msg);
+  console.log(msg);
 
-    var resultObj = processMessageFromNative(msg);
-    if (resultObj == null) {
-        return;
-    }
+  var resultObj = processMessageFromNative(msg);
+  if (resultObj.action == null) {
+    return;
+  }
 
-    switch (resultObj.action) {
-        case 'update_load_error':
-            processUpdateLoadErrorAction(resultObj.params);
-            break;
-        case 'nothing_to_update':
-            processNothingToUpdateAction(resultObj.params);
-            break;
-        case 'update_load_success':
-            processUpdateIsReadyForInstallationAction(resultObj.params);
-            break;
+  switch (resultObj.action) {
+    case 'update_load_error':
+      processUpdateLoadErrorAction(resultObj);
+      break;
+    case 'nothing_to_update':
+      processNothingToUpdateAction(resultObj);
+      break;
+    case 'update_load_success':
+      processUpdateIsReadyForInstallationAction(resultObj);
+      break;
 
-        case 'installation_error':
-            processInstallationErrorAction(resultObj.params);
-            break;
-        case 'nothing_to_install':
-            processNothingToInstallAction(resultObj.params);
-            break;
-        case 'update_installed':
-            processUpdateInstalledAction(resultObj.params);
-            break;
-        case 'reload_page':
-            processPageReloadAction(resultObj.params);
-            break;
+    case 'installation_error':
+      processInstallationErrorAction(resultObj);
+      break;
+    case 'nothing_to_install':
+      processNothingToInstallAction(resultObj);
+      break;
+    case 'update_installed':
+      processUpdateInstalledAction(resultObj);
+      break;
 
-        default:
-            console.log("Unsupported action: " + resultObj.action);
-    }
+    case 'reload_page':
+      processPageReloadAction(resultObj.params);
+      break;
+
+    default:
+      console.log("Unsupported action: " + resultObj.action);
+  }
 }
 
-function processPageReloadAction(actionParams) {
-    location.replace(actionParams.url);
+// region Update/Install events
+
+function processUpdateInstalledAction(nativeMessage) {
 }
 
-function processUpdateInstalledAction(actionParams) {
+function processUpdateIsReadyForInstallationAction(nativeMessage) {
 }
 
-function processUpdateIsReadyForInstallationAction(actionParams) {
-
+function processNothingToUpdateAction(nativeMessage) {
 }
 
-function processNothingToUpdateAction(actionParams) {
-
+function processUpdateLoadErrorAction(nativeMessage) {
 }
 
-function processUpdateLoadErrorAction(actionParams) {
-
+function processNothingToInstallAction(nativeMessage) {
 }
 
-function processNothingToInstallAction(actionParams) {
-
+function processInstallationErrorAction(nativeMessage) {
 }
 
-function processInstallationErrorAction(actionParams) {
+// endregion
 
+// region Private API
+
+function processPageReloadAction(nativeMessage) {
+  if (nativeMessage.data == null) {
+    return;
+  }
+
+  console.log(nativeMessage);
+  var historyLen=history.length;
+  history.go(-historyLen);
+  window.location.href = nativeMessage.data.url;
 }
+
+// endregion
+
+/*
+pluginOptions = {
+  config_url: "some_url",
+  allow_auto_install: true,
+  allow_auto_download: true
+}
+*/
 
 var chcp = {
 
-    __javaMethod: {
-        FETCH_UPDATE: 'fetchUpdate',
-        INSTALL_UPDATE: 'installUpdate',
-    },
+  __javaMethod: {
+    FETCH_UPDATE: 'fetchUpdate',
+    INSTALL_UPDATE: 'installUpdate',
+    CONFIGURE: 'configure'
+  },
 
-    __PLUGIN_NAME: 'HotCodePush',
+  __PLUGIN_NAME: 'HotCodePush',
 
-    fetchUpdate: function(callback) {
-        var innerCallback = function(msg) {
-            var resultObj = processMessageFromNative(msg);
-            var error = null;
-            var data = null;
-            if (resultObj.params.hasOwnProperty('error')) {
-                error = resultObj.params.error;
-            } else {
-                data = resultObj.params.data;
-            }
-
-            if (callback != null) {
-                callback(error, data);
-            }
-        };
-
-        exec(innerCallback, null, this.__PLUGIN_NAME, this.__javaMethod.FETCH_UPDATE, []);
-    },
-
-    installUpdate: function(callback) {
-        var innerCallback = function(msg) {
-            var resultObj = processMessageFromNative(msg);
-            var error = null;
-            var data = null;
-            if (resultObj.params.hasOwnProperty('error')) {
-                error = resultObj.params.error;
-            } else {
-                data = resultObj.params.data;
-            }
-
-            if (callback != null) {
-                callback(error, data);
-            }
-        };
-
-        exec(innerCallback, null, this.__PLUGIN_NAME, this.__javaMethod.INSTALL_UPDATE, []);
+  configure: function(options, callback) {
+    if (options === undefined || options == null) {
+      return;
     }
+
+    var innerCallback = function(msg) {
+      var resultObj = processMessageFromNative(msg);
+      if (callback !== undefined && callback != null) {
+        callback(resultObj.error);
+      }
+    };
+
+    exec(innerCallback, null, this.__PLUGIN_NAME, this.__javaMethod.CONFIGURE, [options]);
+  },
+
+  // TODO: add support for chcp.json as parameter
+  fetchUpdate: function(config, callback) {
+    var innerCallback = function(msg) {
+      var resultObj = processMessageFromNative(msg);
+      if (callback !== undefined && callback != null) {
+        callback(resultObj.error, resultObj.data);
+      }
+    };
+
+    exec(innerCallback, null, this.__PLUGIN_NAME, this.__javaMethod.FETCH_UPDATE, []);
+  },
+
+  installUpdate: function(callback) {
+    var innerCallback = function(msg) {
+      var resultObj = processMessageFromNative(msg);
+      if (callback != undefined && callback != null) {
+        callback(resultObj.error);
+      }
+    };
+
+    exec(innerCallback, null, this.__PLUGIN_NAME, this.__javaMethod.INSTALL_UPDATE, []);
+  }
 };
 
 module.exports = chcp;
-

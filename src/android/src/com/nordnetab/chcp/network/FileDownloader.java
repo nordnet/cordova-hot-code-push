@@ -1,5 +1,7 @@
 package com.nordnetab.chcp.network;
 
+import android.util.Log;
+
 import com.nordnetab.chcp.config.ContentManifest;
 import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.MD5;
@@ -16,6 +18,9 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -43,6 +48,8 @@ public class FileDownloader {
      * @return true - if file is downloaded and not corrupted; otherwise - false
      */
     public static void download(String urlFrom, String filePath, String checkSum) throws IOException {
+        Log.d("CHCP", "Loading file: " + urlFrom);
+
         File downloadFile = new File(filePath);
         FilesUtility.delete(downloadFile);
         FilesUtility.ensureDirectoryExists(downloadFile.getParentFile());
@@ -73,7 +80,7 @@ public class FileDownloader {
 
         String downloadedFileHash = md5.calculateHash();
         if (!downloadedFileHash.equals(checkSum)) {
-            throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match " + downloadedFileHash);
+            throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match hash " + downloadedFileHash + " of the downloaded file");
         }
     }
 }

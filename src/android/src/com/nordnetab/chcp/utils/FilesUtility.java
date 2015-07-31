@@ -32,7 +32,11 @@ public class FilesUtility {
                 delete(child);
         }
 
-        fileOrDirectory.delete();
+        final File to = new File(fileOrDirectory.getAbsolutePath() + System.currentTimeMillis());
+        fileOrDirectory.renameTo(to);
+        to.delete();
+
+        //fileOrDirectory.delete();
     }
 
     public static void ensureDirectoryExists(String dirPath) {

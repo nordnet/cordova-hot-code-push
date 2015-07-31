@@ -5,7 +5,7 @@
       version="1.0.0">
 
     <name>Hot Code Push Plugin</name>
-    <description>Plugin for Nordnet-Cordova integration</description>
+    <description>Cordova plugin to perform code updates on the fly</description>
     <license>Apache 2.0</license>
     <keywords>cordova,code,update</keywords>
     
@@ -21,6 +21,11 @@
     <js-module src="www/chcp.js" name="chcp">
         <clobbers target="chcp" />
     </js-module>
+    
+    <config-file target="config.xml" parent="/*">
+        <preference name="loadUrlTimeoutValue" value="60000" />
+        <preference name="hot_code_push_config_url" value="" />
+    </config-file>
 
     <platform name="android">
         
@@ -30,8 +35,6 @@
                 <param name="android-package" value="com.nordnetab.chcp.HotCodePushPlugin" />
                 <param name="onload" value="true" />
             </feature>
-
-            <preference name="hot_code_push_config_url" value="" />
         </config-file>
     
         <!-- Gradle config -->
@@ -93,7 +96,9 @@
             target-dir="src/com/nordnetab/chcp/utils" />
         <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-            
+        <source-file src="src/android/src/com/nordnetab/chcp/utils/VersionHelper.java"
+            target-dir="src/com/nordnetab/chcp/utils" />
+
         <!-- sources for package: com.nordnetab.chcp.updater -->
         <source-file src="src/android/src/com/nordnetab/chcp/updater/InstallationWorker.java"
             target-dir="src/com/nordnetab/chcp/updater" />

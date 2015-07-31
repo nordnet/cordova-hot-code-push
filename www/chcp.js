@@ -108,6 +108,7 @@ function processPageResetAction(nativeMessage) {
     return;
   }
 
+  // reset the page
   var historyLen = history.length;
   history.go(-historyLen);
   window.location.href = nativeMessage.data.url;
@@ -174,4 +175,3 @@ var chcp = {
 };
 
 module.exports = chcp;
-

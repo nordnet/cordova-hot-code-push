@@ -19,6 +19,7 @@ import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.AssetsHelper;
 import com.nordnetab.chcp.utils.Paths;
+import com.nordnetab.chcp.utils.VersionHelper;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.ConfigXmlParser;
@@ -133,7 +134,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
-    // TODO: move to background thread
     private boolean isWwwFolderExists() {
         String externalWwwFolder = getWwwFolder();
 
@@ -160,10 +160,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         EventBus.getDefault().register(this);
 
-        isPluginReadyForWork = isWwwFolderExists();
+        // ensure that www folder installed on external storage
+        isPluginReadyForWork = isWwwFolderExists() && !isApplicationHasBeenUpdated();
         if (!isPluginReadyForWork) {
             installWwwFolder();
-
             return;
         }
 
@@ -175,6 +175,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 installUpdate(null);
             }
         }
+    }
+
+    private boolean isApplicationHasBeenUpdated() {
+        return pluginConfig.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
     }
 
     @Override
@@ -347,6 +351,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
     // region Assets installation events
 
     public void onEvent(AssetsHelper.AssetsInstalledEvent event) {
+        // update stored application version
+        pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
+        pluginConfigStorage.storeOnFS(pluginConfig);
+
+        // reload page
         handler.post(new Runnable() {
             @Override
             public void run() {

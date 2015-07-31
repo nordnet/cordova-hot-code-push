@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nordnetab.chcp.utils.VersionHelper;
 
 import org.apache.cordova.CordovaPreferences;
 import org.json.JSONException;
@@ -88,14 +89,8 @@ public class PluginConfig {
 
         config.setConfigUrl(cordovaPreferences.getString(CordovaPreferenceKeys.CONFIG_URL, ""));
 
-        // get version code of the app
-        int versionCode = 0;
-        try {
-            versionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        config.setAppBuildVersion(versionCode);
+        // set version code of the app
+        config.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
 
         return config;
     }

@@ -1,7 +1,6 @@
 package com.nordnetab.chcp.updater;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.nordnetab.chcp.HotCodePushPlugin;
@@ -12,9 +11,9 @@ import com.nordnetab.chcp.network.ContentManifestDownloader;
 import com.nordnetab.chcp.network.FileDownloader;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
-import com.nordnetab.chcp.utils.AssetsHelper;
 import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.URLUtility;
+import com.nordnetab.chcp.utils.VersionHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,37 +28,21 @@ class UpdateLoaderWorker implements Runnable {
 
     private final ApplicationConfigStorage appConfigStorage;
     private final ContentManifestStorage manifestStorage;
-    private final String wwwFolder;
     private final String downloadFolder;
     private final String applicationConfigUrl;
-    private final Context context;
     private final int appBuildVersion;
 
     private ApplicationConfig newAppConfig;
-    private ApplicationConfig oldAppConfig;
-
-    private ContentManifest newContentManifest;
-    private ContentManifest oldContentManifest;
 
     private String workerId;
 
     public UpdateLoaderWorker(Context context, String wwwFolder, String downloadFolder, String configUrl) {
         this.workerId = generateId();
-        this.context = context;
-        this.wwwFolder = wwwFolder;
         this.downloadFolder = downloadFolder;
         applicationConfigUrl = configUrl;
         manifestStorage = new ContentManifestStorage(context, wwwFolder);
         appConfigStorage = new ApplicationConfigStorage(context, wwwFolder);
-
-        // get version code of the app
-        int versionCode = 0;
-        try {
-            versionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        appBuildVersion = versionCode;
+        appBuildVersion = VersionHelper.applicationVersionCode(context);
     }
 
     private String generateId() {
@@ -84,7 +67,11 @@ class UpdateLoaderWorker implements Runnable {
     public void run() {
         waitForInstallationToFinish();
 
-        loadConfigs();
+        Log.d("CHCP", "Starting loader worker " + getWorkerId());
+
+        // load configs
+        ApplicationConfig oldAppConfig = appConfigStorage.loadFromFS();
+        ContentManifest oldContentManifest = manifestStorage.loadFromFS();
 
         // download new application config
         newAppConfig = downloadApplicationConfig();
@@ -106,7 +93,7 @@ class UpdateLoaderWorker implements Runnable {
         }
 
         // download new content manifest
-        newContentManifest = downloadContentManifest(newAppConfig);
+        ContentManifest newContentManifest = downloadContentManifest(newAppConfig);
         if (newContentManifest == null) {
             EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST));
             return;
@@ -126,7 +113,7 @@ class UpdateLoaderWorker implements Runnable {
         // download files
         boolean isDownloaded = downloadNewAndChagedFiles(diff);
         if (!isDownloaded) {
-            new File(downloadFolder).delete();
+            FilesUtility.delete(downloadFolder);
             EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_UPDATE_FILES));
             return;
         }
@@ -137,11 +124,8 @@ class UpdateLoaderWorker implements Runnable {
 
         // notify that we are done
         EventBus.getDefault().post(new UpdatesLoader.UpdateIsReadyToInstallEvent(newAppConfig, getWorkerId()));
-    }
 
-    private void loadConfigs() {
-        oldAppConfig = appConfigStorage.loadFromFS();
-        oldContentManifest = manifestStorage.loadFromFS();
+        Log.d("CHCP", "Loader worker " + getWorkerId() + " has finished");
     }
 
     private ApplicationConfig downloadApplicationConfig() {
@@ -169,9 +153,8 @@ class UpdateLoaderWorker implements Runnable {
     }
 
     private void recreateDownloadFolder(final String folder) {
-        FilesUtility.delete(downloadFolder);
-
-        new File(downloadFolder).mkdirs();
+        FilesUtility.delete(folder);
+        FilesUtility.ensureDirectoryExists(folder);
     }
 
     private boolean downloadNewAndChagedFiles(ContentManifest.ManifestDiff diff) {

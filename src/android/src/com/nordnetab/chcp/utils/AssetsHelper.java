@@ -16,16 +16,27 @@ import de.greenrobot.event.EventBus;
  */
 public class AssetsHelper {
 
+    // region Events
+
     public static class AssetsInstalledEvent {
     }
 
     public static class AssetsInstallationFailedEvent {
     }
 
+    // endregion
+
+    private static boolean isWorking;
+
     private AssetsHelper() {
     }
 
     public static void copyAssetDirectoryToAppDirectory(final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
+        if (isWorking) {
+            return;
+        }
+        isWorking = true;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -35,14 +46,19 @@ public class AssetsHelper {
                 } catch (IOException e) {
                     e.printStackTrace();
                     EventBus.getDefault().post(new AssetsInstallationFailedEvent());
+                } finally {
+                    isWorking = false;
                 }
             }
         }).start();
     }
 
     private static void copyAssetDirectory(AssetManager assetManager, String fromDirectory, String toDirectory) throws IOException {
+        // recreate cache folder
+        FilesUtility.delete(toDirectory);
         FilesUtility.ensureDirectoryExists(toDirectory);
 
+        // copy files
         String[] files = assetManager.list(fromDirectory);
         for (String file : files) {
             final String destinationFileAbsolutePath = com.nordnetab.chcp.utils.Paths.get(toDirectory, file);

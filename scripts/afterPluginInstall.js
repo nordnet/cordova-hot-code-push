@@ -4,6 +4,18 @@ var exec = require('child_process').exec,
     chcpCliPackageName = 'chcp-cli',
     modules = ['prompt', 'xml2js'];
 
+// region CLI specific
+
+function runCliInstall() {
+  checkIfChcpInstalled(function(err) {
+    if (err) {
+      promptCliInstallation();
+    } else {
+      logEnd();
+    }
+  });
+}
+
 function checkIfChcpInstalled(callback) {
   var cmd = 'npm -g list ' + chcpCliPackageName;
   exec(cmd, function(err, stdout, stderr) {
@@ -11,6 +23,9 @@ function checkIfChcpInstalled(callback) {
   });
 }
 
+/**
+ * Install CLI client for the plugin. 
+ */
 function installChcpCLI() {
   console.log('Installing CHCP CLI client...');
 
@@ -33,6 +48,9 @@ function installChcpCLI() {
   });
 }
 
+/**
+ * Ask user if he want to install CLI client for this plugin.
+ */
 function promptCliInstallation() {
   console.log('');
   console.log('To make the development process more easy for you - we developed CLI client for our plugin.');
@@ -65,6 +83,16 @@ function promptCliInstallation() {
   });
 }
 
+// endregion
+
+// region NPM specific
+
+/**
+ * Check if node package is installed.
+ *
+ * @param {String} moduleName
+ * @return {Boolean} true if package already installed
+ */
 function isNodeModuleInstalled(moduleName) {
   var installed = true;
   try {
@@ -76,6 +104,13 @@ function isNodeModuleInstalled(moduleName) {
   return installed;
 }
 
+/**
+ * Install node module locally.
+ * Basically, it runs 'npm install module_name'.
+ *
+ * @param {String} moduleName
+ * @param {Callback(error)} callback
+ */
 function installNodeModule(moduleName, callback) {
   if (isNodeModuleInstalled(moduleName)) {
     console.log('Node module ' + moduleName + ' is found');
@@ -90,6 +125,10 @@ function installNodeModule(moduleName, callback) {
   });
 }
 
+/**
+ * Install all required node packages. For now we have to do it manually.
+ * Once we make plugin as a node package - we can specify dependencies in package.json.
+ */
 function installRequiredNodeModules() {
   if (modules.length == 0) {
     console.log('All dependency modules are installed.');
@@ -110,17 +149,7 @@ function installRequiredNodeModules() {
   });
 }
 
-var isModulesInstalled = false;
-
-function runCliInstall() {
-  checkIfChcpInstalled(function(err) {
-    if (err) {
-      promptCliInstallation();
-    } else {
-      logEnd();
-    }
-  });
-}
+// endregion
 
 function logStart() {
   console.log("======== CHCP after installation process ========");

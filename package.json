@@ -1,0 +1,42 @@
+{
+  "name": "HotCodePushPlugin",
+  "version": "1.0.0",
+  "description": "Cordova plugin to perform code updates on the fly",
+  "cordova": {
+    "id": "cordova-hot-code-push-plugin",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nordnet/cordova-hot-code-push.git"
+  },
+  "keywords": [
+    "cordova",
+    "code",
+    "update",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova-android",
+      "version": ">=4"
+    },
+    {
+      "name": "cordova-plugman",
+      "version": ">=4.2.0"
+    }
+  ],
+  "dependencies": {
+    "prompt": "latest",
+    "xml2js": "latest"
+  },
+  "author": "Nordnet Bank AB",
+  "license": "MIT license",
+  "bugs": {
+    "url": "https://github.com/nordnet/cordova-hot-code-push/issues"
+  },
+  "homepage": "https://github.com/nordnet/cordova-hot-code-push#readme"
+}

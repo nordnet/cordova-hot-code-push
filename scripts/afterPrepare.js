@@ -82,7 +82,7 @@ ChcpBuildHook.prototype.__writeConfigXml = function(filePath, xmlData) {
 ChcpBuildHook.prototype.__injectConfigUrlPreference = function(configData, configUrl) {
   var isPrefFound = false;
   configData.widget.preference.some(function(prefValue) {
-    if (prefValue['$'].name === 'hot_code_push_config_url') {
+    if (prefValue['$'].name === 'chcp_config_url') {
       prefValue['$'].value = configUrl;
       isPrefFound = true;
       return true;
@@ -92,20 +92,31 @@ ChcpBuildHook.prototype.__injectConfigUrlPreference = function(configData, confi
     }
   });
   if (isPrefFound) {
-    return configData;
+    //return configData;
+    return;
   }
 
   // inject preference if none exist
   var chcpPref = {
     '$': {
-      'name': 'hot_code_push_config_url',
+      'name': 'chcp_config_url',
       'value': configUrl
     }
   };
   configData.widget.preference.push(chcpPref);
 
-  return configData;
+  //return configData;
 };
+
+ChcpBuildHook.prototype.__injectLocalDevFlagPreference = function(configData, value) {
+  var pref = {
+    '$': {
+      'name': 'chcp_local_dev_mode',
+      'value': value
+    }
+  };
+  configData.widget.preference.push(pref);
+}
 
 ChcpBuildHook.prototype.isBuildingForRelease = function() {
   var isRelease = false;
@@ -131,7 +142,10 @@ ChcpBuildHook.prototype.getLocalDevBuildOptions = function() {
   var options = null;
   var chcpEnvConfig = this.__readEnvironmentConfig();
   if (chcpEnvConfig) {
-    options = {config_url: chcpEnvConfig.config_url};
+    options = {
+      config_url: chcpEnvConfig.config_url,
+      local_dev_mode: true
+    };
   }
 
   return options;
@@ -142,12 +156,23 @@ ChcpBuildHook.prototype.injectOptions = function(buildOptions) {
   var __this = this;
   this.configXmlPlatformStoragePlaces.forEach(function(configXmlFilePath) {
     var configData = __this.__readConfigXml(configXmlFilePath);
-    if (configData) {
-      configData = __this.__injectConfigUrlPreference(configData, buildOptions.config_url);
-      __this.__writeConfigXml(configXmlFilePath, configData);
-
-      console.log('Injected options into: ' + configXmlFilePath);
+    if (configData == null) {
+      return;
     }
+
+    // TODO: move to switch with the list of allowed options
+    // Or just use Object.keys(buildOptions) and insert all the options from there
+    if (buildOptions.hasOwnProperty('config_url')) {
+      //configData = __this.__injectConfigUrlPreference(configData, buildOptions.config_url);
+      __this.__injectConfigUrlPreference(configData, buildOptions.config_url);
+    }
+
+    if (buildOptions.hasOwnProperty('local_dev_mode')) {
+      __this.__injectLocalDevFlagPreference(configData, buildOptions.local_dev_mode);
+    }
+
+    __this.__writeConfigXml(configXmlFilePath, configData);
+    console.log('Injected options into: ' + configXmlFilePath);
   });
 };
 
@@ -155,6 +180,10 @@ ChcpBuildHook.prototype.buildConfigurationBasedOnConsoleOptions = function() {
   var buildOption = null;
 
   var chcpBuildOptions = this.getBuildOptionsFromConfig();
+  if (chcpBuildOptions == null) {
+    return null;
+  }
+
   console.log('Supported configurations are:');
   console.log(chcpBuildOptions);
 
@@ -191,6 +220,7 @@ module.exports = function(ctx) {
     return;
   }
 
+  // building for local development
   if (buildConfig == null) {
     buildConfig = chcp.getLocalDevBuildOptions();
   }

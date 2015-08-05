@@ -15,6 +15,7 @@ import com.nordnetab.chcp.config.PluginConfig;
 import com.nordnetab.chcp.js.PluginResultHelper;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.PluginConfigStorage;
+import com.nordnetab.chcp.storage.Storage;
 import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.AssetsHelper;
@@ -32,6 +33,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 
 import de.greenrobot.event.EventBus;
@@ -42,8 +45,6 @@ import de.greenrobot.event.EventBus;
  * Plugin entry point.
  */
 public class HotCodePushPlugin extends CordovaPlugin {
-
-    // TODO: remove www folder after native update
 
     private static final String FILE_PREFIX = "file://";
     public static final String WWW_FOLDER = "www";
@@ -58,22 +59,24 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private static String contentFolderLocation;
     private static String startingPage;
-    private static ApplicationConfigStorage appConfigStorage;
+    private static Storage<ApplicationConfig> appConfigStorage;
     private static String wwwFolder;
     private static String backupFolder;
     private static String downloadFolder;
     private static PluginConfig pluginConfig;
-    private static PluginConfigStorage pluginConfigStorage;
+    private static Storage<PluginConfig> pluginConfigStorage;
 
     private ProgressDialog progressDialog;
 
     private HashMap<String, CallbackContext> fetchTasks;
     private CallbackContext installJsCallback;
     private CallbackContext jsDefaultCallback;
+    //private boolean shouldReloadOnInit;
 
     private Handler handler;
 
     private boolean isPluginReadyForWork;
+    private boolean isInLocalDevMode;
 
     private static class JSActions {
         public static final String FETCH_UPDATE = "fetchUpdate";
@@ -120,6 +123,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         fetchTasks = new HashMap<String, CallbackContext>();
         handler = new Handler();
+
+        isInLocalDevMode = preferences.getBoolean("chcp_local_dev_mode", false);
 
         loadPluginConfig();
 
@@ -246,6 +251,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         Log.d("CHCP", "Action from JS: " + action);
 
+        if (JSActions.INIT.equals(action)) {
+            initJs(callbackContext);
+            return true;
+        }
+
         if (!isPluginReadyForWork) {
             return false;
         }
@@ -257,8 +267,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installUpdate(callbackContext);
         } else if (JSActions.CONFIGURE.equals(action)) {
             jsSetPluginOptions(args, callbackContext);
-        } else if (JSActions.INIT.equals(action)) {
-            initJs(callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -266,12 +274,38 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return cmdProcessed;
     }
 
+    private void sendMessageToDefaultCallback(PluginResult message) {
+        if (jsDefaultCallback == null) {
+            return;
+        }
+
+        message.setKeepCallback(true);
+        jsDefaultCallback.sendPluginResult(message);
+    }
+
     private void initJs(CallbackContext callback) {
         jsDefaultCallback = callback;
 
-        if (shouldReloadOnInit) {
-            shouldReloadOnInit = false;
-            resetApplicationToStartingPage();
+        if (isInLocalDevMode) {
+            initForLocalDevelopment();
+        }
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                webView.clearHistory();
+            }
+        });
+    }
+
+    private void initForLocalDevelopment() {
+        try {
+            URL configURL = new URL(pluginConfig.getConfigUrl());
+            String serverURL = configURL.getProtocol() + "://" + configURL.getAuthority();
+            PluginResult localDevInitCmd = PluginResultHelper.getLocalDevModeInitAction(serverURL);
+            sendMessageToDefaultCallback(localDevInitCmd);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -302,8 +336,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         webView.loadUrlIntoView(FILE_PREFIX + external, false);
-        webView.clearHistory();
-        webView.clearCache();
     }
 
     private void fetchUpdate(CallbackContext jsCallback) {
@@ -355,24 +387,19 @@ public class HotCodePushPlugin extends CordovaPlugin {
         pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
         pluginConfigStorage.storeOnFS(pluginConfig);
 
-        // reload page
-        handler.post(new Runnable() {
+        isPluginReadyForWork = true;
+
+        resetApplicationToStartingPage();
+
+        // we need small delay to let webview to reload the page
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                resetApplicationToStartingPage();
-                isPluginReadyForWork = true;
-
-                // we need small delay to let webview to reload the page
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        webView.getView().setVisibility(View.VISIBLE);
-                        dismissProgressDialog();
-                        fetchUpdate(null);
-                    }
-                }, 150);
+                webView.getView().setVisibility(View.VISIBLE);
+                dismissProgressDialog();
+                fetchUpdate(null);
             }
-        });
+        }, 150);
     }
 
     public void onEvent(AssetsHelper.AssetsInstallationFailedEvent event) {
@@ -413,10 +440,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsCallback.sendPluginResult(jsResult);
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
-        }
+        sendMessageToDefaultCallback(jsResult);
 
         //perform installation if allowed
         if (pluginConfig.isAutoInstallIsAllowed()
@@ -436,10 +460,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsCallback.sendPluginResult(jsResult);
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
-        }
+        sendMessageToDefaultCallback(jsResult);
     }
 
     public void onEvent(UpdatesLoader.UpdateErrorEvent event) {
@@ -453,17 +474,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsCallback.sendPluginResult(jsResult);
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
-        }
+        sendMessageToDefaultCallback(jsResult);
     }
 
     // endregion
 
     // region Update installation events
-
-    private boolean shouldReloadOnInit;
 
     public void onEvent(UpdatesInstaller.UpdateInstalledEvent event) {
         Log.d("CHCP", "Update is installed");
@@ -475,15 +491,17 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installJsCallback = null;
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
+//        if (jsDefaultCallback != null) {
+//            sendMessageToDefaultCallback(jsResult);
+//
+//            // reset page to the starting one
+//            resetApplicationToStartingPage();
+//        } else {
+//            shouldReloadOnInit = true;
+//        }
 
-            // reset page to the starting one
-            resetApplicationToStartingPage();
-        } else {
-            shouldReloadOnInit = true;
-        }
+        sendMessageToDefaultCallback(jsResult);
+        resetApplicationToStartingPage();
 
         handler.post(new Runnable() {
             @Override
@@ -495,13 +513,21 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void resetApplicationToStartingPage() {
-        if (jsDefaultCallback == null) {
-            return;
-        }
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final String startingPage = getStartingPage();
+                //final String currentPage = webView.getUrl();
+//                if (currentPage.contains(LOCAL_ASSETS_FOLDER)) {
+//                    webView.loadUrlIntoView(startingPage, false);
+//                } else {
+//                    PluginResult cmd = PluginResultHelper.getReloadPageAction(startingPage);
+//                    sendMessageToDefaultCallback(cmd);
+//                }
 
-        PluginResult reloadAction = PluginResultHelper.getReloadPageAction(getStartingPage());
-        reloadAction.setKeepCallback(true);
-        jsDefaultCallback.sendPluginResult(reloadAction);
+                webView.loadUrlIntoView(startingPage, false);
+            }
+        });
     }
 
     public void onEvent(UpdatesInstaller.InstallationErrorEvent event) {
@@ -515,10 +541,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installJsCallback = null;
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
-        }
+        sendMessageToDefaultCallback(jsResult);
 
         handler.post(new Runnable() {
             @Override
@@ -540,10 +563,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installJsCallback = null;
         }
 
-        if (jsDefaultCallback != null) {
-            jsResult.setKeepCallback(true);
-            jsDefaultCallback.sendPluginResult(jsResult);
-        }
+        sendMessageToDefaultCallback(jsResult);
     }
 
     // endregion

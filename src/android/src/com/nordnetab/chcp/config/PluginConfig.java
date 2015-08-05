@@ -31,7 +31,7 @@ public class PluginConfig {
     }
 
     private static class CordovaPreferenceKeys {
-        public static final String CONFIG_URL = "hot_code_push_config_url";
+        public static final String CONFIG_URL = "chcp_config_url";
     }
 
     private boolean allowUpdatesAutoDownload;

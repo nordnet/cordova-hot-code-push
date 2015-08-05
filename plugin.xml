@@ -25,7 +25,7 @@
     <!-- Config.xml preferences -->
     <config-file target="config.xml" parent="/*">
         <preference name="loadUrlTimeoutValue" value="60000" />
-        <preference name="hot_code_push_config_url" value="" />
+        <preference name="chcp_config_url" value="" />
     </config-file>
 
     <!-- Hooks -->

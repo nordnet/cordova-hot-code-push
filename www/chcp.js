@@ -1,8 +1,19 @@
 
+// TODO: config.xml should be something like this:
+// <chcp>
+//   <config-file url="" />
+//   <local-development state="on">
+//     <inject-js-code code="some inline js code" />
+//     <inject-js-script path="/socket.io/socket.io.js" />
+//     <inject-js-script path="/connect/assets/liveupdate.js" />
+//   </local-development>
+// </chcp>
+
 var exec = require('cordova/exec');
 var channel = require('cordova/channel');
 
 channel.onCordovaReady.subscribe(function() {
+  console.log('Sending callback to native side');
   exec(nativeCallback, null, 'HotCodePush', 'init', []);
 });
 
@@ -58,8 +69,8 @@ function nativeCallback(msg) {
       processUpdateInstalledAction(resultObj);
       break;
 
-    case 'reset_page':
-      processPageResetAction(resultObj);
+    case 'local_dev_init':
+      initForLocalDev(resultObj);
       break;
 
     default:
@@ -101,18 +112,53 @@ function processInstallationErrorAction(nativeMessage) {
 
 // endregion
 
-// region Private API
+// region Hooks for local development
 
-function processPageResetAction(nativeMessage) {
-  if (nativeMessage.data == null) {
+function injectScript(scriptFilePath, callback) {
+  var script   = document.createElement('script');
+  script.type  = 'text/javascript';
+  script.src   = scriptFilePath;
+  script.onload = function() {
+    script.onload = null;
+    if (callback) {
+      callback();
+    }
+  };
+  document.body.appendChild(script);
+}
+
+function injectRowScript(scriptData) {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.text = scriptData;
+  document.body.appendChild(script);
+}
+
+var localDevScripts = ['/socket.io/socket.io.js', '/connect/assets/liveupdate.js'];
+
+function injectLocalDevScripts(localServerUrl) {
+  if (localDevScripts.length == 0) {
     return;
   }
 
-  // reset the page
-  var historyLen = history.length;
-  history.go(-historyLen);
-  window.location.href = nativeMessage.data.url;
-  window.location.reload(true);
+  var scriptPath = localServerUrl + localDevScripts.shift();
+  injectScript(scriptPath, function() {
+    injectLocalDevScripts(localServerUrl);
+  });
+}
+
+function initForLocalDev(nativeMessage) {
+  var localServerUrl = nativeMessage.data.local_server_url;
+
+  injectRowScript('window.chcpDevServer="' + localServerUrl + '";');
+
+  // var socketScript = localServerUrl + '/socket.io/socket.io.js';
+  // injectScript(socketScript, function() {
+  //   var liveUpdateScript = localServerUrl + '/connect/assets/liveupdate.js';
+  //   injectScript(liveUpdateScript);
+  // });
+
+  injectLocalDevScripts(localServerUrl);
 }
 
 // endregion

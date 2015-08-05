@@ -24,7 +24,7 @@ public class PluginResultHelper {
         public static final String UPDATE_IS_LOADED = "update_load_success";
         public static final String UPDATE_LOAD_ERROR = "update_load_error";
         public static final String NOTHING_TO_UPDATE = "nothing_to_update";
-        public static final String RESET_PAGE = "reset_page";
+        public static final String LOCAL_DEV_INIT = "local_dev_init";
     }
 
     private static class JsParams {
@@ -89,15 +89,13 @@ public class PluginResultHelper {
         return getResult(JsAction.NOTHING_TO_UPDATE, dataContent, null);
     }
 
-    public static PluginResult getReloadPageAction(String url) {
+    public static PluginResult getLocalDevModeInitAction(String url) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
 
         ObjectNode dataNode = factory.objectNode();
-        if (!TextUtils.isEmpty(url)) {
-            dataNode.set("url", factory.textNode(url));
-        }
+        dataNode.set("local_server_url", factory.textNode(url));
 
-        return getResult(JsAction.RESET_PAGE, dataNode, null);
+        return getResult(JsAction.LOCAL_DEV_INIT, dataNode, null);
     }
 
     private static JsonNode createErrorNode(int errorCode, String errorDescription) {

@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Created by Nikolay Demyankov on 23.07.15.
  */
-abstract class Storage<T> {
+public abstract class Storage<T> {
 
     private static final String PREFS_FILE = "cordova-hot-code-push.prefs";
     private final String prefName;

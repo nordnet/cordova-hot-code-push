@@ -2,8 +2,8 @@
 // TODO: config.xml should be something like this:
 // <chcp>
 //   <config-file url="" />
-//   <local-development state="on">
-//     <inject-js-code code="some inline js code" />
+//   <local-development enabled="true">
+//     <inject-js-code>some inline js code</inject-js-code>
 //     <inject-js-script path="/socket.io/socket.io.js" />
 //     <inject-js-script path="/connect/assets/liveupdate.js" />
 //   </local-development>

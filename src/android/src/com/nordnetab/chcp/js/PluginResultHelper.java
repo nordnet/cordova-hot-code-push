@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 
@@ -89,11 +90,11 @@ public class PluginResultHelper {
         return getResult(JsAction.NOTHING_TO_UPDATE, dataContent, null);
     }
 
-    public static PluginResult getLocalDevModeInitAction(String url) {
+    public static PluginResult getLocalDevModeInitAction(ChcpXmlConfig.DevelopmentOptions devOpts) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
 
         ObjectNode dataNode = factory.objectNode();
-        dataNode.set("local_server_url", factory.textNode(url));
+        dataNode.set("dev_opts", factory.textNode(devOpts.toString()));
 
         return getResult(JsAction.LOCAL_DEV_INIT, dataNode, null);
     }

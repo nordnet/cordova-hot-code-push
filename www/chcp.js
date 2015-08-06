@@ -1,14 +1,4 @@
 
-// TODO: config.xml should be something like this:
-// <chcp>
-//   <config-file url="" />
-//   <local-development enabled="true">
-//     <inject-js-code>some inline js code</inject-js-code>
-//     <inject-js-script path="/socket.io/socket.io.js" />
-//     <inject-js-script path="/connect/assets/liveupdate.js" />
-//   </local-development>
-// </chcp>
-
 var exec = require('cordova/exec');
 var channel = require('cordova/channel');
 
@@ -134,31 +124,36 @@ function injectRowScript(scriptData) {
   document.body.appendChild(script);
 }
 
-var localDevScripts = ['/socket.io/socket.io.js', '/connect/assets/liveupdate.js'];
-
-function injectLocalDevScripts(localServerUrl) {
-  if (localDevScripts.length == 0) {
+function injectDevScripts(scriptsToInject) {
+  if (scriptsToInject == null || scriptsToInject.length == 0) {
     return;
   }
 
-  var scriptPath = localServerUrl + localDevScripts.shift();
+  var scriptPath = scriptsToInject.shift();
   injectScript(scriptPath, function() {
-    injectLocalDevScripts(localServerUrl);
+    injectDevScripts(scriptsToInject);
+  });
+}
+
+function injectDevCode(codeToInject) {
+  if (codeToInject == null || codeToInject.length == 0) {
+    return;
+  }
+
+  codeToInject.forEach(function(jsCode) {
+    injectRowScript(jsCode);
   });
 }
 
 function initForLocalDev(nativeMessage) {
-  var localServerUrl = nativeMessage.data.local_server_url;
-
-  injectRowScript('window.chcpDevServer="' + localServerUrl + '";');
-
-  // var socketScript = localServerUrl + '/socket.io/socket.io.js';
-  // injectScript(socketScript, function() {
-  //   var liveUpdateScript = localServerUrl + '/connect/assets/liveupdate.js';
-  //   injectScript(liveUpdateScript);
-  // });
-
-  injectLocalDevScripts(localServerUrl);
+  try {
+    var devOpts = JSON.parse(nativeMessage.data.dev_opts);
+    injectDevCode(devOpts.js_code);
+    injectDevScripts(devOpts.js_scripts);
+  } catch (err) {
+    console.log('Can\'t init for local development');
+    console.log(err);
+  }
 }
 
 // endregion

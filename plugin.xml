@@ -69,7 +69,10 @@
             target-dir="src/com/nordnetab/chcp/config" />
         <source-file src="src/android/src/com/nordnetab/chcp/config/PluginConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
-
+        <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfig.java"
+            target-dir="src/com/nordnetab/chcp/config" />
+        <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfigParser.java"
+            target-dir="src/com/nordnetab/chcp/config" />
 
         <!-- sources for package: com.nordnetab.chcp.network -->
         <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"

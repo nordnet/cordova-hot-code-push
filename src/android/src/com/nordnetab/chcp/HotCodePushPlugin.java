@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
+import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.config.PluginConfig;
 import com.nordnetab.chcp.js.PluginResultHelper;
@@ -65,18 +66,17 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static String downloadFolder;
     private static PluginConfig pluginConfig;
     private static Storage<PluginConfig> pluginConfigStorage;
+    private static ChcpXmlConfig chcpXmlConfig;
 
     private ProgressDialog progressDialog;
 
     private HashMap<String, CallbackContext> fetchTasks;
     private CallbackContext installJsCallback;
     private CallbackContext jsDefaultCallback;
-    //private boolean shouldReloadOnInit;
 
     private Handler handler;
 
     private boolean isPluginReadyForWork;
-    private boolean isInLocalDevMode;
 
     private static class JSActions {
         public static final String FETCH_UPDATE = "fetchUpdate";
@@ -124,8 +124,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         fetchTasks = new HashMap<String, CallbackContext>();
         handler = new Handler();
 
-        isInLocalDevMode = preferences.getBoolean("chcp_local_dev_mode", false);
-
+        parseCordovaConfigXml();
         loadPluginConfig();
 
         // location of the cache folder
@@ -145,6 +144,14 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return new File(externalWwwFolder).exists();
     }
 
+    private void parseCordovaConfigXml() {
+        if (chcpXmlConfig != null) {
+            return;
+        }
+
+        chcpXmlConfig = ChcpXmlConfig.parse(cordova.getActivity());
+    }
+
     private void loadPluginConfig() {
         if (pluginConfig != null) {
             return;
@@ -152,11 +159,15 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         pluginConfigStorage = new PluginConfigStorage(cordova.getActivity());
         PluginConfig config = pluginConfigStorage.loadFromPreference();
-        if (config == null) {
-            config = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
-            pluginConfigStorage.storeInPreference(config);
+        if (config != null) {
+            pluginConfig = config;
+            return;
         }
-        pluginConfig = config;
+
+        pluginConfig = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
+        pluginConfig.setConfigUrl(chcpXmlConfig.getConfigUrl());
+
+        pluginConfigStorage.storeInPreference(pluginConfig);
     }
 
     @Override
@@ -286,7 +297,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private void initJs(CallbackContext callback) {
         jsDefaultCallback = callback;
 
-        if (isInLocalDevMode) {
+        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
             initForLocalDevelopment();
         }
 
@@ -299,14 +310,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void initForLocalDevelopment() {
-        try {
-            URL configURL = new URL(pluginConfig.getConfigUrl());
-            String serverURL = configURL.getProtocol() + "://" + configURL.getAuthority();
-            PluginResult localDevInitCmd = PluginResultHelper.getLocalDevModeInitAction(serverURL);
-            sendMessageToDefaultCallback(localDevInitCmd);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        ChcpXmlConfig.DevelopmentOptions devOpts = chcpXmlConfig.getDevelopmentOptions();
+
+        PluginResult localDevInitCmd = PluginResultHelper.getLocalDevModeInitAction(devOpts);
+        sendMessageToDefaultCallback(localDevInitCmd);
     }
 
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {

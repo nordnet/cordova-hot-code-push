@@ -30,10 +30,6 @@ public class PluginConfig {
         public static final String APPLICATION_BUILD_VERSION = "app_build_version";
     }
 
-    private static class CordovaPreferenceKeys {
-        public static final String CONFIG_URL = "chcp_config_url";
-    }
-
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
     private String configUrl;
@@ -86,8 +82,6 @@ public class PluginConfig {
         PluginConfig config = new PluginConfig();
         config.allowUpdatesAutoInstall(true);
         config.allowUpdatesAutoDownload(true);
-
-        config.setConfigUrl(cordovaPreferences.getString(CordovaPreferenceKeys.CONFIG_URL, ""));
 
         // set version code of the app
         config.setAppBuildVersion(VersionHelper.applicationVersionCode(context));

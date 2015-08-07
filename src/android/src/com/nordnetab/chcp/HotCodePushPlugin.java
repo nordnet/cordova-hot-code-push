@@ -159,15 +159,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         pluginConfigStorage = new PluginConfigStorage(cordova.getActivity());
         PluginConfig config = pluginConfigStorage.loadFromPreference();
-        if (config != null) {
-            pluginConfig = config;
-            return;
+        if (config == null) {
+            config = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
+            pluginConfigStorage.storeInPreference(config);
         }
-
-        pluginConfig = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
+        pluginConfig = config;
         pluginConfig.setConfigUrl(chcpXmlConfig.getConfigUrl());
-
-        pluginConfigStorage.storeInPreference(pluginConfig);
     }
 
     @Override

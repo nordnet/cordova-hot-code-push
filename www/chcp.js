@@ -146,6 +146,11 @@ function injectDevCode(codeToInject) {
 }
 
 function initForLocalDev(nativeMessage) {
+  if (document.querySelector('meta[http-equiv=Content-Security-Policy]')) {
+    console.warn('Can\'t init local development. You need to remove Content-Security-Policy tag so development scripts could be injected.');
+    return;
+  }
+
   try {
     var devOpts = JSON.parse(nativeMessage.data.dev_opts);
     injectDevCode(devOpts.js_code);

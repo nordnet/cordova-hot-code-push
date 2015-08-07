@@ -21,8 +21,10 @@
 // Usage:
 // cordova build -- dev
 
-var chcpBuildReader = require('./lib/chcpBuildReader.js');
-    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
+var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
+    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
+    fs = require('fs'),
+    path = require('path');
 
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
@@ -32,21 +34,39 @@ function logEnd() {
   console.log('=====================END======================');
 }
 
+// For local development we need to modify .release and .update preferences in chcp.json.
+// This way we will force the update when the app is launched.
+function modifyChcpJsonForLocalDev(projectRoot) {
+  var jsonFiles = [
+    path.join(projectRoot,'platforms/android/assets/www/chcp.json')
+  ];
+
+  jsonFiles.forEach(function(filePath) {
+    var chcpJson = JSON.parse(fs.readFileSync(filePath));
+    chcpJson.release = "";
+    chcpJson.update = "now";
+
+    fs.writeFileSync(filePath, JSON.stringify(chcpJson));
+  });
+}
+
 module.exports = function(ctx) {
   logStart();
 
-  chcpBuildReader.init(ctx);
+  chcpBuildOptions.init(ctx);
 
-  var buildConfig = chcpBuildReader.buildConfigurationBasedOnConsoleOptions();
-  if (buildConfig == null && chcpBuildReader.isBuildingForRelease()) {
+  var buildConfig = chcpBuildOptions.buildConfigurationBasedOnConsoleOptions();
+  if (buildConfig == null && chcpBuildOptions.isBuildingForRelease()) {
     console.log('Building for release, not changing config.xml');
     logEnd();
     return;
   }
 
   // building for local development
+  var isInLocalDevMode = false;
   if (buildConfig == null) {
-    buildConfig = chcpBuildReader.getLocalDevBuildOptions();
+    buildConfig = chcpBuildOptions.getLocalDevBuildOptions();
+    isInLocalDevMode = true;
   }
 
   if (buildConfig == null) {
@@ -57,6 +77,10 @@ module.exports = function(ctx) {
     console.log('This will generate .chcpenv file with local server configuration.');
     logEnd();
     return;
+  }
+
+  if (isInLocalDevMode) {
+    modifyChcpJsonForLocalDev(ctx.opts.projectRoot);
   }
 
   console.log('Using config:');

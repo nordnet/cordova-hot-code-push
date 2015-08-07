@@ -24,7 +24,7 @@ function checkIfChcpInstalled(callback) {
 }
 
 /**
- * Install CLI client for the plugin. 
+ * Install CLI client for the plugin.
  */
 function installChcpCLI() {
   console.log('Installing CHCP CLI client...');

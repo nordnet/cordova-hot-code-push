@@ -50,7 +50,14 @@ public class ContentConfig {
         ContentConfig config = new ContentConfig();
         try {
             config.setReleaseVersion(node.get(JsonKeys.VERSION).asText());
-            config.setMinimumNativeVersion(node.get(JsonKeys.MINIMUM_NATIVE_VERSION).asInt());
+
+            // minimum native version is now optional parameter
+            if (node.has(JsonKeys.MINIMUM_NATIVE_VERSION)) {
+                config.setMinimumNativeVersion(node.get(JsonKeys.MINIMUM_NATIVE_VERSION).asInt());
+            } else {
+                config.setMinimumNativeVersion(0);
+            }
+
             config.setContentUrl(node.get(JsonKeys.CONTENT_URL).asText());
             config.setUpdateTime(
                     UpdateTime.fromString(node.get(JsonKeys.UPDATE).asText())

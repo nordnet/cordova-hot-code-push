@@ -356,19 +356,25 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void installUpdate(CallbackContext jsCallback) {
+        if (UpdatesInstaller.isInstalling()) {
+            return;
+        }
+
+        boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), getDownloadFolder(), getWwwFolder(), getBackupFolder());
+        if (!didLaunchInstall) {
+            return;
+        }
+
         if (jsCallback != null) {
             installJsCallback = jsCallback;
         }
 
-        boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), getDownloadFolder(), getWwwFolder(), getBackupFolder());
-        if (didLaunchInstall) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    showProgressDialog();
-                }
-            });
-        }
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                showProgressDialog();
+            }
+        });
     }
 
     private String getStartingPage() {
@@ -446,9 +452,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         sendMessageToDefaultCallback(jsResult);
 
-        //perform installation if allowed
+        // perform installation if allowed or if we in local development mode
         if (pluginConfig.isAutoInstallIsAllowed()
-                && event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW) {
+                && (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW
+                    || chcpXmlConfig.getDevelopmentOptions().isEnabled())) {
             installUpdate(null);
         }
     }
@@ -495,15 +502,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installJsCallback = null;
         }
 
-//        if (jsDefaultCallback != null) {
-//            sendMessageToDefaultCallback(jsResult);
-//
-//            // reset page to the starting one
-//            resetApplicationToStartingPage();
-//        } else {
-//            shouldReloadOnInit = true;
-//        }
-
         sendMessageToDefaultCallback(jsResult);
         resetApplicationToStartingPage();
 
@@ -521,14 +519,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
             @Override
             public void run() {
                 final String startingPage = getStartingPage();
-                //final String currentPage = webView.getUrl();
-//                if (currentPage.contains(LOCAL_ASSETS_FOLDER)) {
-//                    webView.loadUrlIntoView(startingPage, false);
-//                } else {
-//                    PluginResult cmd = PluginResultHelper.getReloadPageAction(startingPage);
-//                    sendMessageToDefaultCallback(cmd);
-//                }
-
                 webView.loadUrlIntoView(startingPage, false);
             }
         });

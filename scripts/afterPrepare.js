@@ -46,7 +46,7 @@ function modifyChcpJsonForLocalDev(projectRoot) {
     chcpJson.release = "";
     chcpJson.update = "now";
 
-    fs.writeFileSync(filePath, JSON.stringify(chcpJson));
+    fs.writeFileSync(filePath, JSON.stringify(chcpJson, null, 2));
   });
 }
 

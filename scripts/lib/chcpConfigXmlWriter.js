@@ -21,7 +21,8 @@
   // region Private API
   function setup(projectRoot) {
     configXmlPlatformStoragePlaces = [
-      path.join(projectRoot,'platforms/android/res/xml/config.xml')
+      path.join(projectRoot,'platforms/android/res/xml/config.xml'),
+      path.join(projectRoot, 'platforms/ios/', path.basename(projectRoot), 'config.xml')
     ];
   }
 

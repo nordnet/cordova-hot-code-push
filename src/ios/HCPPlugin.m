@@ -12,6 +12,9 @@
 
 -(void)pluginInitialize {
     NSLog(@"Doing CHCP plugin initialization");
+    
+    
+    
 }
 
 @end

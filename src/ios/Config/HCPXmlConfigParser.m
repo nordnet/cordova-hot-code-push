@@ -7,14 +7,14 @@
 //
 
 #import "HCPXmlConfigParser.h"
+#import "HCPLocalDevOptions.h"
 
 @interface HCPXmlConfigParser() <NSXMLParserDelegate> {
     BOOL _didParseCHCPBlock;
     BOOL _isInCHCPBlock;
-    BOOL _isInLocalDevBlock;
-    BOOL _isInJsCodeBlock;
     
-    NSMutableString *_jsCodeString;
+    NSString *_configUrl;
+    HCPLocalDevOptions *_devOptions;
 }
 
 @property (nonatomic, retain) NSURL *configXmlFileURL;
@@ -28,9 +28,6 @@ static NSString *const CONFIG_FILE_URL_ATTRIBUTE = @"url";
 
 static NSString *const LOCAL_DEVELOPMENT_TAG = @"local-development";
 static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
-static NSString *const INJECT_JS_CODE_TAG = @"inject-js-code";
-static NSString *const INJECT_JS_SCRIPT_TAG = @"inject-js-script";
-static NSString *const INJECT_JS_SCRIPT_PATH_ATTRIBUTE = @"path";
 
 @implementation HCPXmlConfigParser
 
@@ -60,7 +57,7 @@ static NSString *const INJECT_JS_SCRIPT_PATH_ATTRIBUTE = @"path";
     [configParser setDelegate:self];
     [configParser parse];
     
-    return nil;
+    return [[HCPXmlConfig alloc] initWithConfigUrl:_configUrl developerOptions:_devOptions];
 }
 
 #pragma mark NSXMLParserDelegate implementation
@@ -80,7 +77,9 @@ static NSString *const INJECT_JS_SCRIPT_PATH_ATTRIBUTE = @"path";
     }
     
     if ([elementName isEqualToString:CONFIG_FILE_TAG]) {
-        
+        [self parseConfigUrl:attributeDict];
+    } else if ([elementName isEqualToString:LOCAL_DEVELOPMENT_TAG]) {
+        [self parseLocelDevelopmentOptions:attributeDict];
     }
 }
 
@@ -93,16 +92,17 @@ static NSString *const INJECT_JS_SCRIPT_PATH_ATTRIBUTE = @"path";
         _didParseCHCPBlock = YES;
         return;
     }
-    
-    
 }
 
-- (void)parser:(NSXMLParser *)parser foundCharacters:(NSString *)string {
-    if (_didParseCHCPBlock || !_isInCHCPBlock) {
-        return;
-    }
-    
-    
+#pragma mark Private API
+
+- (void)parseConfigUrl:(NSDictionary *)attributeDict {
+    _configUrl = [attributeDict[CONFIG_FILE_URL_ATTRIBUTE] stringValue];
+}
+
+- (void)parseLocelDevelopmentOptions:(NSDictionary *)attributeDict {
+    _devOptions = [[HCPLocalDevOptions alloc] init];
+    _devOptions.enabled = [attributeDict[LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE] boolValue];
 }
 
 @end

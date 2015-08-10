@@ -10,8 +10,8 @@
 
 @protocol HCPJsonConvertable <NSObject>
 
-- (NSString *)toJsonString;
+- (id)toJson;
 
-+ (instancetype)fromJsonString:(NSString *)json;
++ (instancetype)instanceFromJsonObject:(id)json;
 
 @end

@@ -7,6 +7,7 @@
 //
 
 #import "HCPPluginConfig.h"
+#import "NSBundle+Extension.h"
 
 static NSString *const ALLOW_UPDATES_AUTO_DOWNLOAD = @"allow_auto_download";
 static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"allow_auto_install";
@@ -27,7 +28,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
     HCPPluginConfig *pluginConfig = [[HCPPluginConfig alloc] init];
     pluginConfig.allowUpdatesAutoDownload = YES;
     pluginConfig.allowUpdatesAutoInstallation = YES;
-    pluginConfig.appBuildVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey: (NSString *)kCFBundleVersionKey] integerValue];
+    pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
     
     return pluginConfig;
 }

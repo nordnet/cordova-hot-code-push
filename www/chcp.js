@@ -59,10 +59,6 @@ function nativeCallback(msg) {
       processUpdateInstalledAction(resultObj);
       break;
 
-    case 'local_dev_init':
-      initForLocalDev(resultObj);
-      break;
-
     default:
       console.log('Unsupported action: '  + resultObj.action);
   }
@@ -98,67 +94,6 @@ function processNothingToInstallAction(nativeMessage) {
 function processInstallationErrorAction(nativeMessage) {
   var event = new CustomEvent('chcp_updateInstallFailed', {'error': nativeMessage.error});
   document.dispatchEvent(event);
-}
-
-// endregion
-
-// region Hooks for local development
-
-function injectScript(scriptFilePath, callback) {
-  var script   = document.createElement('script');
-  script.type  = 'text/javascript';
-  script.src   = scriptFilePath;
-  script.onload = function() {
-    script.onload = null;
-    if (callback) {
-      callback();
-    }
-  };
-  document.body.appendChild(script);
-}
-
-function injectRowScript(scriptData) {
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.text = scriptData;
-  document.body.appendChild(script);
-}
-
-function injectDevScripts(scriptsToInject) {
-  if (scriptsToInject == null || scriptsToInject.length == 0) {
-    return;
-  }
-
-  var scriptPath = scriptsToInject.shift();
-  injectScript(scriptPath, function() {
-    injectDevScripts(scriptsToInject);
-  });
-}
-
-function injectDevCode(codeToInject) {
-  if (codeToInject == null || codeToInject.length == 0) {
-    return;
-  }
-
-  codeToInject.forEach(function(jsCode) {
-    injectRowScript(jsCode);
-  });
-}
-
-function initForLocalDev(nativeMessage) {
-  if (document.querySelector('meta[http-equiv=Content-Security-Policy]')) {
-    console.warn('Can\'t init local development. You need to remove Content-Security-Policy tag so development scripts could be injected.');
-    return;
-  }
-
-  try {
-    var devOpts = JSON.parse(nativeMessage.data.dev_opts);
-    injectDevCode(devOpts.js_code);
-    injectDevScripts(devOpts.js_scripts);
-  } catch (err) {
-    console.log('Can\'t init for local development');
-    console.log(err);
-  }
 }
 
 // endregion

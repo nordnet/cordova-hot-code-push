@@ -70,55 +70,7 @@
       enabled: options.local_dev_mode.enabled
     };
 
-    var jsCode = prepareJsCodeInjectionBlock(options);
-    if (jsCode) {
-      localDevBlock['inject-js-code'] = jsCode;
-    }
-
-    var jsScript = prepareJsScriptsInjectionBlock(options);
-    if (jsScript) {
-      localDevBlock['inject-js-script'] = jsScript;
-    }
-
     xml['local-development'] = [localDevBlock];
-  }
-
-  function prepareJsCodeInjectionBlock(options) {
-    if (!options.local_dev_mode.hasOwnProperty('inject_js') || !options.local_dev_mode.inject_js.hasOwnProperty('code')) {
-      return null;
-    }
-
-    var injectedCode = options.local_dev_mode.inject_js.code;
-    if (injectedCode.length == 0) {
-      return null;
-    }
-
-    var block = [];
-    injectedCode.forEach(function(jsCode) {
-      block.push(jsCode.code);
-    });
-
-    return block;
-  }
-
-  function prepareJsScriptsInjectionBlock(options) {
-    if (!options.local_dev_mode.hasOwnProperty('inject_js') || !options.local_dev_mode.inject_js.hasOwnProperty('scripts')) {
-      return null;
-    }
-
-    var injectedScripts = options.local_dev_mode.inject_js.scripts;
-    if (injectedScripts.length == 0) {
-      return null;
-    }
-
-    var block = [];
-    injectedScripts.forEach(function(jsScript) {
-      block.push({
-        '$': {'path': jsScript.path}
-      });
-    });
-
-    return block;
   }
 
   function writeConfigXml(filePath, xmlData) {

@@ -9,6 +9,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.ContentConfig;
@@ -34,9 +37,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+
 
 import de.greenrobot.event.EventBus;
 
@@ -77,6 +82,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private Handler handler;
 
     private boolean isPluginReadyForWork;
+
+    private Socket devSocket;
 
     private static class JSActions {
         public static final String FETCH_UPDATE = "fetchUpdate";
@@ -138,6 +145,41 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
+    private void connectToLocalDevSocket() {
+        try {
+            URL serverURL = new URL(pluginConfig.getConfigUrl());
+            String socketUrl = serverURL.getProtocol() + serverURL.getAuthority();
+
+            devSocket = IO.socket(socketUrl);
+            devSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+
+                @Override
+                public void call(Object... args) {
+                    Log.d("CHCP", "Socket connected");
+                }
+
+            }).on("release", new Emitter.Listener() {
+
+                @Override
+                public void call(Object... args) {
+                    Log.d("CHCP", "New Release is available");
+                    fetchUpdate(null);
+                }
+
+            }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+
+                @Override
+                public void call(Object... args) {
+                    Log.d("CHCP", "Socket disonnected");
+                }
+
+            });
+            devSocket.connect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private boolean isWwwFolderExists() {
         String externalWwwFolder = getWwwFolder();
 
@@ -172,6 +214,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         super.onStart();
 
         EventBus.getDefault().register(this);
+
+        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
+            connectToLocalDevSocket();
+        }
 
         // ensure that www folder installed on external storage
         isPluginReadyForWork = isWwwFolderExists() && !isApplicationHasBeenUpdated();
@@ -250,9 +296,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     @Override
     public void onStop() {
-        super.onStop();
-
         EventBus.getDefault().unregister(this);
+
+        devSocket.disconnect();
+
+        super.onStop();
     }
 
     @Override
@@ -294,23 +342,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private void initJs(CallbackContext callback) {
         jsDefaultCallback = callback;
 
-        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
-            initForLocalDevelopment();
-        }
-
         handler.post(new Runnable() {
             @Override
             public void run() {
                 webView.clearHistory();
             }
         });
-    }
-
-    private void initForLocalDevelopment() {
-        ChcpXmlConfig.DevelopmentOptions devOpts = chcpXmlConfig.getDevelopmentOptions();
-
-        PluginResult localDevInitCmd = PluginResultHelper.getLocalDevModeInitAction(devOpts);
-        sendMessageToDefaultCallback(localDevInitCmd);
     }
 
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {

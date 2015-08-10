@@ -22,29 +22,14 @@
 // cordova build -- dev
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
-    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
-    fs = require('fs'),
-    path = require('path');
-
+    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
+    
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
 }
 
 function logEnd() {
   console.log('=====================END======================');
-}
-
-// For local development we need to modify .release and .update preferences in chcp.json.
-// This way we will force the update when the app is launched.
-function modifyChcpJsonForLocalDev(wwwPaths) {
-  wwwPaths.forEach(function(wwwFolderPath) {
-    var filePath = path.join(wwwFolderPath, 'chcp.json');
-    var chcpJson = JSON.parse(fs.readFileSync(filePath));
-    chcpJson.release = "";
-    chcpJson.update = "now";
-
-    fs.writeFileSync(filePath, JSON.stringify(chcpJson));
-  });
 }
 
 module.exports = function(ctx) {
@@ -74,10 +59,6 @@ module.exports = function(ctx) {
     console.log('This will generate .chcpenv file with local server configuration.');
     logEnd();
     return;
-  }
-
-  if (isInLocalDevMode) {
-    modifyChcpJsonForLocalDev(ctx.opts.paths);
   }
 
   console.log('Using config:');

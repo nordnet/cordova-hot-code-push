@@ -25,7 +25,6 @@ public class PluginResultHelper {
         public static final String UPDATE_IS_LOADED = "update_load_success";
         public static final String UPDATE_LOAD_ERROR = "update_load_error";
         public static final String NOTHING_TO_UPDATE = "nothing_to_update";
-        public static final String LOCAL_DEV_INIT = "local_dev_init";
     }
 
     private static class JsParams {
@@ -88,15 +87,6 @@ public class PluginResultHelper {
         dataContent.set("status", factory.numberNode(0));
 
         return getResult(JsAction.NOTHING_TO_UPDATE, dataContent, null);
-    }
-
-    public static PluginResult getLocalDevModeInitAction(ChcpXmlConfig.DevelopmentOptions devOpts) {
-        JsonNodeFactory factory = JsonNodeFactory.instance;
-
-        ObjectNode dataNode = factory.objectNode();
-        dataNode.set("dev_opts", factory.textNode(devOpts.toString()));
-
-        return getResult(JsAction.LOCAL_DEV_INIT, dataNode, null);
     }
 
     private static JsonNode createErrorNode(int errorCode, String errorDescription) {

@@ -12,5 +12,6 @@ cdvPluginPostBuildExtras.add({
         compile 'com.fasterxml.jackson.core:jackson-core:2.4.4'
         compile 'com.fasterxml.jackson.core:jackson-databind:2.4.4'
         compile 'de.greenrobot:eventbus:2.4.0'
+        compile 'com.github.nkzawa:socket.io-client:0.6.0'
     }
 });

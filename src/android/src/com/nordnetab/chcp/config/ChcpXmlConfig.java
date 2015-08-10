@@ -16,13 +16,9 @@ public class ChcpXmlConfig {
 
     public static class DevelopmentOptions {
         private boolean enabled;
-        private List<String>jsScripts;
-        private List<String>jsCode;
 
         public DevelopmentOptions() {
             enabled = false;
-            jsScripts = new ArrayList<String>();
-            jsCode = new ArrayList<String>();
         }
 
         public boolean isEnabled() {
@@ -31,35 +27,6 @@ public class ChcpXmlConfig {
 
         void setEnabled(boolean isEnabled) {
             enabled = isEnabled;
-        }
-
-        public List<String>getJsScriptsForInjection() {
-            return jsScripts;
-        }
-
-        public List<String>getJsCodeForInjection() {
-            return jsCode;
-        }
-
-        @Override
-        public String toString() {
-            JsonNodeFactory factory = JsonNodeFactory.instance;
-            ObjectNode devOptsNode = factory.objectNode();
-
-            ArrayNode jsCodeArray = factory.arrayNode();
-            for (String inlineCode : jsCode) {
-                jsCodeArray.add(inlineCode);
-            }
-
-            ArrayNode jsScriptsArray = factory.arrayNode();
-            for (String scriptPath : jsScripts) {
-                jsScriptsArray.add(scriptPath);
-            }
-
-            devOptsNode.set("js_code", jsCodeArray);
-            devOptsNode.set("js_scripts", jsScriptsArray);
-
-            return devOptsNode.toString();
         }
     }
 

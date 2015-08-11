@@ -22,7 +22,9 @@
     
     _directories = [[HCPDirectories alloc] init];
     
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"index" ofType:@"html" inDirectory:@"www"];
     
+    NSLog(@"path is: %@", path);
 }
 
 @end

@@ -51,10 +51,7 @@ static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
     NSDictionary *jsonObject = json;
     
     HCPApplicationConfig *appConfig = [[HCPApplicationConfig alloc] init];
-    if (jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY]) {
-        appConfig.storeIdentifier = [jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY] stringValue];
-    }
-    
+    appConfig.storeIdentifier = jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY];
     appConfig.contentConfig = [HCPContentConfig instanceFromJsonObject:jsonObject];
     
     return appConfig;

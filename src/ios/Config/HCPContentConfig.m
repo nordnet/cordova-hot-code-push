@@ -88,22 +88,12 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
     NSDictionary *jsonObject = json;
     
     HCPContentConfig *contentConfig = [[HCPContentConfig alloc] init];
-    if (jsonObject[RELEASE_VERSION_JSON_KEY]) {
-        contentConfig.releaseVersion = [jsonObject[RELEASE_VERSION_JSON_KEY] stringValue];
-    }
+    contentConfig.releaseVersion = jsonObject[RELEASE_VERSION_JSON_KEY];
+    contentConfig.minimumNativeVersion = [(NSNumber *)jsonObject[MINIMUM_NATIVE_VERSION_JSON_KEY] integerValue];
+    contentConfig.contentUrl = jsonObject[CONTENT_URL_JSON_KEY];
     
-    if (jsonObject[MINIMUM_NATIVE_VERSION_JSON_KEY]) {
-        contentConfig.minimumNativeVersion = [jsonObject[MINIMUM_NATIVE_VERSION_JSON_KEY] integerValue];
-    }
-    
-    if (jsonObject[UPDATE_TIME_JSON_KEY]) {
-        NSString *updateTime = [jsonObject[UPDATE_TIME_JSON_KEY] stringValue];
-        contentConfig.updateTime = [contentConfig updateTimeStringToEnum:updateTime];
-    }
-    
-    if (jsonObject[CONTENT_URL_JSON_KEY]) {
-        contentConfig.contentUrl = [jsonObject[CONTENT_URL_JSON_KEY] stringValue];
-    }
+    NSString *updateTime = jsonObject[UPDATE_TIME_JSON_KEY];
+    contentConfig.updateTime = [contentConfig updateTimeStringToEnum:updateTime];
     
     return contentConfig;
 }

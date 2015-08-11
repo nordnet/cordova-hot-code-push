@@ -19,7 +19,7 @@
     HCPJsonDownloader *jsonDownloader = [[HCPJsonDownloader alloc] initWithUrl:url];
     [jsonDownloader downloadWithComplitionBlock:^(NSError *error, id json) {
         HCPContentManifest *manifest = nil;
-        if (error != nil) {
+        if (error == nil) {
             manifest = [HCPContentManifest instanceFromJsonObject:json];
         }
         

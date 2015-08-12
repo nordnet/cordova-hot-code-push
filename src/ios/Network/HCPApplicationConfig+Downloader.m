@@ -11,7 +11,7 @@
 
 @implementation HCPApplicationConfig (Downloader)
 
-+ (void)downloadFromURL:(NSString *)url withComplitionBlock:(HCPApplicationConfigDownloadComplitionBlock)block {
++ (void)downloadFromURL:(NSURL *)url withComplitionBlock:(HCPApplicationConfigDownloadComplitionBlock)block {
     if (block == nil) {
         return;
     }
@@ -25,6 +25,13 @@
         
         block(error, config);
     }];
+}
+
++ (HCPApplicationConfig *)downloadSyncFromURL:(NSURL *)url error:(NSError **)error {
+    HCPJsonDownloader *jsonDownloader = [[HCPJsonDownloader alloc] initWithUrl:url];
+    id json = [jsonDownloader downloadSync:error];
+    
+    return [HCPApplicationConfig instanceFromJsonObject:json];
 }
 
 @end

@@ -6,9 +6,9 @@
 //
 //
 
-#import "NSBundle+Extension.h"
+#import "NSBundle+HCPExtension.h"
 
-@implementation NSBundle (Extension)
+@implementation NSBundle (HCPExtension)
 
 + (NSInteger)applicationBuildVersion {
     NSBundle *mainBundle = [NSBundle mainBundle];

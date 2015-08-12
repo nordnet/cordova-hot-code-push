@@ -8,67 +8,63 @@
 
 #import "HCPFileDownloader.h"
 #import "HCPManifestFile.h"
-#import "NSData+MD5.h"
+#import "NSData+HCPMD5.h"
 
 @implementation HCPFileDownloader
 
 #pragma mark Public API
 
 - (void)downloadFileFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    if (![NSThread isMainThread]) {
-        [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum complitionBlock:block];
-    } else {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum complitionBlock:block];
-        });
-    }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSError *error = nil;
+        [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum error:&error];
+        block(error);
+    });
 }
 
 - (void)downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    if (![NSThread isMainThread]) {
-        [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL complitionBlock:block];
-    } else {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL complitionBlock:block];
-        });
-    }
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSError *error = nil;
+        [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL error:&error];
+        block(error);
+    });
+}
+
+- (void)downloadFilesSync:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
+    [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL error:error];
+}
+
+- (void)downloadFileSyncFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum error:(NSError **)error {
+    [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum error:error];
 }
 
 #pragma mark Private API
 
-- (void)executeDownloadOfFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    __block NSError *loadError = nil;
+- (void)executeDownloadOfFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
     for (HCPManifestFile *file in filesList) {
         NSURL *filePathOnFileSystem = [folderURL URLByAppendingPathComponent:file.name isDirectory:NO];
         NSURL *fileUrlOnServer = [contentURL URLByAppendingPathComponent:file.name isDirectory:NO];
-        [self executeFileDownloadFromURL:fileUrlOnServer saveToFile:filePathOnFileSystem checksum:file.md5Hash complitionBlock:^(NSError *error){
-            loadError = error;
-        }];
-        if (loadError) {
+        [self executeFileDownloadFromURL:fileUrlOnServer saveToFile:filePathOnFileSystem checksum:file.md5Hash error:error];
+        if (error) {
             break;
         }
         
         NSLog(@"Loaded file %@", file.name);
     }
-    
-    block(loadError);
 }
 
-- (void)executeFileDownloadFromURL:(NSURL *)url saveToFile:(NSURL *)fileURL checksum:(NSString *)checksum complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    NSError *error = nil;
+- (void)executeFileDownloadFromURL:(NSURL *)url saveToFile:(NSURL *)fileURL checksum:(NSString *)checksum error:(NSError **)error {
+    *error = nil;
     NSData *downloadedContent = [NSData dataWithContentsOfURL:url];
     if (downloadedContent == nil) {
-        error = [[NSError alloc] initWithDomain:@"Failed to load file" code:0 userInfo:nil];
-        block(error);
+        *error = [[NSError alloc] initWithDomain:@"Failed to load file" code:0 userInfo:nil];
         return;
     }
     
-    if (![self isDataCorrupted:downloadedContent checksum:checksum error:&error]) {
+    if (![self isDataCorrupted:downloadedContent checksum:checksum error:error]) {
         [self prepareFileForSaving:fileURL];
-        [downloadedContent writeToURL:fileURL options:kNilOptions error:&error];
+        [downloadedContent writeToURL:fileURL options:kNilOptions error:error];
     }
-    
-    block(error);
 }
 
 - (BOOL)isDataCorrupted:(NSData *)data checksum:(NSString *)checksum error:(NSError **)error {

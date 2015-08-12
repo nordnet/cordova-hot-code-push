@@ -10,7 +10,7 @@
 
 @implementation HCPJsonDownloader
 
-- (instancetype)initWithUrl:(NSString *)url {
+- (instancetype)initWithUrl:(NSURL *)url {
     self = [super init];
     if (self) {
         _url = url;
@@ -23,10 +23,8 @@
     if (block == nil) {
         return;
     }
-    
-    NSURL *requestURL = [NSURL URLWithString:self.url];
-    NSURLRequest *request = [NSURLRequest requestWithURL:requestURL];
-    
+
+    NSURLRequest *request = [NSURLRequest requestWithURL:self.url];
     [NSURLConnection sendAsynchronousRequest:request
                                        queue:[NSOperationQueue currentQueue]
                            completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
@@ -46,5 +44,15 @@
     }];
 }
 
+- (id)downloadSync:(NSError **)error {
+    *error = nil;
+    NSData *data = [NSData dataWithContentsOfURL:self.url];
+    if (data == nil) {
+        *error = [NSError errorWithDomain:@"Failed to download config file from the given url" code:0 userInfo:nil];
+        return nil;
+    }
+    
+    return [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
+}
 
 @end

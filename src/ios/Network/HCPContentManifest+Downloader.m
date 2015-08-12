@@ -11,7 +11,7 @@
 
 @implementation HCPContentManifest (Downloader)
 
-+ (void)downloadFromURL:(NSString *)url withComplitionBlock:(HCPContentManifestDownloadComplitionBlock)block {
++ (void)downloadFromURL:(NSURL *)url withComplitionBlock:(HCPContentManifestDownloadComplitionBlock)block {
     if (block == nil) {
         return;
     }
@@ -26,5 +26,13 @@
         block(error, manifest);
     }];
 }
+
++ (HCPContentManifest *)downloadSyncFromURL:(NSURL *)url error:(NSError **)error {
+    HCPJsonDownloader *jsonDownloader = [[HCPJsonDownloader alloc] initWithUrl:url];
+    id json = [jsonDownloader downloadSync:error];
+    
+    return [HCPContentManifest instanceFromJsonObject:json];
+}
+
 
 @end

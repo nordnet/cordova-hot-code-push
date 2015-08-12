@@ -21,7 +21,7 @@ typedef NS_ENUM(NSUInteger, HCPUpdateTime) {
 
 @property (nonatomic, strong, readonly) NSString *releaseVersion;
 @property (nonatomic, readonly) NSInteger minimumNativeVersion;
-@property (nonatomic, strong, readonly) NSString *contentUrl;
+@property (nonatomic, strong, readonly) NSURL *contentURL;
 @property (nonatomic, readonly) HCPUpdateTime updateTime;
 
 @end

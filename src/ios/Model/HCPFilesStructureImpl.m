@@ -1,28 +1,32 @@
 //
-//  HCPDirectories.m
+//  HCPFilesStructureImpl.m
 //  TestIosCHCP
 //
-//  Created by Nikolay Demyankov on 10.08.15.
+//  Created by Nikolay Demyankov on 12.08.15.
 //
 //
 
-#import "HCPDirectories.h"
+#import "HCPFilesStructureImpl.h"
 
 static NSString *const CHCP_FOLDER = @"cordova-hot-code-push-plugin";
 static NSString *const DOWNLOAD_FOLDER = @"www_tmp";
 static NSString *const BACKUP_FOLDER = @"www_backup";
 static NSString *const WWWW_FOLDER = @"www";
+static NSString *const CHCP_JSON_FILE_PATH = @"chcp.json";
+static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
-@interface HCPDirectories()
+@interface HCPFilesStructureImpl()
 
 @property (nonatomic, strong, readwrite) NSURL *contentFolder;
 @property (nonatomic, strong, readwrite) NSURL *downloadFolder;
 @property (nonatomic, strong, readwrite) NSURL *backupFolder;
 @property (nonatomic, strong, readwrite) NSURL *wwwFolder;
+@property (nonatomic, strong) NSURL *contentConfigFileURL;
+@property (nonatomic, strong) NSURL *manifestFileURL;
 
 @end
 
-@implementation HCPDirectories
+@implementation HCPFilesStructureImpl
 
 - (NSURL *)contentFolder {
     if (_contentFolder) {
@@ -53,7 +57,7 @@ static NSString *const WWWW_FOLDER = @"www";
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSArray *possibleURLs = [fileManager URLsForDirectory:NSCachesDirectory
-                                             inDomains:NSUserDomainMask];
+                                                inDomains:NSUserDomainMask];
     NSURL *appCacheDirectory = nil;
     
     if ([possibleURLs count] >= 1) {
@@ -82,6 +86,14 @@ static NSString *const WWWW_FOLDER = @"www";
     }
     
     return _wwwFolder;
+}
+
+- (NSString *)configFileName {
+    return CHCP_JSON_FILE_PATH;
+}
+
+- (NSString *)manifestFileName {
+    return CHCP_MANIFEST_FILE_PATH;
 }
 
 @end

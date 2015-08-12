@@ -13,6 +13,8 @@ typedef void (^HCPApplicationConfigDownloadComplitionBlock)(NSError *error, HCPA
 
 @interface HCPApplicationConfig (Downloader)
 
-+ (void)downloadFromURL:(NSString *)url withComplitionBlock:(HCPApplicationConfigDownloadComplitionBlock)block;
++ (void)downloadFromURL:(NSURL *)url withComplitionBlock:(HCPApplicationConfigDownloadComplitionBlock)block;
+
++ (HCPApplicationConfig *)downloadSyncFromURL:(NSURL *)url error:(NSError **)error;
 
 @end

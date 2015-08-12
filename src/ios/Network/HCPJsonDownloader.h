@@ -12,10 +12,12 @@ typedef void (^HCPJsonDownloadComplitionBlock)(NSError *error, id json);
 
 @interface HCPJsonDownloader : NSObject
 
-@property (nonatomic, strong, readonly) NSString *url;
+@property (nonatomic, strong, readonly) NSURL *url;
 
-- (instancetype)initWithUrl:(NSString *)url;
+- (instancetype)initWithUrl:(NSURL *)url;
 
 - (void)downloadWithComplitionBlock:(HCPJsonDownloadComplitionBlock)block;
+
+- (id)downloadSync:(NSError **)error;
 
 @end

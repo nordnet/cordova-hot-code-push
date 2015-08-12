@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSBundle (Extension)
+@interface NSBundle (HCPExtension)
 
 + (NSInteger)applicationBuildVersion;
 

@@ -7,9 +7,9 @@
 //
 
 #import <CommonCrypto/CommonDigest.h>
-#import "NSData+MD5.h"
+#import "NSData+HCPMD5.h"
 
-@implementation NSData (MD5)
+@implementation NSData (HCPMD5)
 
 - (NSString *)md5 {
     // Create byte array of unsigned chars

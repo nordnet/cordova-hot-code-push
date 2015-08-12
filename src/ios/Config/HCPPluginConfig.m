@@ -7,7 +7,7 @@
 //
 
 #import "HCPPluginConfig.h"
-#import "NSBundle+Extension.h"
+#import "NSBundle+HCPExtension.h"
 
 static NSString *const ALLOW_UPDATES_AUTO_DOWNLOAD = @"allow_auto_download";
 static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"allow_auto_install";

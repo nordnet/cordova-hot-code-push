@@ -12,6 +12,8 @@ typedef void (^HCPContentManifestDownloadComplitionBlock)(NSError *error, HCPCon
 
 @interface HCPContentManifest (Downloader)
 
-+ (void)downloadFromURL:(NSString *)url withComplitionBlock:(HCPContentManifestDownloadComplitionBlock)block;
++ (void)downloadFromURL:(NSURL *)url withComplitionBlock:(HCPContentManifestDownloadComplitionBlock)block;
+
++ (HCPContentManifest *)downloadSyncFromURL:(NSURL *)url error:(NSError **)error;
 
 @end

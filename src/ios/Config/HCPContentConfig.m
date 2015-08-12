@@ -12,7 +12,7 @@
 
 @property (nonatomic, strong, readwrite) NSString *releaseVersion;
 @property (nonatomic, readwrite) NSInteger minimumNativeVersion;
-@property (nonatomic, strong, readwrite) NSString *contentUrl;
+@property (nonatomic, strong, readwrite) NSURL *contentURL;
 @property (nonatomic, readwrite) HCPUpdateTime updateTime;
 
 @end
@@ -78,7 +78,7 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
     return @{RELEASE_VERSION_JSON_KEY: _releaseVersion,
              MINIMUM_NATIVE_VERSION_JSON_KEY: [NSNumber numberWithInteger:_minimumNativeVersion],
              UPDATE_TIME_JSON_KEY: [self updateTimeEnumToString:_updateTime],
-             CONTENT_URL_JSON_KEY: _contentUrl};
+             CONTENT_URL_JSON_KEY: [_contentURL absoluteString]};
 }
 
 + (instancetype)instanceFromJsonObject:(id)json {
@@ -90,7 +90,7 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
     HCPContentConfig *contentConfig = [[HCPContentConfig alloc] init];
     contentConfig.releaseVersion = jsonObject[RELEASE_VERSION_JSON_KEY];
     contentConfig.minimumNativeVersion = [(NSNumber *)jsonObject[MINIMUM_NATIVE_VERSION_JSON_KEY] integerValue];
-    contentConfig.contentUrl = jsonObject[CONTENT_URL_JSON_KEY];
+    contentConfig.contentURL = [NSURL URLWithString:jsonObject[CONTENT_URL_JSON_KEY]];
     
     NSString *updateTime = jsonObject[UPDATE_TIME_JSON_KEY];
     contentConfig.updateTime = [contentConfig updateTimeStringToEnum:updateTime];

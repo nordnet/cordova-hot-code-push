@@ -14,6 +14,8 @@
 #import "HCPFilesStructureImpl.h"
 #import "HCPUpdateLoader.h"
 #import "HCPUpdateDownloadErrorEvent.h"
+#import "HCPNothingToUpdateEvent.h"
+#import "HCPUpdateIsReadyForInstallationEvent.h"
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -74,16 +76,34 @@
 - (void)subscriveToPluginInternalEvents {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     [notificationCenter addObserver:self selector:@selector(onUpdateDownloadErrorEvent:) name:kHCPUpdateDownloadErrorEventName object:nil];
+    [notificationCenter addObserver:self selector:@selector(onNothingToUpdateEvent:) name:kHCPNothingToUpdateEventName object:nil];
+    [notificationCenter addObserver:self selector:@selector(onUpdateIsReadyForInstallation:) name:kHCPUpdateIsReadyForInstallationEvent object:nil];
 }
 
 - (void)unsubscribeFromEvents {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
+#pragma mark Update download events
+
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     HCPUpdateDownloadErrorEvent *event = [HCPUpdateDownloadErrorEvent fromNotification:notification];
     
     NSLog(@"Error during update: %@", event.error.userInfo[NSLocalizedDescriptionKey]);
 }
+
+- (void)onNothingToUpdateEvent:(NSNotification *)notification {
+    HCPNothingToUpdateEvent *event = [HCPNothingToUpdateEvent fromNotification:notification];
+    
+    NSLog(@"Nothing to update");
+}
+
+- (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
+    HCPUpdateIsReadyForInstallationEvent *event = [HCPUpdateIsReadyForInstallationEvent fromNotification:notification];
+    
+    NSLog(@"Update is ready for installation");
+}
+
+#pragma mark Update installation events
 
 @end

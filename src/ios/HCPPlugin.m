@@ -78,9 +78,16 @@
 
 - (void)subscriveToPluginInternalEvents {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    
+    // update download events
     [notificationCenter addObserver:self selector:@selector(onUpdateDownloadErrorEvent:) name:kHCPUpdateDownloadErrorEvent object:nil];
     [notificationCenter addObserver:self selector:@selector(onNothingToUpdateEvent:) name:kHCPNothingToUpdateEvent object:nil];
     [notificationCenter addObserver:self selector:@selector(onUpdateIsReadyForInstallation:) name:kHCPUpdateIsReadyForInstallationEvent object:nil];
+    
+    // update installation events
+    [notificationCenter addObserver:self selector:@selector(onUpdateInstallationErrorEvent:) name:kHCPUpdateInstallationErrorEvent object:nil];
+    [notificationCenter addObserver:self selector:@selector(onUpdateInstalledEvent:) name:kHCPUpdateIsInstalledEvent object:nil];
+    
 }
 
 - (void)unsubscribeFromEvents {
@@ -106,5 +113,13 @@
 }
 
 #pragma mark Update installation events
+
+- (void)onUpdateInstallationErrorEvent:(NSNotification *)notification {
+    
+}
+
+- (void)onUpdateInstalledEvent:(NSNotification *)notification {
+    
+}
 
 @end

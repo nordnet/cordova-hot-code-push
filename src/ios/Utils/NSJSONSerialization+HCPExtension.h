@@ -12,4 +12,6 @@
 
 + (id)JSONObjectWithContentsFromFileURL:(NSURL *)fileURL error:(NSError **)error;
 
++ (id)JSONObjectWithContentsFromString:(NSString *)jsonString error:(NSError **)error;
+
 @end

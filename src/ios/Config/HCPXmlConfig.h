@@ -12,10 +12,10 @@
 
 @interface HCPXmlConfig : NSObject
 
-@property (nonatomic, strong, readonly) NSString *configUrl;
+@property (nonatomic, strong, readonly) NSURL *configUrl;
 @property (nonatomic, strong, readonly) HCPLocalDevOptions *devOptions;
 
-- (instancetype)initWithConfigUrl:(NSString *)configUrl developerOptions:(HCPLocalDevOptions *)devOptions;
+- (instancetype)initWithConfigUrl:(NSURL *)configUrl developerOptions:(HCPLocalDevOptions *)devOptions;
 
 + (instancetype)loadFromCordovaConfigXml;
 

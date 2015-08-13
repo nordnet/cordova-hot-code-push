@@ -12,8 +12,9 @@
 
 @interface HCPUpdateInstaller() {
     id<HCPFilesStructure> _filesStructure;
-    BOOL _isExecuting;
 }
+
+@property (nonatomic, readwrite, getter=isInstallationInProgress) BOOL isInstallationInProgress;
 
 @end
 
@@ -39,7 +40,7 @@
     *error = nil;
     
     // if installing - exit
-    if (_isExecuting) {
+    if (_isInstallationInProgress) {
         *error = [NSError errorWithCode:0 description:@"Installation is already in progress"];
         return NO;
     }
@@ -60,9 +61,9 @@
 
 - (void)execute:(id<HCPWorker>)worker {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        _isExecuting = YES;
+        _isInstallationInProgress = YES;
         [worker run];
-        _isExecuting = NO;
+        _isInstallationInProgress = NO;
     });
 }
 

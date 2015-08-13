@@ -13,7 +13,7 @@
     BOOL _didParseCHCPBlock;
     BOOL _isInCHCPBlock;
     
-    NSString *_configUrl;
+    NSURL *_configUrl;
     HCPLocalDevOptions *_devOptions;
 }
 
@@ -97,12 +97,12 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
 #pragma mark Private API
 
 - (void)parseConfigUrl:(NSDictionary *)attributeDict {
-    _configUrl = [attributeDict[CONFIG_FILE_URL_ATTRIBUTE] stringValue];
+    _configUrl = [NSURL URLWithString:attributeDict[CONFIG_FILE_URL_ATTRIBUTE]];
 }
 
 - (void)parseLocelDevelopmentOptions:(NSDictionary *)attributeDict {
     _devOptions = [[HCPLocalDevOptions alloc] init];
-    _devOptions.enabled = [attributeDict[LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE] boolValue];
+    _devOptions.enabled = [(NSNumber *)attributeDict[LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE] boolValue];
 }
 
 @end

@@ -14,6 +14,11 @@
 #import "HCPFilesStructureImpl.h"
 #import "HCPUpdateLoader.h"
 #import "HCPEvents.h"
+#import "HCPPluginConfig+UserDefaults.h"
+#import "HCPUpdateInstaller.h"
+#import "NSJSONSerialization+HCPExtension.h"
+#import "CDVPluginResult+HCPEvent.h"
+#import "HCPXmlConfig.h"
 
 // Socket IO support:
 // 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
@@ -25,9 +30,20 @@
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
     HCPUpdateLoader *_updatesLoader;
+    NSString *_defaultCallbackID;
+    NSString *_wwwFolderPathInBundle;
+    BOOL _isPluginReadyForWork;
+    HCPPluginConfig *_pluginConfig;
+    HCPUpdateInstaller *_updateInstaller;
+    NSMutableArray *_fetchTasks;
+    NSString *_installationCallback;
+    HCPXmlConfig *_pluginXmllConfig;
 }
 
 @end
+
+static NSString *const BLANK_PAGE = @"about:blank";
+static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 @implementation HCPPlugin
 
@@ -36,19 +52,9 @@
 #pragma mark Lifecycle
 
 -(void)pluginInitialize {
-    _filesStructure = [[HCPFilesStructureImpl alloc] init];
-    
-    _updatesLoader = [HCPUpdateLoader sharedInstance];
-    [_updatesLoader setup:_filesStructure];
-    
-    //NSString *path = [[NSBundle mainBundle] pathForResource:@"index" ofType:@"html" inDirectory:@"www"];
-    //NSLog(@"path is: %@", path);
-    
-    //NSLog(@"WWW directory: %@", [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"www"]);
-    
     [self subscribeToEvents];
     
-    [_updatesLoader addUpdateTaskToQueueWithConfigUrl:nil];
+    [self initVariables];
 }
 
 - (void)onAppTerminate {
@@ -57,12 +63,120 @@
 
 - (void)onResume:(NSNotification *)notification {
     NSLog(@"onResume is called");
-    
-    
 }
 
 - (void)onPause:(NSNotification *)notification {
     NSLog(@"onPause is called");
+}
+
+#pragma mark Private API
+
+- (void)initVariables {
+    _fetchTasks = [[NSMutableArray alloc] init];
+    _filesStructure = [[HCPFilesStructureImpl alloc] init];
+    
+    _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
+    _pluginConfig = [HCPPluginConfig loadFromUserDefaults];
+    _pluginConfig.configUrl = _pluginXmllConfig.configUrl;
+    
+    _updatesLoader = [HCPUpdateLoader sharedInstance];
+    [_updatesLoader setup:_filesStructure];
+    
+    _updateInstaller = [HCPUpdateInstaller sharedInstance];
+    [_updateInstaller setup:_filesStructure];
+}
+
+- (void)_fetchUpdate:(NSString *)callbackId {
+    if (!_isPluginReadyForWork) {
+        return;
+    }
+    
+    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginConfig.configUrl];
+    [self storeCallback:callbackId forFetchTask:taskId];
+}
+
+- (void)storeCallback:(NSString *)callbackId forFetchTask:(NSString *)taskId {
+    if (callbackId == nil || taskId == nil) {
+        return;
+    }
+    
+    NSDictionary *dict = @{taskId:callbackId};
+    if (_fetchTasks.count < 2) {
+        [_fetchTasks addObject:dict];
+    } else {
+        [_fetchTasks replaceObjectAtIndex:1 withObject:dict];
+    }
+}
+
+- (NSString *)pollCallbackForTask:(NSString *)taskId {
+    NSString *callbackId = nil;
+    NSInteger index = -1;
+    
+    for (NSInteger i=0, len=_fetchTasks.count; i<len; i++) {
+        NSDictionary *dict = _fetchTasks[i];
+        NSString *storedCallbackId = dict[taskId];
+        if (storedCallbackId) {
+            callbackId = storedCallbackId;
+            index = i;
+            break;
+        }
+    }
+    
+    if (callbackId) {
+        [_fetchTasks removeObjectAtIndex:index];
+    }
+    
+    return callbackId;
+}
+
+- (void)_installUpdate:(NSString *)callbackID {
+    if (!_isPluginReadyForWork) {
+        return;
+    }
+
+    NSError *error = nil;
+    if (![_updateInstaller launchUpdateInstallation:&error]) {
+        //TODO: send nothing to update message
+        return;
+    }
+
+    if (callbackID) {
+        _installationCallback = callbackID;
+    }
+    
+    //TODO: show progress dialog
+}
+
+- (void)redirectToLocalStorage {
+    NSString *currentUrl = self.webView.request.URL.absoluteString;
+    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE] || [currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
+        return;
+    }
+    
+    currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[self pathToWwwFolderInBundle] withString:@""];
+    NSURL *externalUrl = [_filesStructure.wwwFolder URLByAppendingPathComponent:currentUrl];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:externalUrl.absoluteString]) {
+        return;
+    }
+    
+    [self.webView loadRequest:[NSURLRequest requestWithURL:externalUrl]];
+}
+
+- (NSString *)pathToWwwFolderInBundle {
+    if (_wwwFolderPathInBundle == nil) {
+        _wwwFolderPathInBundle = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:WWW_FOLDER_IN_BUNDLE];
+    }
+    
+    return _wwwFolderPathInBundle;
+}
+
+- (void)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
+    if (_defaultCallbackID == nil) {
+        return;
+    }
+    [result setKeepCallbackAsBool:YES];
+    
+    [self.commandDelegate sendPluginResult:result callbackId:_defaultCallbackID];
 }
 
 #pragma mark Events
@@ -100,28 +214,112 @@
 
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
-    
     NSLog(@"Error during update: %@", error.userInfo[NSLocalizedDescriptionKey]);
+    
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
+    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (callbackID) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+    }
+    
+    [self invokeDefaultCallbackWithMessage:pluginResult];
 }
 
 - (void)onNothingToUpdateEvent:(NSNotification *)notification {
-    
     NSLog(@"Nothing to update");
+    
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
+    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (callbackID) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+    }
+    
+    [self invokeDefaultCallbackWithMessage:pluginResult];
 }
 
 - (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
-    
     NSLog(@"Update is ready for installation");
+    
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
+    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (callbackID) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+    }
+    [self invokeDefaultCallbackWithMessage:pluginResult];
+    
+    HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+        [self _installUpdate:nil];
+    }
 }
 
 #pragma mark Update installation events
 
 - (void)onUpdateInstallationErrorEvent:(NSNotification *)notification {
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
+    if (_installationCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
+        _installationCallback = nil;
+    }
+    
+    [self invokeDefaultCallbackWithMessage:pluginResult];
+    
+    // TODO: hide installation progress dialog
 }
 
 - (void)onUpdateInstalledEvent:(NSNotification *)notification {
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
+    if (_installationCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
+        _installationCallback = nil;
+    }
+    
+    [self invokeDefaultCallbackWithMessage:pluginResult];
+    
+    // TODO: ide installation progress dialog
 }
+
+#pragma mark Methods, invoked from Javascript
+
+- (void)initPluginFromJS:(CDVInvokedUrlCommand *)command {
+    _defaultCallbackID = command.callbackId;
+}
+
+- (void)configure:(CDVInvokedUrlCommand *)command {
+    if (!_isPluginReadyForWork) {
+        return;
+    }
+    
+    NSError *error = nil;
+    id options = [NSJSONSerialization JSONObjectWithContentsFromString:command.arguments[0] error:&error];
+    if (error) {
+        [self.commandDelegate sendPluginResult:nil callbackId:command.callbackId];
+        return;
+    }
+    
+    [_pluginConfig mergeOptionsFromJS:options];
+    [_pluginConfig saveToUserDefaults];
+    
+    [self.commandDelegate sendPluginResult:nil callbackId:command.callbackId];
+}
+
+- (void)fetchUpdate:(CDVInvokedUrlCommand *)command {
+    if (!_isPluginReadyForWork) {
+        return;
+    }
+    
+    [self _fetchUpdate:command.callbackId];
+}
+
+- (void)installUpdate:(CDVInvokedUrlCommand *)command {
+    if (!_isPluginReadyForWork) {
+        return;
+    }
+    
+    [self _installUpdate:command.callbackId];
+}
+
 
 @end

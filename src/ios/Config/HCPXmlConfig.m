@@ -11,14 +11,14 @@
 
 @interface HCPXmlConfig()
 
-@property (nonatomic, readwrite) NSString *configUrl;
-@property (nonatomic, readwrite) HCPLocalDevOptions *devOptions;
+@property (nonatomic, strong, readwrite) NSURL *configUrl;
+@property (nonatomic, strong, readwrite) HCPLocalDevOptions *devOptions;
 
 @end
 
 @implementation HCPXmlConfig
 
-- (instancetype)initWithConfigUrl:(NSString *)configUrl developerOptions:(HCPLocalDevOptions *)devOptions {
+- (instancetype)initWithConfigUrl:(NSURL *)configUrl developerOptions:(HCPLocalDevOptions *)devOptions {
     self = [super init];
     if (self) {
         self.configUrl = configUrl;

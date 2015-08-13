@@ -13,6 +13,8 @@
 
 + (HCPUpdateInstaller *)sharedInstance;
 
+@property (nonatomic, readonly, getter=isInstallationInProgress) BOOL isInstallationInProgress;
+
 - (void)setup:(id<HCPFilesStructure>)filesStructure;
 
 - (BOOL)launchUpdateInstallation:(NSError **)error;

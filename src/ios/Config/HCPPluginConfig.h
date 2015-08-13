@@ -12,7 +12,7 @@
 @interface HCPPluginConfig : NSObject<HCPJsonConvertable>
 
 @property (nonatomic) NSInteger appBuildVersion;
-@property (nonatomic, strong) NSString *configUrl;
+@property (nonatomic, strong) NSURL *configUrl;
 @property (nonatomic, getter=isUpdatesAutoDowloadAllowed) BOOL allowUpdatesAutoDownload;
 @property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
 

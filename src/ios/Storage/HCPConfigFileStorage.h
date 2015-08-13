@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "HCPJsonConvertable.h"
 
-@protocol HCPConfigStorage <NSObject>
+@protocol HCPConfigFileStorage <NSObject>
 
 - (void)store:(id<HCPJsonConvertable>)config inFolder:(NSURL *)folderURL;
 

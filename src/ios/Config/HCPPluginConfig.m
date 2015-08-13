@@ -14,12 +14,6 @@ static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"allow_auto_install";
 static NSString *const CONFIG_URL = @"config_url";
 static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 
-@interface HCPPluginConfig() {
-
-}
-
-@end
-
 @implementation HCPPluginConfig
 
 #pragma mark Public API

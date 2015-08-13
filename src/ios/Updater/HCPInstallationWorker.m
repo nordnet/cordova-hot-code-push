@@ -18,8 +18,8 @@
 
 @interface HCPInstallationWorker() {
     id<HCPFilesStructure> _fileStructure;
-    id<HCPConfigStorage> _manifestStorage;
-    id<HCPConfigStorage> _configStorage;
+    id<HCPConfigFileStorage> _manifestStorage;
+    id<HCPConfigFileStorage> _configStorage;
     HCPApplicationConfig *_oldConfig;
     HCPApplicationConfig *_newConfig;
     HCPContentManifest *_oldManifest;

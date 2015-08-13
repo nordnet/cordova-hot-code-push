@@ -22,8 +22,8 @@
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
     id<HCPFilesStructure> _pluginFiles;
-    id<HCPConfigStorage> _appConfigStorage;
-    id<HCPConfigStorage> _manifestStorage;
+    id<HCPConfigFileStorage> _appConfigStorage;
+    id<HCPConfigFileStorage> _manifestStorage;
 }
 
 @property (nonatomic, strong, readwrite) NSString *workerId;

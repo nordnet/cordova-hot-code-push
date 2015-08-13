@@ -19,6 +19,8 @@
 // 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
 // 2) Add hook to enable support for swift: https://github.com/cowbell/cordova-plugin-geofence/blob/20de72b918c779511919f7e38d07721112d4f5c8/hooks/add_swift_support.js
 // Additional info: http://stackoverflow.com/questions/25448976/how-to-write-cordova-plugin-in-swift
+// Cordova swift example: https://github.com/edewit/cordova-plugin-hello/tree/swift
+
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;

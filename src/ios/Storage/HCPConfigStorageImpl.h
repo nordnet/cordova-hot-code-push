@@ -7,9 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "HCPConfigStorage.h"
+#import "HCPConfigFileStorage.h"
 
-@interface HCPConfigStorageImpl : NSObject<HCPConfigStorage>
+@interface HCPConfigStorageImpl : NSObject<HCPConfigFileStorage>
 
 - (NSURL *)getFullUrlToFileInFolder:(NSURL *)folder;
 

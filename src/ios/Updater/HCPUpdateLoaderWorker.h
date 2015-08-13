@@ -8,13 +8,10 @@
 
 #import <Foundation/Foundation.h>
 #import "HCPFilesStructure.h"
+#import "HCPWorker.h"
 
-@interface HCPUpdateLoaderWorker : NSObject
-
-@property (nonatomic, strong, readonly) NSString *workerId;
+@interface HCPUpdateLoaderWorker : NSObject<HCPWorker>
 
 - (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(id<HCPFilesStructure>)fileStructure;
-
-- (void)run;
 
 @end

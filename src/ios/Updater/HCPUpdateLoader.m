@@ -11,7 +11,7 @@
 
 @interface HCPUpdateLoader() {
     BOOL _isExecuting;
-    HCPUpdateLoaderWorker *_scheduledTask;
+    id<HCPWorker> _scheduledTask;
     id<HCPFilesStructure> _filesStructure;
 }
 
@@ -36,7 +36,7 @@
 }
 
 - (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
-    HCPUpdateLoaderWorker *task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
+    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
     if (_isExecuting) {
         _scheduledTask = task;
     } else {
@@ -48,7 +48,7 @@
 
 #pragma mark Private API
 
-- (void)executeTask:(HCPUpdateLoaderWorker *)task {
+- (void)executeTask:(id<HCPWorker>)task {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         _isExecuting = YES;
         [task run];

@@ -13,9 +13,12 @@
 #import "HCPFilesStructure.h"
 #import "HCPFilesStructureImpl.h"
 #import "HCPUpdateLoader.h"
-#import "HCPUpdateDownloadErrorEvent.h"
-#import "HCPNothingToUpdateEvent.h"
-#import "HCPUpdateIsReadyForInstallationEvent.h"
+#import "HCPEvents.h"
+
+// Socket IO support:
+// 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
+// 2) Add hook to enable support for swift: https://github.com/cowbell/cordova-plugin-geofence/blob/20de72b918c779511919f7e38d07721112d4f5c8/hooks/add_swift_support.js
+// Additional info: http://stackoverflow.com/questions/25448976/how-to-write-cordova-plugin-in-swift
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -75,8 +78,8 @@
 
 - (void)subscriveToPluginInternalEvents {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter addObserver:self selector:@selector(onUpdateDownloadErrorEvent:) name:kHCPUpdateDownloadErrorEventName object:nil];
-    [notificationCenter addObserver:self selector:@selector(onNothingToUpdateEvent:) name:kHCPNothingToUpdateEventName object:nil];
+    [notificationCenter addObserver:self selector:@selector(onUpdateDownloadErrorEvent:) name:kHCPUpdateDownloadErrorEvent object:nil];
+    [notificationCenter addObserver:self selector:@selector(onNothingToUpdateEvent:) name:kHCPNothingToUpdateEvent object:nil];
     [notificationCenter addObserver:self selector:@selector(onUpdateIsReadyForInstallation:) name:kHCPUpdateIsReadyForInstallationEvent object:nil];
 }
 
@@ -87,19 +90,17 @@
 #pragma mark Update download events
 
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
-    HCPUpdateDownloadErrorEvent *event = [HCPUpdateDownloadErrorEvent fromNotification:notification];
+    NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
     
-    NSLog(@"Error during update: %@", event.error.userInfo[NSLocalizedDescriptionKey]);
+    NSLog(@"Error during update: %@", error.userInfo[NSLocalizedDescriptionKey]);
 }
 
 - (void)onNothingToUpdateEvent:(NSNotification *)notification {
-    HCPNothingToUpdateEvent *event = [HCPNothingToUpdateEvent fromNotification:notification];
     
     NSLog(@"Nothing to update");
 }
 
 - (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
-    HCPUpdateIsReadyForInstallationEvent *event = [HCPUpdateIsReadyForInstallationEvent fromNotification:notification];
     
     NSLog(@"Update is ready for installation");
 }

@@ -16,10 +16,8 @@
 #import "HCPApplicationConfigStorage.h"
 #import "HCPContentManifestStorage.h"
 #import "HCPFileDownloader.h"
-#import "HCPUpdateDownloadErrorEvent.h"
-#import "HCPNothingToUpdateEvent.h"
+#import "HCPEvents.h"
 #import "NSError+HCPExtension.h"
-#import "HCPUpdateIsReadyForInstallationEvent.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
@@ -27,6 +25,8 @@
     id<HCPConfigStorage> _appConfigStorage;
     id<HCPConfigStorage> _manifestStorage;
 }
+
+@property (nonatomic, strong, readwrite) NSString *workerId;
 
 @end
 
@@ -126,18 +126,18 @@
 #pragma mark Private API
 
 - (void)notifyWithError:(NSError *)error applicationConfig:(HCPApplicationConfig *)config {
-    id<HCPNotificationCenterEvent> notification = [[HCPUpdateDownloadErrorEvent alloc] initWithError:error taskId:self.workerId applicationConfig:config];
-    [[NSNotificationCenter defaultCenter] postNotification:notification.notification];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateDownloadErrorEvent applicationConfig:config taskId:self.workerId error:error];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
 - (void)notifyNothingToUpdate:(HCPApplicationConfig *)config {
-    id<HCPNotificationCenterEvent> notification = [[HCPNothingToUpdateEvent alloc] initWithTaskId:self.workerId applicationConfig:config];
-    [[NSNotificationCenter defaultCenter] postNotification:notification.notification];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToUpdateEvent applicationConfig:config taskId:self.workerId];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
 - (void)notifyUpdateDownloadSuccess:(HCPApplicationConfig *)config {
-    id<HCPNotificationCenterEvent> notification = [[HCPUpdateIsReadyForInstallationEvent alloc] initWithTaskId:self.workerId applicationConfig:config];
-    [[NSNotificationCenter defaultCenter] postNotification:notification.notification];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateIsReadyForInstallationEvent applicationConfig:config taskId:self.workerId];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
 - (void)recreateDownloadFolder:(NSURL *)downloadFolder {

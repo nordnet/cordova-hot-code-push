@@ -44,7 +44,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 #pragma mark HCPJsonConvertable implementation
 
 + (instancetype)instanceFromJsonObject:(id)json {
-    if ([json isKindOfClass:[NSDictionary class]]) {
+    if (![json isKindOfClass:[NSDictionary class]]) {
         return nil;
     }
     NSDictionary *jsonObject = json;

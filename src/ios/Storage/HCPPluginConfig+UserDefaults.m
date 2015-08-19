@@ -8,26 +8,26 @@
 
 #import "HCPPluginConfig+UserDefaults.h"
 
+static NSString *const PLUGIN_CONFIG_USER_DEFAULTS_KEY = @"plugin_config";
+
 @implementation HCPPluginConfig (UserDefaults)
 
 - (void)saveToUserDefaults {
     id json = [self toJson];
     
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults setObject:json forKey:@"plugin_config"];
+    [userDefaults setObject:json forKey:PLUGIN_CONFIG_USER_DEFAULTS_KEY];
     [userDefaults synchronize];
 }
 
 + (HCPPluginConfig *)loadFromUserDefaults {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    
-    id json = [userDefaults objectForKey:@"plugin_config"];
+    id json = [userDefaults objectForKey:PLUGIN_CONFIG_USER_DEFAULTS_KEY];
     if (json) {
-        [HCPPluginConfig instanceFromJsonObject:json];
-
+        return [HCPPluginConfig instanceFromJsonObject:json];
     }
     
-    return [HCPPluginConfig defaultConfig];
+    return nil;
 }
 
 

@@ -18,6 +18,7 @@
 #import "HCPFileDownloader.h"
 #import "HCPEvents.h"
 #import "NSError+HCPExtension.h"
+#import "HCPUpdateInstaller.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
@@ -48,9 +49,9 @@
 }
 
 - (void)run {
-    NSError *error = nil;
-    // TODO: wait for installation to finish
+    [self waitForInstallationToComplete];
     
+    NSError *error = nil;
     
     HCPApplicationConfig *oldAppConfig = [_appConfigStorage loadFromFolder:_pluginFiles.wwwFolder];
     if (oldAppConfig == nil) {
@@ -124,6 +125,11 @@
 }
 
 #pragma mark Private API
+
+- (void)waitForInstallationToComplete {
+    while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
+    }
+}
 
 - (void)notifyWithError:(NSError *)error applicationConfig:(HCPApplicationConfig *)config {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateDownloadErrorEvent applicationConfig:config taskId:self.workerId error:error];

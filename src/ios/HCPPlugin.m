@@ -87,6 +87,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 #pragma mark Private API
 
 - (void)installWwwFolderIfNeeded {
+    NSError *error = nil;
     NSFileManager *fileManager = [NSFileManager defaultManager];
     BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginConfig.appBuildVersion;
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
@@ -95,18 +96,28 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
         return;
     }
     
-    NSError *error = nil;
+    // remove previous version of the www folder
     if (isWWwFolderExists) {
         [fileManager removeItemAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] error:&error];
     }
     
-    if ([fileManager createDirectoryAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:&error]) {
-        NSURL *localWww = [NSURL fileURLWithPath:[self pathToWwwFolderInBundle] isDirectory:YES];
-        _isPluginReadyForWork = [fileManager copyItemAtURL:localWww toURL:_filesStructure.wwwFolder error:&error];
-        if (error) {
-            NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
-        }
+    // create new www folder
+    if (![fileManager createDirectoryAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:&error]) {
+        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+        return;
     }
+    
+    // copy www folder from bundle to cache folder
+    NSURL *localWww = [NSURL fileURLWithPath:[self pathToWwwFolderInBundle] isDirectory:YES];
+    _isPluginReadyForWork = [fileManager copyItemAtURL:localWww toURL:_filesStructure.wwwFolder error:&error];
+    if (error) {
+        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+        return;
+    }
+    
+    // update stored config with new application build version
+    _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
+    [_pluginConfig saveToUserDefaults];
 }
 
 - (void)initVariables {
@@ -116,6 +127,11 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     
     _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
     _pluginConfig = [HCPPluginConfig loadFromUserDefaults];
+    if (_pluginConfig == nil) {
+        _pluginConfig = [HCPPluginConfig defaultConfig];
+        [_pluginConfig saveToUserDefaults];
+    }
+    
     _pluginConfig.configUrl = _pluginXmllConfig.configUrl;
     
     _updatesLoader = [HCPUpdateLoader sharedInstance];
@@ -332,9 +348,9 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
-    //if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
-    //}
+    }
 }
 
 #pragma mark Update installation events

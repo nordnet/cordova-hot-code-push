@@ -120,7 +120,7 @@
     NSArray *updateFileList = _manifestDiff.updateFileList;
     for (HCPManifestFile *updatedFile in updateFileList) {
         NSURL *fileLocalURL = [_fileStructure.downloadFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
-        if (![_fileManager fileExistsAtPath:fileLocalURL.absoluteString]) {
+        if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
             errorMsg = [NSString stringWithFormat:@"Update validation error! File not found:%@", updatedFile.name];
             *error = [NSError errorWithCode:0 description:errorMsg];
             break;
@@ -140,7 +140,7 @@
 - (BOOL)backupFiles:(NSError **)error {
     *error = nil;
     
-    return [_fileManager createDirectoryAtURL:_fileStructure.backupFolder withIntermediateDirectories:YES attributes:nil error:error] &&
+    return [_fileManager createDirectoryAtURL:[_fileStructure.backupFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:error] &&
             [_fileManager copyItemAtURL:_fileStructure.wwwFolder toURL:_fileStructure.backupFolder error:error];
 }
 
@@ -159,19 +159,34 @@
 
 - (BOOL)moveDownloadedFilesToWwwFolder:(NSError **)error {
     *error = nil;
-    return [_fileManager copyItemAtURL:_fileStructure.downloadFolder toURL:_fileStructure.wwwFolder error:error];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *updatedFiles = _manifestDiff.updateFileList;
+    for (HCPManifestFile *manifestFile in updatedFiles) {
+        NSURL *pathInDownloadFolder = [_fileStructure.downloadFolder URLByAppendingPathComponent:manifestFile.name];
+        NSURL *pathInWwwFolder = [_fileStructure.wwwFolder URLByAppendingPathComponent:manifestFile.name];
+        if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
+            break;
+        }
+        
+        if (![fileManager moveItemAtURL:pathInDownloadFolder toURL:pathInWwwFolder error:error]) {
+            NSLog(@"%@", [(*error).userInfo[NSUnderlyingErrorKey] localizedDescription]);
+            break;
+        }
+    }
+    
+    return (*error == nil);
 }
 
 - (void)cleanUp {
     NSError *error = nil;
     [_fileManager removeItemAtURL:_fileStructure.downloadFolder error:&error];
-    if ([_fileManager fileExistsAtPath:_fileStructure.backupFolder.absoluteString]) {
+    if ([_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
         [_fileManager removeItemAtURL:_fileStructure.backupFolder error:&error];
     }
 }
 
 - (void)rollback {
-    if (![_fileManager fileExistsAtPath:_fileStructure.backupFolder.absoluteString]) {
+    if (![_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
         return;
     }
     

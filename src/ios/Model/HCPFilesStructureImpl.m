@@ -34,15 +34,13 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     }
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    
-    NSArray *possibleURLs = [fileManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask];
-    NSURL *appSupportDir = nil;
-    
-    if ([possibleURLs count] >= 1) {
-        appSupportDir = [possibleURLs objectAtIndex:0];
-    }
-    
-    if (appSupportDir) {
+    NSError *error = nil;
+    NSURL *appSupportDir = [fileManager URLForDirectory:NSApplicationSupportDirectory
+                                               inDomain:NSUserDomainMask
+                                      appropriateForURL:nil
+                                                 create:YES
+                                                  error:&error];
+    if (appSupportDir && !error) {
         NSString *appBundleID = [[NSBundle mainBundle] bundleIdentifier];
         _contentFolder = [[appSupportDir URLByAppendingPathComponent:appBundleID] URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
     }
@@ -56,15 +54,14 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     }
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSArray *possibleURLs = [fileManager URLsForDirectory:NSCachesDirectory
-                                                inDomains:NSUserDomainMask];
-    NSURL *appCacheDirectory = nil;
+    NSError *error = nil;
+    NSURL *appCacheDirectory = [fileManager URLForDirectory:NSCachesDirectory
+                                                   inDomain:NSUserDomainMask
+                                          appropriateForURL:nil
+                                                     create:YES
+                                                      error:&error];
     
-    if ([possibleURLs count] >= 1) {
-        appCacheDirectory = [possibleURLs objectAtIndex:0];
-    }
-    
-    if (appCacheDirectory) {
+    if (appCacheDirectory && !error) {
         NSString* appBundleID = [[NSBundle mainBundle] bundleIdentifier];
         _downloadFolder = [[appCacheDirectory URLByAppendingPathComponent:appBundleID] URLByAppendingPathComponent:DOWNLOAD_FOLDER isDirectory:YES];
     }

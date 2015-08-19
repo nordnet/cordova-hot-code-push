@@ -8,11 +8,12 @@
 
 #import "HCPEvents.h"
 
-NSString *const kHCPUpdateDownloadErrorEvent = @"HCPUpdateDownloadErrorEvent";
-NSString *const kHCPNothingToUpdateEvent = @"HCPNothingToUpdateEvent";
-NSString *const kHCPUpdateIsReadyForInstallationEvent = @"HCPUpdateIsReadyForInstallationEvent";
-NSString *const kHCPUpdateInstallationErrorEvent = @"HCPUpdateInstallationErrorEvent";
-NSString *const kHCPUpdateIsInstalledEvent = @"HCPUpdateIsInstalledEvent";
+NSString *const kHCPUpdateDownloadErrorEvent = @"chcp_updateLoadFailed";
+NSString *const kHCPNothingToUpdateEvent = @"chcp_nothingToUpdate";
+NSString *const kHCPUpdateIsReadyForInstallationEvent = @"chcp_updateIsReadyToInstall";
+NSString *const kHCPUpdateInstallationErrorEvent = @"chcp_updateInstallFailed";
+NSString *const kHCPUpdateIsInstalledEvent = @"chcp_updateInstalled";
+NSString *const kHCPNothingToInstallEvent = @"chcp_nothingToInstall";
 
 NSString *const kHCPEventUserInfoErrorKey = @"error";
 NSString *const kHCPEventUserInfoTaskIdKey = @"taskId";

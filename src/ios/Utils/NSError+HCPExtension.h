@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString *const kHCPPluginErrorDomain;
+
 @interface NSError (HCPExtension)
 
 + (NSError *)errorWithCode:(NSInteger)errorCode description:(NSString *)description;

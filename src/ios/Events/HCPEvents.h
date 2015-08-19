@@ -14,6 +14,7 @@ extern NSString *const kHCPNothingToUpdateEvent;
 extern NSString *const kHCPUpdateIsReadyForInstallationEvent;
 extern NSString *const kHCPUpdateInstallationErrorEvent;
 extern NSString *const kHCPUpdateIsInstalledEvent;
+extern NSString *const kHCPNothingToInstallEvent;
 
 extern NSString *const kHCPEventUserInfoErrorKey;
 extern NSString *const kHCPEventUserInfoTaskIdKey;

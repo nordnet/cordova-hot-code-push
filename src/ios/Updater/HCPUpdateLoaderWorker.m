@@ -144,7 +144,7 @@
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
     NSError *error = nil;
-    if ([fileManager fileExistsAtPath:downloadFolder.absoluteString]) {
+    if ([fileManager fileExistsAtPath:downloadFolder.path]) {
         [fileManager removeItemAtURL:downloadFolder error:&error];
     }
     

@@ -7,6 +7,7 @@
 //
 
 #import "HCPJsonDownloader.h"
+#import "NSError+HCPExtension.h"
 
 @implementation HCPJsonDownloader
 
@@ -48,7 +49,7 @@
     *error = nil;
     NSData *data = [NSData dataWithContentsOfURL:self.url];
     if (data == nil) {
-        *error = [NSError errorWithDomain:@"Failed to download config file from the given url" code:0 userInfo:nil];
+        *error = [NSError errorWithCode:0 description:@"Failed to download config file from the given url"];
         return nil;
     }
     

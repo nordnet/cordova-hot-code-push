@@ -23,10 +23,11 @@
     
     id json = [userDefaults objectForKey:@"plugin_config"];
     if (json) {
-        return [HCPPluginConfig defaultConfig];
+        [HCPPluginConfig instanceFromJsonObject:json];
+
     }
     
-    return [HCPPluginConfig instanceFromJsonObject:json];
+    return [HCPPluginConfig defaultConfig];
 }
 
 

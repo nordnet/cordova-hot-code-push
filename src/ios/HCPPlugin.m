@@ -19,12 +19,15 @@
 #import "NSJSONSerialization+HCPExtension.h"
 #import "CDVPluginResult+HCPEvent.h"
 #import "HCPXmlConfig.h"
+#import "NSBundle+HCPExtension.h"
+#import <Cordova/CDVConfigParser.h>
 
 // Socket IO support:
 // 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
 // 2) Add hook to enable support for swift: https://github.com/cowbell/cordova-plugin-geofence/blob/20de72b918c779511919f7e38d07721112d4f5c8/hooks/add_swift_support.js
 // Additional info: http://stackoverflow.com/questions/25448976/how-to-write-cordova-plugin-in-swift
 // Cordova swift example: https://github.com/edewit/cordova-plugin-hello/tree/swift
+// http://chrisdell.info/blog/writing-ios-cordova-plugin-pure-swift/
 
 
 @interface HCPPlugin() {
@@ -51,10 +54,22 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 #pragma mark Lifecycle
 
--(void)pluginInitialize {
-    [self subscribeToEvents];
+- (CDVPlugin *)initWithWebView:(UIWebView *)theWebView {
+    [theWebView setHidden:YES];
     
+    return [super initWithWebView:theWebView];
+}
+
+-(void)pluginInitialize {    
+    [self subscribeToEvents];
     [self initVariables];
+    [self installWwwFolderIfNeeded];
+    [self redirectToLocalStorage];
+    
+    // launch update download
+    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+        [self jsFetchUpdate:nil];
+    }
 }
 
 - (void)onAppTerminate {
@@ -71,7 +86,31 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 #pragma mark Private API
 
+- (void)installWwwFolderIfNeeded {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginConfig.appBuildVersion;
+    BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
+    if (!isApplicationUpdated && isWWwFolderExists) {
+        _isPluginReadyForWork = YES;
+        return;
+    }
+    
+    NSError *error = nil;
+    if (isWWwFolderExists) {
+        [fileManager removeItemAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] error:&error];
+    }
+    
+    if ([fileManager createDirectoryAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:&error]) {
+        NSURL *localWww = [NSURL fileURLWithPath:[self pathToWwwFolderInBundle] isDirectory:YES];
+        _isPluginReadyForWork = [fileManager copyItemAtURL:localWww toURL:_filesStructure.wwwFolder error:&error];
+        if (error) {
+            NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+        }
+    }
+}
+
 - (void)initVariables {
+    _isPluginReadyForWork = NO;
     _fetchTasks = [[NSMutableArray alloc] init];
     _filesStructure = [[HCPFilesStructureImpl alloc] init];
     
@@ -147,19 +186,52 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     //TODO: show progress dialog
 }
 
+- (void)loadURL:(NSURL *)url {
+    [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+}
+
 - (void)redirectToLocalStorage {
-    NSString *currentUrl = self.webView.request.URL.absoluteString;
-    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE] || [currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
+    NSString *currentUrl = self.webView.request.URL.path;
+    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE] || [currentUrl containsString:_filesStructure.wwwFolder.path]) {
         return;
     }
     
     currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[self pathToWwwFolderInBundle] withString:@""];
     NSURL *externalUrl = [_filesStructure.wwwFolder URLByAppendingPathComponent:currentUrl];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:externalUrl.absoluteString]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:externalUrl.path]) {
         return;
     }
     
-    [self.webView loadRequest:[NSURLRequest requestWithURL:externalUrl]];
+    [self loadURL:externalUrl];
+}
+
+- (NSURL *)getStartingPageURL {
+    NSString *startPage = nil;
+    if ([self.viewController isKindOfClass:[CDVViewController class]]) {
+        startPage = ((CDVViewController *)self.viewController).startPage;
+    } else {
+        startPage = [self getStartingPageFromConfig];
+    }
+    
+    return [_filesStructure.wwwFolder URLByAppendingPathComponent:startPage];
+}
+
+- (NSString *)getStartingPageFromConfig {
+    CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
+    
+    // read from config.xml in the app bundle
+    NSString* path = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
+    NSURL* url = [NSURL fileURLWithPath:path];
+    
+    NSXMLParser *configParser = [[NSXMLParser alloc] initWithContentsOfURL:url];
+    [configParser setDelegate:((id <NSXMLParserDelegate>)delegate)];
+    [configParser parse];
+    
+    if (delegate.startPage) {
+        return delegate.startPage;
+    }
+    
+    return @"index.html";
 }
 
 - (NSString *)pathToWwwFolderInBundle {
@@ -183,7 +255,13 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 - (void)subscribeToEvents {
     [self subscriveToLifecycleEvents];
+    [self subscribeToCordovaEvents];
     [self subscriveToPluginInternalEvents];
+}
+
+- (void)subscribeToCordovaEvents {
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter addObserver:self selector:@selector(didLoadWebPage:) name:CDVPageDidLoadNotification object:nil];
 }
 
 - (void)subscriveToLifecycleEvents {
@@ -208,6 +286,12 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 - (void)unsubscribeFromEvents {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+#pragma mark Cordova events
+
+- (void)didLoadWebPage:(NSNotification *)notification {
+    [self.webView setHidden:NO];
 }
 
 #pragma mark Update download events
@@ -248,9 +332,9 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+    //if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
-    }
+    //}
 }
 
 #pragma mark Update installation events
@@ -266,6 +350,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
     // TODO: hide installation progress dialog
+    
 }
 
 - (void)onUpdateInstalledEvent:(NSNotification *)notification {
@@ -278,16 +363,18 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
-    // TODO: ide installation progress dialog
+    // TODO: remove installation progress dialog
+    
+    [self loadURL:[self getStartingPageURL]];
 }
 
 #pragma mark Methods, invoked from Javascript
 
-- (void)initPluginFromJS:(CDVInvokedUrlCommand *)command {
+- (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
 }
 
-- (void)configure:(CDVInvokedUrlCommand *)command {
+- (void)jsConfigure:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
         return;
     }
@@ -305,7 +392,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self.commandDelegate sendPluginResult:nil callbackId:command.callbackId];
 }
 
-- (void)fetchUpdate:(CDVInvokedUrlCommand *)command {
+- (void)jsFetchUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
         return;
     }
@@ -313,7 +400,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self _fetchUpdate:command.callbackId];
 }
 
-- (void)installUpdate:(CDVInvokedUrlCommand *)command {
+- (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
         return;
     }

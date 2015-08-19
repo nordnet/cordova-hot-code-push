@@ -8,14 +8,14 @@
 
 #import "NSError+HCPExtension.h"
 
-static NSString *const ERROR_DOMAIN = @"HCPError";
+NSString *const kHCPPluginErrorDomain = @"HCPPluginError";
 
 @implementation NSError (HCPExtension)
 
 + (NSError *)errorWithCode:(NSInteger)errorCode description:(NSString *)description {
     NSDictionary *userInfo = @{NSLocalizedDescriptionKey: description};
     
-    return [[NSError alloc] initWithDomain:ERROR_DOMAIN code:errorCode userInfo:userInfo];
+    return [NSError errorWithDomain:kHCPPluginErrorDomain code:errorCode userInfo:userInfo];
 }
 
 @end

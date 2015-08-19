@@ -62,8 +62,10 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
     NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
     [jsonObject setObject:[NSNumber numberWithBool:self.allowUpdatesAutoDownload] forKey:ALLOW_UPDATES_AUTO_DOWNLOAD];
     [jsonObject setObject:[NSNumber numberWithBool:self.allowUpdatesAutoInstallation] forKey:ALLOW_UPDATE_AUTO_INSTALL];
-    [jsonObject setObject:self.configUrl.absoluteString forKey:CONFIG_URL];
     [jsonObject setObject:[NSNumber numberWithInteger:self.appBuildVersion] forKey:APPLICATION_BUILD_VERSION];
+    if (self.configUrl) {
+        [jsonObject setObject:self.configUrl.path forKey:CONFIG_URL];
+    }
     
     return jsonObject;
 }

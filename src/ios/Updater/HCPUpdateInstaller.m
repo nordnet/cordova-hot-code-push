@@ -46,7 +46,7 @@
     }
     
     // check if there is anything to install
-    if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.downloadFolder.absoluteString]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.downloadFolder.path]) {
         *error = [NSError errorWithCode:0 description:@"Nothing to install"];
         return NO;
     }

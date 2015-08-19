@@ -12,9 +12,9 @@
 @interface HCPPlugin : CDVPlugin
 
 // methods, invoked from JavaScript 
-- (void)initPluginFromJS:(CDVInvokedUrlCommand *)command;
-- (void)configure:(CDVInvokedUrlCommand *)command;
-- (void)fetchUpdate:(CDVInvokedUrlCommand *)command;
-- (void)installUpdate:(CDVInvokedUrlCommand *)command;
+- (void)jsInitPlugin:(CDVInvokedUrlCommand *)command;
+- (void)jsConfigure:(CDVInvokedUrlCommand *)command;
+- (void)jsFetchUpdate:(CDVInvokedUrlCommand *)command;
+- (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command;
 
 @end

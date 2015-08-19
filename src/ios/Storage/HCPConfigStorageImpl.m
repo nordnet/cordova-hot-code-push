@@ -16,16 +16,19 @@
     id jsonObject = [config toJson];
     NSError *error = nil;
     NSData *data = [NSJSONSerialization dataWithJSONObject:jsonObject options:kNilOptions error:&error];
-    if (error == nil) {
+    if (error != nil) {
         return;
     }
     
     [data writeToURL:fileURL options:kNilOptions error:&error];
+    if (error) {
+        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+    }
 }
 
 - (id<HCPJsonConvertable>)loadFromFolder:(NSURL *)folderURL {
     NSURL *fileURL = [self getFullUrlToFileInFolder:folderURL];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:fileURL.absoluteString]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:fileURL.path]) {
         return nil;
     }
     

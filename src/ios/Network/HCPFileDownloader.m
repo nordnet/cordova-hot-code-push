@@ -9,6 +9,7 @@
 #import "HCPFileDownloader.h"
 #import "HCPManifestFile.h"
 #import "NSData+HCPMD5.h"
+#import "NSError+HCPExtension.h"
 
 @implementation HCPFileDownloader
 
@@ -44,8 +45,8 @@
     for (HCPManifestFile *file in filesList) {
         NSURL *filePathOnFileSystem = [folderURL URLByAppendingPathComponent:file.name isDirectory:NO];
         NSURL *fileUrlOnServer = [contentURL URLByAppendingPathComponent:file.name isDirectory:NO];
-        [self executeFileDownloadFromURL:fileUrlOnServer saveToFile:filePathOnFileSystem checksum:file.md5Hash error:error];
-        if (error) {
+        BOOL isDownloaded = [self executeFileDownloadFromURL:fileUrlOnServer saveToFile:filePathOnFileSystem checksum:file.md5Hash error:error];
+        if (!isDownloaded) {
             break;
         }
         
@@ -53,18 +54,20 @@
     }
 }
 
-- (void)executeFileDownloadFromURL:(NSURL *)url saveToFile:(NSURL *)fileURL checksum:(NSString *)checksum error:(NSError **)error {
+- (BOOL)executeFileDownloadFromURL:(NSURL *)url saveToFile:(NSURL *)fileURL checksum:(NSString *)checksum error:(NSError **)error {
     *error = nil;
     NSData *downloadedContent = [NSData dataWithContentsOfURL:url];
     if (downloadedContent == nil) {
-        *error = [[NSError alloc] initWithDomain:@"Failed to load file" code:0 userInfo:nil];
-        return;
+        *error = [NSError errorWithCode:0 description:@"Failed to load file"];
+        return NO;
     }
     
     if (![self isDataCorrupted:downloadedContent checksum:checksum error:error]) {
         [self prepareFileForSaving:fileURL];
         [downloadedContent writeToURL:fileURL options:kNilOptions error:error];
     }
+    
+    return (*error == nil);
 }
 
 - (BOOL)isDataCorrupted:(NSData *)data checksum:(NSString *)checksum error:(NSError **)error {
@@ -74,7 +77,7 @@
     }
     
     NSString *errorMsg = [NSString stringWithFormat:@"Hash %@ of the loaded file doesn't match the checksum %@", dataHash, checksum];
-    *error = [NSError errorWithDomain:errorMsg code:0 userInfo:nil];
+    *error = [NSError errorWithCode:0 description:errorMsg];
     
     return YES;
 }

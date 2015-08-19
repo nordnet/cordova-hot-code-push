@@ -39,7 +39,9 @@ static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
 
 - (id)toJson {
     NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] initWithDictionary:[self.contentConfig toJson]];
-    jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY] = self.storeIdentifier;
+    if (self.storeIdentifier) {
+        jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY] = self.storeIdentifier;
+    }
     
     return jsonObject;
 }

@@ -31,6 +31,10 @@
     return sharedInstance;
 }
 
+- (BOOL)isDownloadInProgress {
+    return _isExecuting;
+}
+
 - (void)setup:(id<HCPFilesStructure>)filesStructure {
     _filesStructure = filesStructure;
 }

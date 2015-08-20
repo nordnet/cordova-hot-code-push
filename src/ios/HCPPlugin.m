@@ -6,6 +6,8 @@
 //
 //
 
+#import <Cordova/CDVConfigParser.h>
+
 #import "HCPPlugin.h"
 #import "HCPApplicationConfig+Downloader.h"
 #import "HCPContentManifest+Downloader.h"
@@ -20,7 +22,8 @@
 #import "CDVPluginResult+HCPEvent.h"
 #import "HCPXmlConfig.h"
 #import "NSBundle+HCPExtension.h"
-#import <Cordova/CDVConfigParser.h>
+#import "HCPApplicationConfigStorage.h"
+
 #import "TestIosCHCP-Swift.h" // TODO: should be hooked
 
 // Socket IO support:
@@ -44,6 +47,7 @@
     NSMutableArray *_fetchTasks;
     NSString *_installationCallback;
     HCPXmlConfig *_pluginXmllConfig;
+    HCPApplicationConfig *_appConfig;
     
     SocketIOClient *_socketIOClient;
 }
@@ -57,11 +61,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 #pragma mark Lifecycle
 
-//- (CDVPlugin *)initWithWebView:(UIWebView *)theWebView {
-//    [theWebView setHidden:YES];
-//    return [super initWithWebView:theWebView];
-//}
-//
 -(void)pluginInitialize {
     [self subscribeToEvents];
     [self doLocalInit];
@@ -71,27 +70,31 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     if ([self isWWwFolderNeedsToBeInstalled]) {
         dispatch_async(dispatch_queue_create(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             [self installWwwFolder];
+            [self loadApplicationConfig];
+            if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+                [self _fetchUpdate:nil];
+            }
         });
         return;
     }
     
     _isPluginReadyForWork = YES;
     [self redirectToLocalStorage];
+    [self loadApplicationConfig];
     
-    // launch update download or installation
-    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
-        [self _fetchUpdate:nil];
-    }
+    [self performUpdateProcedureOnStart];
 }
 
 - (void)onAppTerminate {
     [self unsubscribeFromEvents];
-    
     [self disconnectFromDevServer];
 }
 
 - (void)onResume:(NSNotification *)notification {
     NSLog(@"onResume is called");
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
+        [self _installUpdate:nil];
+    }
 }
 
 - (void)onPause:(NSNotification *)notification {
@@ -99,6 +102,21 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 }
 
 #pragma mark Private API
+
+- (void)performUpdateProcedureOnStart {
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed && [self _installUpdate:nil]) {
+        return;
+    }
+    
+    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+        [self _fetchUpdate:nil];
+    }
+}
+
+- (void)loadApplicationConfig {
+    id<HCPConfigFileStorage> configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_filesStructure];
+    _appConfig = [configStorage loadFromFolder:_filesStructure.wwwFolder];
+}
 
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
@@ -134,11 +152,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     // update stored config with new application build version
     _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
     [_pluginConfig saveToUserDefaults];
-    
-    // launch update download or installation
-    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
-        [self _fetchUpdate:nil];
-    }
 }
 
 - (void)doLocalInit {
@@ -161,13 +174,15 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [_updateInstaller setup:_filesStructure];
 }
 
-- (void)_fetchUpdate:(NSString *)callbackId {
+- (BOOL)_fetchUpdate:(NSString *)callbackId {
     if (!_isPluginReadyForWork) {
-        return;
+        return NO;
     }
     
     NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginConfig.configUrl];
     [self storeCallback:callbackId forFetchTask:taskId];
+    
+    return taskId != nil;
 }
 
 - (void)storeCallback:(NSString *)callbackId forFetchTask:(NSString *)taskId {
@@ -204,15 +219,15 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     return callbackId;
 }
 
-- (void)_installUpdate:(NSString *)callbackID {
+- (BOOL)_installUpdate:(NSString *)callbackID {
     if (!_isPluginReadyForWork) {
-        return;
+        return NO;
     }
 
     NSError *error = nil;
     if (![_updateInstaller launchUpdateInstallation:&error]) {
         //TODO: send nothing to update message
-        return;
+        return NO;
     }
 
     if (callbackID) {
@@ -220,6 +235,8 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     //TODO: show progress dialog
+    
+    return YES;
 }
 
 - (void)loadURL:(NSURL *)url {
@@ -327,7 +344,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 #pragma mark Cordova events
 
 - (void)didLoadWebPage:(NSNotification *)notification {
-//    [self.webView setHidden:NO];
 }
 
 #pragma mark Update download events

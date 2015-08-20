@@ -17,4 +17,6 @@
 
 - (void)setup:(id<HCPFilesStructure>)filesStructure;
 
+@property (nonatomic, readonly, getter=isDownloadInProgress) BOOL isDownloadInProgress;
+
 @end

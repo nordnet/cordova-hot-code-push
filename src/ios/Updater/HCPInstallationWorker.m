@@ -91,7 +91,7 @@
         return NO;
     }
     
-    _newConfig = [_configStorage loadFromFolder:_fileStructure.downloadFolder];
+    _newConfig = [_configStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newConfig == nil) {
         *error = [NSError errorWithCode:0 description:@"Failed to load application config from download folder"];
         return NO;
@@ -103,7 +103,7 @@
         return NO;
     }
     
-    _newManifest = [_manifestStorage loadFromFolder:_fileStructure.downloadFolder];
+    _newManifest = [_manifestStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newManifest == nil) {
         *error = [NSError errorWithCode:0 description:@"Failed to load content manifest from download folder"];
         return NO;
@@ -120,7 +120,7 @@
     
     NSArray *updateFileList = _manifestDiff.updateFileList;
     for (HCPManifestFile *updatedFile in updateFileList) {
-        NSURL *fileLocalURL = [_fileStructure.downloadFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
+        NSURL *fileLocalURL = [_fileStructure.installationFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
         if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
             errorMsg = [NSString stringWithFormat:@"Update validation error! File not found:%@", updatedFile.name];
             *error = [NSError errorWithCode:0 description:errorMsg];
@@ -163,13 +163,13 @@
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSArray *updatedFiles = _manifestDiff.updateFileList;
     for (HCPManifestFile *manifestFile in updatedFiles) {
-        NSURL *pathInDownloadFolder = [_fileStructure.downloadFolder URLByAppendingPathComponent:manifestFile.name];
+        NSURL *pathInInstallationFolder = [_fileStructure.installationFolder URLByAppendingPathComponent:manifestFile.name];
         NSURL *pathInWwwFolder = [_fileStructure.wwwFolder URLByAppendingPathComponent:manifestFile.name];
         if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
             break;
         }
         
-        if (![fileManager moveItemAtURL:pathInDownloadFolder toURL:pathInWwwFolder error:error]) {
+        if (![fileManager moveItemAtURL:pathInInstallationFolder toURL:pathInWwwFolder error:error]) {
             NSLog(@"%@", [(*error).userInfo[NSUnderlyingErrorKey] localizedDescription]);
             break;
         }
@@ -185,7 +185,7 @@
 
 - (void)cleanUp {
     NSError *error = nil;
-    [_fileManager removeItemAtURL:_fileStructure.downloadFolder error:&error];
+    [_fileManager removeItemAtURL:_fileStructure.installationFolder error:&error];
     if ([_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
         [_fileManager removeItemAtURL:_fileStructure.backupFolder error:&error];
     }

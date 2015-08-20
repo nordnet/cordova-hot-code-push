@@ -7,9 +7,11 @@
 //
 
 #import "HCPFilesStructureImpl.h"
+#import "NSFileManager+HCPExtension.h"
 
 static NSString *const CHCP_FOLDER = @"cordova-hot-code-push-plugin";
 static NSString *const DOWNLOAD_FOLDER = @"www_tmp";
+static NSString *const INSTALLATION_FOLDER = @"www_install";
 static NSString *const BACKUP_FOLDER = @"www_backup";
 static NSString *const WWWW_FOLDER = @"www";
 static NSString *const CHCP_JSON_FILE_PATH = @"chcp.json";
@@ -19,6 +21,7 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
 @property (nonatomic, strong, readwrite) NSURL *contentFolder;
 @property (nonatomic, strong, readwrite) NSURL *downloadFolder;
+@property (nonatomic, strong, readwrite) NSURL *installationFolder;
 @property (nonatomic, strong, readwrite) NSURL *backupFolder;
 @property (nonatomic, strong, readwrite) NSURL *wwwFolder;
 @property (nonatomic, strong) NSURL *contentConfigFileURL;
@@ -33,17 +36,8 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
         return _contentFolder;
     }
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSError *error = nil;
-    NSURL *appSupportDir = [fileManager URLForDirectory:NSApplicationSupportDirectory
-                                               inDomain:NSUserDomainMask
-                                      appropriateForURL:nil
-                                                 create:YES
-                                                  error:&error];
-    if (appSupportDir && !error) {
-        NSString *appBundleID = [[NSBundle mainBundle] bundleIdentifier];
-        _contentFolder = [[appSupportDir URLByAppendingPathComponent:appBundleID] URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
-    }
+    NSURL *appSupportDir = [[NSFileManager defaultManager] applicationSupportDirectory];
+    _contentFolder = [appSupportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
     
     return _contentFolder;
 }
@@ -53,20 +47,21 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
         return _downloadFolder;
     }
     
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSError *error = nil;
-    NSURL *appCacheDirectory = [fileManager URLForDirectory:NSCachesDirectory
-                                                   inDomain:NSUserDomainMask
-                                          appropriateForURL:nil
-                                                     create:YES
-                                                      error:&error];
-    
-    if (appCacheDirectory && !error) {
-        NSString* appBundleID = [[NSBundle mainBundle] bundleIdentifier];
-        _downloadFolder = [[appCacheDirectory URLByAppendingPathComponent:appBundleID] URLByAppendingPathComponent:DOWNLOAD_FOLDER isDirectory:YES];
-    }
+    NSURL *appCacheDirectory = [[NSFileManager defaultManager] applicationCacheDirectory];
+    _downloadFolder = [appCacheDirectory URLByAppendingPathComponent:DOWNLOAD_FOLDER isDirectory:YES];
     
     return _downloadFolder;
+}
+
+- (NSURL *)installationFolder {
+    if (_installationFolder) {
+        return _installationFolder;
+    }
+    
+    NSURL *appCacheDirectory = [[NSFileManager defaultManager] applicationCacheDirectory];
+    _installationFolder = [appCacheDirectory URLByAppendingPathComponent:INSTALLATION_FOLDER isDirectory:YES];
+    
+    return _installationFolder;
 }
 
 - (NSURL *)backupFolder {

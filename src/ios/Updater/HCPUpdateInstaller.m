@@ -9,6 +9,7 @@
 #import "HCPUpdateInstaller.h"
 #import "NSError+HCPExtension.h"
 #import "HCPInstallationWorker.h"
+#import "HCPUpdateLoader.h"
 
 @interface HCPUpdateInstaller() {
     id<HCPFilesStructure> _filesStructure;
@@ -44,13 +45,13 @@
         *error = [NSError errorWithCode:0 description:@"Installation is already in progress"];
         return NO;
     }
-    
+
     // check if there is anything to install
-    if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.downloadFolder.path]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
         *error = [NSError errorWithCode:0 description:@"Nothing to install"];
         return NO;
     }
-    
+        
     // launch installation
     [self execute:[[HCPInstallationWorker alloc] initWithFileStructure:_filesStructure]];
     

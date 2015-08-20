@@ -49,8 +49,6 @@
 }
 
 - (void)run {
-    [self waitForInstallationToComplete];
-    
     NSError *error = nil;
     
     HCPApplicationConfig *oldAppConfig = [_appConfigStorage loadFromFolder:_pluginFiles.wwwFolder];
@@ -119,12 +117,22 @@
     [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
     [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
     
+    // move download folder to installation folder
+    [self moveDownloadedContentToInstallationFolder];
     
     // notify that we are done
     [self notifyUpdateDownloadSuccess:newAppConfig];
 }
 
 #pragma mark Private API
+
+- (void)moveDownloadedContentToInstallationFolder {
+    [self waitForInstallationToComplete];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSError *error = nil;
+    [fileManager moveItemAtURL:_pluginFiles.downloadFolder toURL:_pluginFiles.installationFolder error:&error];
+}
 
 - (void)waitForInstallationToComplete {
     while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {

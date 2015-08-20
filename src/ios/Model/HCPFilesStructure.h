@@ -12,6 +12,7 @@
 
 @property (nonatomic, strong, readonly) NSURL *contentFolder;
 @property (nonatomic, strong, readonly) NSURL *downloadFolder;
+@property (nonatomic, strong, readonly) NSURL *installationFolder;
 @property (nonatomic, strong, readonly) NSURL *backupFolder;
 @property (nonatomic, strong, readonly) NSURL *wwwFolder;
 @property (nonatomic, strong, readonly) NSString *configFileName;

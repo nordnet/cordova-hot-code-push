@@ -21,6 +21,7 @@
 #import "HCPXmlConfig.h"
 #import "NSBundle+HCPExtension.h"
 #import <Cordova/CDVConfigParser.h>
+#import "TestIosCHCP-Swift.h" // TODO: should be hooked
 
 // Socket IO support:
 // 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
@@ -29,6 +30,8 @@
 // Cordova swift example: https://github.com/edewit/cordova-plugin-hello/tree/swift
 // http://chrisdell.info/blog/writing-ios-cordova-plugin-pure-swift/
 
+// !!! http://stackoverflow.com/questions/24206732/cant-use-swift-classes-inside-objective-c
+// !!! http://stackoverflow.com/questions/24002836/dyld-library-not-loaded-rpath-libswift-stdlib-core-dylib - Runpath
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -41,6 +44,8 @@
     NSMutableArray *_fetchTasks;
     NSString *_installationCallback;
     HCPXmlConfig *_pluginXmllConfig;
+    
+    SocketIOClient *_socketIOClient;
 }
 
 @end
@@ -50,30 +55,39 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 @implementation HCPPlugin
 
-// TODO: test when update is running and we press Home button
-
 #pragma mark Lifecycle
 
-- (CDVPlugin *)initWithWebView:(UIWebView *)theWebView {
-    [theWebView setHidden:YES];
-    
-    return [super initWithWebView:theWebView];
-}
-
--(void)pluginInitialize {    
+//- (CDVPlugin *)initWithWebView:(UIWebView *)theWebView {
+//    [theWebView setHidden:YES];
+//    return [super initWithWebView:theWebView];
+//}
+//
+-(void)pluginInitialize {
     [self subscribeToEvents];
-    [self initVariables];
-    [self installWwwFolderIfNeeded];
+    [self doLocalInit];
+    [self connectToDevServer];
+    
+    // install WWW folder if it is needed
+    if ([self isWWwFolderNeedsToBeInstalled]) {
+        dispatch_async(dispatch_queue_create(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self installWwwFolder];
+        });
+        return;
+    }
+    
+    _isPluginReadyForWork = YES;
     [self redirectToLocalStorage];
     
-    // launch update download
+    // launch update download or installation
     if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
-        [self jsFetchUpdate:nil];
+        [self _fetchUpdate:nil];
     }
 }
 
 - (void)onAppTerminate {
     [self unsubscribeFromEvents];
+    
+    [self disconnectFromDevServer];
 }
 
 - (void)onResume:(NSNotification *)notification {
@@ -86,16 +100,18 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 #pragma mark Private API
 
-- (void)installWwwFolderIfNeeded {
-    NSError *error = nil;
+- (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginConfig.appBuildVersion;
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
-    if (!isApplicationUpdated && isWWwFolderExists) {
-        _isPluginReadyForWork = YES;
-        return;
-    }
     
+    return isApplicationUpdated || !isWWwFolderExists;
+}
+
+- (void)installWwwFolder {
+    NSError *error = nil;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     // remove previous version of the www folder
     if (isWWwFolderExists) {
         [fileManager removeItemAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] error:&error];
@@ -118,10 +134,14 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     // update stored config with new application build version
     _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
     [_pluginConfig saveToUserDefaults];
+    
+    // launch update download or installation
+    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+        [self _fetchUpdate:nil];
+    }
 }
 
-- (void)initVariables {
-    _isPluginReadyForWork = NO;
+- (void)doLocalInit {
     _fetchTasks = [[NSMutableArray alloc] init];
     _filesStructure = [[HCPFilesStructureImpl alloc] init];
     
@@ -221,7 +241,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self loadURL:externalUrl];
 }
 
-- (NSURL *)getStartingPageURL {
+- (NSString *)getStartingPagePath {
     NSString *startPage = nil;
     if ([self.viewController isKindOfClass:[CDVViewController class]]) {
         startPage = ((CDVViewController *)self.viewController).startPage;
@@ -229,7 +249,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
         startPage = [self getStartingPageFromConfig];
     }
     
-    return [_filesStructure.wwwFolder URLByAppendingPathComponent:startPage];
+    return startPage;
 }
 
 - (NSString *)getStartingPageFromConfig {
@@ -307,7 +327,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 #pragma mark Cordova events
 
 - (void)didLoadWebPage:(NSNotification *)notification {
-    [self.webView setHidden:NO];
+//    [self.webView setHidden:NO];
 }
 
 #pragma mark Update download events
@@ -381,7 +401,8 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     
     // TODO: remove installation progress dialog
     
-    [self loadURL:[self getStartingPageURL]];
+    NSURL *startingPageURL = [_filesStructure.wwwFolder URLByAppendingPathComponent:[self getStartingPagePath]];
+    [self loadURL:startingPageURL];
 }
 
 #pragma mark Methods, invoked from Javascript
@@ -424,5 +445,33 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self _installUpdate:command.callbackId];
 }
 
+#pragma mark Socket IO
+
+- (void)connectToDevServer {
+    if (!_pluginXmllConfig.devOptions.isEnabled || [_socketIOClient connected]) {
+        return;
+    }
+    
+    NSString *devServerURL = [_pluginConfig.configUrl URLByDeletingLastPathComponent].absoluteString;
+    devServerURL = [devServerURL substringToIndex:devServerURL.length-1];
+    
+    _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL options:nil];
+    [_socketIOClient on:@"connect" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+        NSLog(@"socket connected");
+    }];
+    [_socketIOClient on:@"release" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+        [self _fetchUpdate:nil];
+    }];
+    [_socketIOClient connect];
+
+}
+
+- (void)disconnectFromDevServer {
+    if (!_pluginXmllConfig.devOptions.isEnabled || ![_socketIOClient connected]) {
+        return;
+    }
+    
+    [_socketIOClient closeWithFast:NO];
+}
 
 @end

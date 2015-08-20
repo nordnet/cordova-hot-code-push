@@ -56,6 +56,7 @@
         return;
     }
     
+    [self saveNewConfigsToWwwFolder];
     [self cleanUp];
     [self dispatchSuccessEvent];
 }
@@ -175,6 +176,11 @@
     }
     
     return (*error == nil);
+}
+
+- (void)saveNewConfigsToWwwFolder {
+    [_manifestStorage store:_newManifest inFolder:_fileStructure.wwwFolder];
+    [_configStorage store:_newConfig inFolder:_fileStructure.wwwFolder];
 }
 
 - (void)cleanUp {

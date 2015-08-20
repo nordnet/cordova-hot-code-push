@@ -19,112 +19,318 @@
 
     <!-- JavaScrip Library Sources -->
     <js-module src="www/chcp.js" name="chcp">
-        <clobbers target="chcp" />
+      <clobbers target="chcp" />
     </js-module>
 
     <!-- Config.xml preferences -->
     <config-file target="config.xml" parent="/*">
-        <preference name="loadUrlTimeoutValue" value="60000" />
-        <chcp>
-        </chcp>
+      <preference name="loadUrlTimeoutValue" value="60000" />
+      <chcp>
+      </chcp>
     </config-file>
 
     <!-- Hooks -->
     <hook type="after_prepare" src="scripts/afterPrepare.js" />
     <hook type="after_plugin_install" src="scripts/afterPluginInstall.js" />
 
+    <platform name="ios">
+      <!-- Plugin inclusion in Cordova config.xml -->
+      <config-file target="res/xml/config.xml" parent="/*">
+        <feature name="HotCodePush">
+          <param name="ios-package" value="HCPPlugin" />
+          <param name="onload" value="true" />
+        </feature>
+      </config-file>
+
+      <!-- Plugin source code -->
+      <source-file src="src/ios/HCPPlugin.m" />
+      <header-file src="src/ios/HCPPlugin.h" />
+
+      <!-- sources for Config folder -->
+      <source-file src="src/ios/Config/HCPApplicationConfig.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPApplicationConfig.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPContentConfig.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPContentConfig.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPContentManifest.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPContentManifest.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPLocalDevOptions.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPLocalDevOptions.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPPluginConfig.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPPluginConfig.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPXmlConfig.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPXmlConfig.h"
+        target-dir="Config/" />
+
+      <source-file src="src/ios/Config/HCPXmlConfigParser.m"
+        target-dir="Config/" />
+      <header-file src="src/ios/Config/HCPXmlConfigParser.h"
+        target-dir="Config/" />
+
+      <!-- sources for Events folder -->
+      <source-file src="src/ios/Events/HCPEvents.m"
+        target-dir="Events/" />
+      <header-file src="src/ios/Events/HCPEvents.h"
+        target-dir="Events/" />
+
+      <!-- sources for JS folder -->
+      <source-file src="src/ios/JS/CDVPluginResult+HCPEvent.m"
+        target-dir="JS/" />
+      <header-file src="src/ios/JS/CDVPluginResult+HCPEvent.h"
+        target-dir="JS/" />
+
+      <!-- sources for Model folder -->
+      <header-file src="src/ios/Model/HCPFilesStructure.h"
+        target-dir="Model/" />
+
+      <source-file src="src/ios/Model/HCPFilesStructureImpl.m"
+        target-dir="Model/" />
+      <header-file src="src/ios/Model/HCPFilesStructureImpl.h"
+        target-dir="Model/" />
+
+      <header-file src="src/ios/Model/HCPJsonConvertable.h"
+        target-dir="Model/" />
+
+      <source-file src="src/ios/Model/HCPManifestDiff.m"
+        target-dir="Model/" />
+      <header-file src="src/ios/Model/HCPManifestDiff.h"
+        target-dir="Model/" />
+
+      <source-file src="src/ios/Model/HCPManifestFile.m"
+        target-dir="Model/" />
+      <header-file src="src/ios/Model/HCPManifestFile.h"
+        target-dir="Model/" />
+
+      <!-- sources for Network folder -->
+      <source-file src="src/ios/Network/HCPApplicationConfig+Downloader.m"
+        target-dir="Network/" />
+      <header-file src="src/ios/Network/HCPApplicationConfig+Downloader.h"
+        target-dir="Network/" />
+
+      <source-file src="src/ios/Network/HCPContentManifest+Downloader.m"
+        target-dir="Network/" />
+      <header-file src="src/ios/Network/HCPContentManifest+Downloader.h"
+        target-dir="Network/" />
+
+      <source-file src="src/ios/Network/HCPFileDownloader.m"
+        target-dir="Network/" />
+      <header-file src="src/ios/Network/HCPFileDownloader.h"
+        target-dir="Network/" />
+
+      <source-file src="src/ios/Network/HCPJsonDownloader.m"
+        target-dir="Network/" />
+      <header-file src="src/ios/Network/HCPJsonDownloader.h"
+        target-dir="Network/" />
+
+      <!-- sources for Storage folder -->
+      <source-file src="src/ios/Storage/HCPApplicationConfigStorage.m"
+        target-dir="Storage/" />
+      <header-file src="src/ios/Storage/HCPApplicationConfigStorage.h"
+        target-dir="Storage/" />
+
+      <header-file src="src/ios/Storage/HCPConfigFileStorage.h"
+        target-dir="Storage/" />
+
+      <source-file src="src/ios/Storage/HCPConfigStorageImpl.m"
+        target-dir="Storage/" />
+      <header-file src="src/ios/Storage/HCPConfigStorageImpl.h"
+        target-dir="Storage/" />
+
+      <source-file src="src/ios/Storage/HCPContentManifestStorage.m"
+        target-dir="Storage/" />
+      <header-file src="src/ios/Storage/HCPContentManifestStorage.h"
+        target-dir="Storage/" />
+
+      <source-file src="src/ios/Storage/HCPPluginConfig+UserDefaults.m"
+        target-dir="Storage/" />
+      <header-file src="src/ios/Storage/HCPPluginConfig+UserDefaults.h"
+        target-dir="Storage/" />
+
+      <!-- sources for Updater folder -->
+      <source-file src="src/ios/Updater/HCPInstallationWorker.m"
+        target-dir="Updater/" />
+      <header-file src="src/ios/Updater/HCPInstallationWorker.h"
+        target-dir="Updater/" />
+
+      <source-file src="src/ios/Updater/HCPUpdateInstaller.m"
+        target-dir="Updater/" />
+      <header-file src="src/ios/Updater/HCPUpdateInstaller.h"
+        target-dir="Updater/" />
+
+      <source-file src="src/ios/Updater/HCPUpdateLoader.m"
+        target-dir="Updater/" />
+      <header-file src="src/ios/Updater/HCPUpdateLoader.h"
+        target-dir="Updater/" />
+
+      <source-file src="src/ios/Updater/HCPUpdateLoaderWorker.m"
+        target-dir="Updater/" />
+      <header-file src="src/ios/Updater/HCPUpdateLoaderWorker.h"
+        target-dir="Updater/" />
+
+      <header-file src="src/ios/Updater/HCPWorker.h"
+        target-dir="Updater/" />
+
+      <!-- sources for Utils folder -->
+      <source-file src="src/ios/Utils/NSBundle+HCPExtension.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/NSBundle+HCPExtension.h"
+        target-dir="Utils/" />
+
+      <source-file src="src/ios/Utils/NSData+HCPMD5.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/NSData+HCPMD5.h"
+        target-dir="Utils/" />
+
+      <source-file src="src/ios/Utils/NSError+HCPExtension.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/NSError+HCPExtension.h"
+        target-dir="Utils/" />
+
+      <source-file src="src/ios/Utils/NSFileManager+HCPExtension.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/NSFileManager+HCPExtension.h"
+        target-dir="Utils/" />
+
+      <source-file src="src/ios/Utils/NSJSONSerialization+HCPExtension.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/NSJSONSerialization+HCPExtension.h"
+        target-dir="Utils/" />
+
+      <!-- Socket.IO sources -->
+      <source-file src="src/ios/SocketIOClientSwift/SocketAckManager.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketAnyEvent.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketEngine.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketEngineClient.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketEventHandler.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketFixUTF8.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketIOClient.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketLogger.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketPacket.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketParser.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketTypes.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SwiftRegex.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/WebSocket.swift"
+        target-dir="SocketIOClientSwift/" />
+
+    </platform>
+
     <platform name="android">
+      <!-- Plugin inclusion in Cordova config.xml -->
+      <config-file target="res/xml/config.xml" parent="/*">
+        <feature name="HotCodePush">
+          <param name="android-package" value="com.nordnetab.chcp.HotCodePushPlugin" />
+          <param name="onload" value="true" />
+        </feature>
+      </config-file>
 
-        <!-- Plugin preferences in Cordova config.xml -->
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="HotCodePush">
-                <param name="android-package" value="com.nordnetab.chcp.HotCodePushPlugin" />
-                <param name="onload" value="true" />
-            </feature>
-        </config-file>
+      <!-- Gradle config -->
+      <framework src="src/android/chcp.gradle" custom="true" type="gradleReference" />
 
-        <!-- Gradle config -->
-        <framework src="src/android/chcp.gradle" custom="true" type="gradleReference" />
+      <!-- Manifest changes -->
+      <config-file target="AndroidManifest.xml" parent="/manifest">
+        <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+        <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+      </config-file>
 
-        <!-- Manifest changes -->
-        <config-file target="AndroidManifest.xml" parent="/manifest">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-        </config-file>
+      <!-- String resources -->
+      <config-file target="res/values/strings.xml" parent="/resources">
+        <string name="chcp_installation_progress_message">Loading, please wait…</string>
+      </config-file>
 
-        <!-- String resources -->
-        <config-file target="res/values/strings.xml" parent="/resources">
-            <string name="chcp_installation_progress_message">Loading, please wait…</string>
-        </config-file>
-
-        <!-- Java Library Sources -->
-        <!-- sources for package: com.nordnetab.chcp.config -->
-        <source-file src="src/android/src/com/nordnetab/chcp/config/ApplicationConfig.java"
+      <!-- Java Library Sources -->
+      <!-- sources for package: com.nordnetab.chcp.config -->
+      <source-file src="src/android/src/com/nordnetab/chcp/config/ApplicationConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        <source-file src="src/android/src/com/nordnetab/chcp/config/ContentConfig.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/ContentConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        <source-file src="src/android/src/com/nordnetab/chcp/config/PluginConfig.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/PluginConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfig.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfig.java"
             target-dir="src/com/nordnetab/chcp/config" />
-        <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfigParser.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfigParser.java"
             target-dir="src/com/nordnetab/chcp/config" />
 
-        <!-- sources for package: com.nordnetab.chcp.network -->
-        <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
+      <!-- sources for package: com.nordnetab.chcp.network -->
+      <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
             target-dir="src/com/nordnetab/chcp/network" />
-        <source-file src="src/android/src/com/nordnetab/chcp/network/ContentManifestDownloader.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/network/ContentManifestDownloader.java"
             target-dir="src/com/nordnetab/chcp/network" />
-        <source-file src="src/android/src/com/nordnetab/chcp/network/FileDownloader.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/network/FileDownloader.java"
             target-dir="src/com/nordnetab/chcp/network" />
-        <source-file src="src/android/src/com/nordnetab/chcp/network/JsonDownloader.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/network/JsonDownloader.java"
             target-dir="src/com/nordnetab/chcp/network" />
 
-        <!-- sources for package: com.nordnetab.chcp.storage -->
-        <source-file src="src/android/src/com/nordnetab/chcp/storage/ApplicationConfigStorage.java"
+      <!-- sources for package: com.nordnetab.chcp.storage -->
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/ApplicationConfigStorage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
-        <source-file src="src/android/src/com/nordnetab/chcp/storage/ContentManifestStorage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/ContentManifestStorage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
-        <source-file src="src/android/src/com/nordnetab/chcp/storage/Storage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/Storage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
-        <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginConfigStorage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginConfigStorage.java"
             target-dir="src/com/nordnetab/chcp/storage" />
 
-        <!-- sources for package: com.nordnetab.chcp.utils -->
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/AssetsHelper.java"
+      <!-- sources for package: com.nordnetab.chcp.utils -->
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/AssetsHelper.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/FilesUtility.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/FilesUtility.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/MD5.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/MD5.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/Paths.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/Paths.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
             target-dir="src/com/nordnetab/chcp/utils" />
-        <source-file src="src/android/src/com/nordnetab/chcp/utils/VersionHelper.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/utils/VersionHelper.java"
             target-dir="src/com/nordnetab/chcp/utils" />
 
-        <!-- sources for package: com.nordnetab.chcp.updater -->
-        <source-file src="src/android/src/com/nordnetab/chcp/updater/InstallationWorker.java"
+      <!-- sources for package: com.nordnetab.chcp.updater -->
+      <source-file src="src/android/src/com/nordnetab/chcp/updater/InstallationWorker.java"
             target-dir="src/com/nordnetab/chcp/updater" />
-        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdateLoaderWorker.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdateLoaderWorker.java"
             target-dir="src/com/nordnetab/chcp/updater" />
-        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesInstaller.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesInstaller.java"
             target-dir="src/com/nordnetab/chcp/updater" />
-        <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesLoader.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesLoader.java"
             target-dir="src/com/nordnetab/chcp/updater" />
 
-        <!-- sources for package: com.nordnetab.chcp.js -->
-        <source-file src="src/android/src/com/nordnetab/chcp/js/PluginResultHelper.java"
+      <!-- sources for package: com.nordnetab.chcp.js -->
+      <source-file src="src/android/src/com/nordnetab/chcp/js/PluginResultHelper.java"
             target-dir="src/com/nordnetab/chcp/js" />
 
-        <!-- sources for package: com.nordnetab.chcp -->
-        <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
+      <!-- sources for package: com.nordnetab.chcp -->
+      <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
             target-dir="src/com/nordnetab/chcp" />
-
     </platform>
 </plugin>

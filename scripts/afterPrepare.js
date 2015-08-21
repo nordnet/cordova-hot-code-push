@@ -23,7 +23,7 @@
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
     chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
-    
+
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
 }
@@ -33,6 +33,10 @@ function logEnd() {
 }
 
 module.exports = function(ctx) {
+  console.log(ctx);
+
+  // ctx.opts.platforms[ios / android]
+
   logStart();
 
   chcpBuildOptions.init(ctx);
@@ -64,7 +68,7 @@ module.exports = function(ctx) {
   console.log('Using config:');
   console.log(JSON.stringify(buildConfig, null, 2));
 
-  chcpConfigXmlWriter.writeOptions(ctx.opts.projectRoot, buildConfig);
+  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
 
   logEnd();
 };

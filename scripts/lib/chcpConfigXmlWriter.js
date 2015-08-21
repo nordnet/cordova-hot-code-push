@@ -3,7 +3,8 @@
   var fs = require('fs'),
       path = require('path'),
       xml2js = require('xml2js'),
-      configXmlPlatformStoragePlaces;
+      configXmlPlatformStoragePlaces = {},
+      platforms;
 
   module.exports = {
     writeOptions: writeOptions
@@ -11,28 +12,36 @@
 
   // region Public API
 
-  function writeOptions(projectRoot, options) {
-    setup(projectRoot);
+  function writeOptions(cordovaContext, options) {
+    setup(cordovaContext);
     injectOptions(options);
   }
 
   // endregion
 
   // region Private API
-  function setup(projectRoot) {
-    configXmlPlatformStoragePlaces = [
-      path.join(projectRoot,'platforms/android/res/xml/config.xml'),
-      path.join(projectRoot, 'platforms/ios/', path.basename(projectRoot), 'config.xml')
-    ];
+  function setup(cordovaContext) {
+    var projectRoot = cordovaContext.opts.projectRoot;
+    platforms = cordovaContext.opts.platforms;
+
+    configXmlPlatformStoragePlaces = {
+      ios: path.join(projectRoot, 'platforms/ios/', path.basename(projectRoot), 'config.xml'),
+      android: path.join(projectRoot,'platforms/android/res/xml/config.xml')
+    }
   }
 
   function injectOptions(options) {
-    configXmlPlatformStoragePlaces.forEach(function(configXmlFilePath) {
+    platforms.forEach(function(platform) {
+      var configXmlFilePath = configXmlPlatformStoragePlaces[platform];
+      if (configXmlFilePath == null) {
+        return;
+      }
+
       var configData = readConfigXml(configXmlFilePath);
       if (configData == null) {
         return;
       }
-
+      
       var chcpConfig = {};
       if (configData.widget.hasOwnProperty('chcp') && configData.widget.chcp.lenght > 0) {
         chcpConfig = configData.widget.chcp[0];

@@ -24,8 +24,6 @@
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfigStorage.h"
 
-#import "TestIosCHCP-Swift.h" // TODO: should be hooked
-
 // Socket IO support:
 // 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
 // 2) Add hook to enable support for swift: https://github.com/cowbell/cordova-plugin-geofence/blob/20de72b918c779511919f7e38d07721112d4f5c8/hooks/add_swift_support.js

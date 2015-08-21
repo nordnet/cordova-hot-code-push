@@ -22,7 +22,8 @@
 // cordova build -- dev
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
-    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
+    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
+    chcpSwiftSupportActivator = require('./lib/chcpSwiftSupportActivation.js');
 
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
@@ -33,10 +34,6 @@ function logEnd() {
 }
 
 module.exports = function(ctx) {
-  console.log(ctx);
-
-  // ctx.opts.platforms[ios / android]
-
   logStart();
 
   chcpBuildOptions.init(ctx);
@@ -56,19 +53,22 @@ module.exports = function(ctx) {
   }
 
   if (buildConfig == null) {
-    console.log('WARNING! Unknown build configuration.');
-    console.log('You can ignore this if "hot_code_push_config_url" preference is set in config.xml manually.');
-    console.log('Otherwise, please provide build configuration in chcpbuild.options. For local development please run:');
-    console.log('cordova-hcp server');
-    console.log('This will generate .chcpenv file with local server configuration.');
+    console.warn('Unknown build configuration.');
+    console.warn('You can ignore this if "config_url" is set in config.xml manually.');
+    console.warn('Otherwise, please provide build configuration in chcpbuild.options. For local development please run:');
+    console.warn('cordova-hcp server');
+    console.warn('This will generate .chcpenv file with local server configuration.');
     logEnd();
     return;
+  } else {
+    console.log('Using config:');
+    console.log(JSON.stringify(buildConfig, null, 2));
+    chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
   }
 
-  console.log('Using config:');
-  console.log(JSON.stringify(buildConfig, null, 2));
-
-  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
+  if (ctx.opts.platforms.indexOf('ios') > -1) {
+    chcpSwiftSupportActivator.enableSwiftSupport(ctx);
+  }
 
   logEnd();
 };

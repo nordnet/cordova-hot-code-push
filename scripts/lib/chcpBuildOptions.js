@@ -14,6 +14,7 @@
       cordovaContext,
       chcpEnvFilePath,
       chcpBuildOptionsFilePath;
+
   // region Public API
 
   function init(context) {

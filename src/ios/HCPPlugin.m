@@ -24,16 +24,6 @@
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfigStorage.h"
 
-// Socket IO support:
-// 1) Add hook to copy files from: https://github.com/socketio/socket.io-client-swift/tree/master/SocketIOClientSwift
-// 2) Add hook to enable support for swift: https://github.com/cowbell/cordova-plugin-geofence/blob/20de72b918c779511919f7e38d07721112d4f5c8/hooks/add_swift_support.js
-// Additional info: http://stackoverflow.com/questions/25448976/how-to-write-cordova-plugin-in-swift
-// Cordova swift example: https://github.com/edewit/cordova-plugin-hello/tree/swift
-// http://chrisdell.info/blog/writing-ios-cordova-plugin-pure-swift/
-
-// !!! http://stackoverflow.com/questions/24206732/cant-use-swift-classes-inside-objective-c
-// !!! http://stackoverflow.com/questions/24002836/dyld-library-not-loaded-rpath-libswift-stdlib-core-dylib - Runpath
-
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
     HCPUpdateLoader *_updatesLoader;
@@ -77,7 +67,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     _isPluginReadyForWork = YES;
-    [self redirectToLocalStorage];
+    [self resetIndexPageToExternalStorage];
     [self loadApplicationConfig];
     
     [self performUpdateProcedureOnStart];
@@ -241,19 +231,28 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
-- (void)redirectToLocalStorage {
+- (void)resetIndexPageToExternalStorage {
     NSString *currentUrl = self.webView.request.URL.path;
-    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE] || [currentUrl containsString:_filesStructure.wwwFolder.path]) {
+    if ([currentUrl containsString:_filesStructure.wwwFolder.path]) {
         return;
+    }
+    
+    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE]) {
+        currentUrl = [self getStartingPagePath];
     }
     
     currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[self pathToWwwFolderInBundle] withString:@""];
-    NSURL *externalUrl = [_filesStructure.wwwFolder URLByAppendingPathComponent:currentUrl];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:externalUrl.path]) {
+    NSString *indexPageExternalPath = [_filesStructure.wwwFolder URLByAppendingPathComponent:currentUrl].path;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalPath]) {
         return;
     }
     
-    [self loadURL:externalUrl];
+    // rewrite starting page: should load from external storage
+    if ([self.viewController isKindOfClass:[CDVViewController class]]) {
+        ((CDVViewController *)self.viewController).startPage = [NSURL fileURLWithPath:indexPageExternalPath].absoluteString;
+    } else {
+        NSLog(@"HotCodePushError: Can't make starting page to be from external storage. Main controller should be of type CDVViewController.");
+    }
 }
 
 - (NSString *)getStartingPagePath {

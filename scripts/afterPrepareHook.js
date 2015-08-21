@@ -22,8 +22,7 @@
 // cordova build -- dev
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
-    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
-    chcpSwiftSupportActivator = require('./lib/chcpSwiftSupportActivation.js');
+    chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
 
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
@@ -60,15 +59,11 @@ module.exports = function(ctx) {
     console.warn('This will generate .chcpenv file with local server configuration.');
     logEnd();
     return;
-  } else {
-    console.log('Using config:');
-    console.log(JSON.stringify(buildConfig, null, 2));
-    chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
   }
 
-  if (ctx.opts.platforms.indexOf('ios') > -1) {
-    chcpSwiftSupportActivator.enableSwiftSupport(ctx);
-  }
+  console.log('Using config:');
+  console.log(JSON.stringify(buildConfig, null, 2));
+  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
 
   logEnd();
 };

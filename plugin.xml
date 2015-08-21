@@ -35,6 +35,7 @@
 
     <platform name="ios">
       <!-- swift activation hook -->
+      <hook type="after_prepare" src="scripts/swiftActivationHook.js" />
 
       <!-- Plugin inclusion in Cordova config.xml -->
       <config-file target="config.xml" parent="/*">

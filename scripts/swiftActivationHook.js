@@ -1,4 +1,5 @@
-(function() {
+
+
   var path = require('path'),
     fs = require('fs'),
     IOS_DEPLOYMENT_TARGET = '7.0',
@@ -8,8 +9,8 @@
     projectName,
     iosPlatformPath;
 
-  module.exports = {
-    enableSwiftSupport: enableSwiftSupport
+  module.exports = function(ctx) {
+    enableSwiftSupport(ctx);
   };
 
   function enableSwiftSupport(ctx) {
@@ -95,6 +96,8 @@
       '#endif\n';
 
     fs.writeFileSync(prefixFilePath, prefixFileContent, {encoding: 'utf8'});
+
+    console.log('IOS project ' + swiftImportHeader + ' now contains import for Swift ');
   }
 
   function nonComments(obj) {
@@ -109,5 +112,3 @@
 
     return newObj;
   }
-
-})();

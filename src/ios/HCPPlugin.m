@@ -233,7 +233,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 - (void)resetIndexPageToExternalStorage {
     NSString *currentUrl = self.webView.request.URL.path;
-    if ([currentUrl containsString:_filesStructure.wwwFolder.path]) {
+    if ([currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
         return;
     }
     
@@ -242,17 +242,25 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[self pathToWwwFolderInBundle] withString:@""];
-    NSString *indexPageExternalPath = [_filesStructure.wwwFolder URLByAppendingPathComponent:currentUrl].path;
-    if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalPath]) {
+    NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:currentUrl];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalURL.path]) {
         return;
     }
     
     // rewrite starting page: should load from external storage
     if ([self.viewController isKindOfClass:[CDVViewController class]]) {
-        ((CDVViewController *)self.viewController).startPage = [NSURL fileURLWithPath:indexPageExternalPath].absoluteString;
+        ((CDVViewController *)self.viewController).startPage = indexPageExternalURL.absoluteString;
     } else {
         NSLog(@"HotCodePushError: Can't make starting page to be from external storage. Main controller should be of type CDVViewController.");
     }
+}
+
+- (NSURL *)appendWwwFolderPathToPath:(NSString *)pagePath {
+    if ([pagePath containsString:_filesStructure.wwwFolder.absoluteString]) {
+        return [NSURL URLWithString:pagePath];
+    }
+    
+    return [_filesStructure.wwwFolder URLByAppendingPathComponent:pagePath];
 }
 
 - (NSString *)getStartingPagePath {
@@ -414,7 +422,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     
     // TODO: remove installation progress dialog
     
-    NSURL *startingPageURL = [_filesStructure.wwwFolder URLByAppendingPathComponent:[self getStartingPagePath]];
+    NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     [self loadURL:startingPageURL];
 }
 

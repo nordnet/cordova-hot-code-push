@@ -2,7 +2,7 @@ package com.nordnetab.chcp.network;
 
 import android.util.Log;
 
-import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.MD5;
 import com.nordnetab.chcp.utils.Paths;
@@ -18,9 +18,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -31,8 +28,8 @@ public class FileDownloader {
 
     //TODO: add feature to continue previous download
 
-    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ContentManifest.File> files) throws IOException {
-        for (ContentManifest.File file : files) {
+    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ManifestFile> files) throws IOException {
+        for (ManifestFile file : files) {
             String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
             String filePath = Paths.get(downloadFolder, file.name);
             download(fileUrl, filePath, file.hash);

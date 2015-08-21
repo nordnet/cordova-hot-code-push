@@ -1,8 +1,5 @@
 package com.nordnetab.chcp;
 
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.res.Resources;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -37,11 +34,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
-
 
 import de.greenrobot.event.EventBus;
 
@@ -50,6 +44,20 @@ import de.greenrobot.event.EventBus;
  * <p/>
  * Plugin entry point.
  */
+
+// TODO: add install folder, like in iOS.
+// TODO: add FolderStructure interface, like in iOS
+// TODO: simplify events, like in iOS
+// TODO: store configs in folders, not in preferences
+// TODO: don't force redirect on first start: install www folder in background and let it be
+// TODO: update queue: should store only 1 task, like in iOS
+// TODO: temporary disable progress dialog
+// TODO: set storage place to data directory, not sdcard
+// TODO: simplify dependens on update time, like in iOS
+// TODO: implement rollback in installation worker
+
+// DONE: change names of javascript actions, called from web
+
 public class HotCodePushPlugin extends CordovaPlugin {
 
     private static final String FILE_PREFIX = "file://";
@@ -73,7 +81,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static Storage<PluginConfig> pluginConfigStorage;
     private static ChcpXmlConfig chcpXmlConfig;
 
-    private ProgressDialog progressDialog;
+    //private ProgressDialog progressDialog;
 
     private HashMap<String, CallbackContext> fetchTasks;
     private CallbackContext installJsCallback;
@@ -86,10 +94,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private Socket devSocket;
 
     private static class JSActions {
-        public static final String FETCH_UPDATE = "fetchUpdate";
-        public static final String INSTALL_UPDATE = "installUpdate";
-        public static final String CONFIGURE = "configure";
-        public static final String INIT = "init";
+        public static final String FETCH_UPDATE = "jsFetchUpdate";
+        public static final String INSTALL_UPDATE = "jsInstallUpdate";
+        public static final String CONFIGURE = "jsConfigure";
+        public static final String INIT = "jsInitPlugin";
     }
 
     public static String getContentFolderLocation() {
@@ -261,38 +269,38 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void installWwwFolder() {
-        showProgressDialog();
-        webView.getView().setVisibility(View.INVISIBLE);
+        //showProgressDialog();
+        //webView.getView().setVisibility(View.INVISIBLE);
 
         AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), HotCodePushPlugin.WWW_FOLDER, getWwwFolder());
     }
 
-    private void dismissProgressDialog() {
-        if (progressDialog == null) {
-            return;
-        }
-
-        progressDialog.dismiss();
-        progressDialog = null;
-    }
-
-    private void showProgressDialog() {
-        if (progressDialog != null) {
-            return;
-        }
-
-        Context context = cordova.getActivity();
-        Resources resources = context.getResources();
-        String packageName = context.getPackageName();
-        int msgIdentifier = resources.getIdentifier("chcp_installation_progress_message", "string", packageName);
-        String progressMessage = context.getString(msgIdentifier);
-
-        try {
-            progressDialog = ProgressDialog.show(context, "", progressMessage, true, false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    private void dismissProgressDialog() {
+//        if (progressDialog == null) {
+//            return;
+//        }
+//
+//        progressDialog.dismiss();
+//        progressDialog = null;
+//    }
+//
+//    private void showProgressDialog() {
+//        if (progressDialog != null) {
+//            return;
+//        }
+//
+//        Context context = cordova.getActivity();
+//        Resources resources = context.getResources();
+//        String packageName = context.getPackageName();
+//        int msgIdentifier = resources.getIdentifier("chcp_installation_progress_message", "string", packageName);
+//        String progressMessage = context.getString(msgIdentifier);
+//
+//        try {
+//            progressDialog = ProgressDialog.show(context, "", progressMessage, true, false);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     public void onStop() {
@@ -406,12 +414,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installJsCallback = jsCallback;
         }
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                showProgressDialog();
-            }
-        });
+//        handler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                showProgressDialog();
+//            }
+//        });
     }
 
     private String getStartingPage() {
@@ -436,29 +444,30 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         isPluginReadyForWork = true;
 
-        resetApplicationToStartingPage();
+        //resetApplicationToStartingPage();
 
         // we need small delay to let webview to reload the page
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                webView.getView().setVisibility(View.VISIBLE);
-                dismissProgressDialog();
-                fetchUpdate(null);
-            }
-        }, 150);
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                webView.getView().setVisibility(View.VISIBLE);
+//                //dismissProgressDialog();
+//                fetchUpdate(null);
+//            }
+//        }, 150);
+        fetchUpdate(null);
     }
 
     public void onEvent(AssetsHelper.AssetsInstallationFailedEvent event) {
         Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                webView.getView().setVisibility(View.VISIBLE);
-                dismissProgressDialog();
-            }
-        });
+//        handler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                //webView.getView().setVisibility(View.VISIBLE);
+////                dismissProgressDialog();
+//            }
+//        });
     }
 
     // endregion
@@ -491,8 +500,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // perform installation if allowed or if we in local development mode
         if (pluginConfig.isAutoInstallIsAllowed()
-                && (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW
-                    || chcpXmlConfig.getDevelopmentOptions().isEnabled())) {
+                && (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW)) {
             installUpdate(null);
         }
     }
@@ -542,13 +550,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
         sendMessageToDefaultCallback(jsResult);
         resetApplicationToStartingPage();
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // hide dialog and show WebView
-                dismissProgressDialog();
-            }
-        });
+//        handler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                // hide dialog and show WebView
+//                dismissProgressDialog();
+//            }
+//        });
     }
 
     private void resetApplicationToStartingPage() {
@@ -574,13 +582,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         sendMessageToDefaultCallback(jsResult);
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // hide dialog and show WebView
-                dismissProgressDialog();
-            }
-        });
+//        handler.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                // hide dialog and show WebView
+//                dismissProgressDialog();
+//            }
+//        });
     }
 
     public void onEvent(UpdatesInstaller.NothingToInstallEvent event) {

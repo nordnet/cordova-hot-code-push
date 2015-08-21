@@ -1,10 +1,11 @@
 package com.nordnetab.chcp.updater;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.model.ManifestDiff;
+import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
@@ -23,7 +24,7 @@ class InstallationWorker implements Runnable {
     private File downloadFolder;
     private File wwwFolder;
     private File backupFolder;
-    private ContentManifest.ManifestDiff manifestDiff;
+    private ManifestDiff manifestDiff;
     private ApplicationConfig appConfig;
     private ApplicationConfigStorage appConfigStorage;
     private ContentManifest manifest;
@@ -106,9 +107,8 @@ class InstallationWorker implements Runnable {
 
     }
 
-    private void deleteUnusedFiles(File wwwFolder, List<ContentManifest.File> files) {
-        for (ContentManifest.File file : files) {
-            //String path = Paths.get(wwwFolder, file.name);
+    private void deleteUnusedFiles(File wwwFolder, List<ManifestFile> files) {
+        for (ManifestFile file : files) {
             File fileToDelete = new File(wwwFolder, file.name);
             FilesUtility.delete(fileToDelete);
         }
@@ -126,16 +126,15 @@ class InstallationWorker implements Runnable {
         }
     }
 
-    private boolean isUpdateValid(File downloadFolder, ContentManifest.ManifestDiff manifestDiff) {
+    private boolean isUpdateValid(File downloadFolder, ManifestDiff manifestDiff) {
         if (!downloadFolder.exists()) {
             return false;
         }
 
         boolean isValid = true;
-        List<ContentManifest.File> updateFileList = manifestDiff.getUpdateFiles();
+        List<ManifestFile> updateFileList = manifestDiff.getUpdateFiles();
 
-        for (ContentManifest.File updatedFile : updateFileList) {
-            //File file = new File(Paths.get(downloadFolder, updatedFile.name));
+        for (ManifestFile updatedFile : updateFileList) {
             File file = new File(downloadFolder, updatedFile.name);
 
             try {

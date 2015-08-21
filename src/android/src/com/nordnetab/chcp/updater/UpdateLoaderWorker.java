@@ -6,6 +6,8 @@ import android.util.Log;
 import com.nordnetab.chcp.HotCodePushPlugin;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.model.ManifestDiff;
+import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.network.ContentManifestDownloader;
 import com.nordnetab.chcp.network.FileDownloader;
@@ -15,7 +17,6 @@ import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.URLUtility;
 import com.nordnetab.chcp.utils.VersionHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -100,7 +101,7 @@ class UpdateLoaderWorker implements Runnable {
         }
 
         // find files that were updated
-        ContentManifest.ManifestDiff diff = oldContentManifest.calculateDifference(newContentManifest);
+        ManifestDiff diff = oldContentManifest.calculateDifference(newContentManifest);
         if (diff.isEmpty()) {
             EventBus.getDefault().post(new UpdatesLoader.NothingToUpdateEvent(newAppConfig, getWorkerId()));
             manifestStorage.storeOnFS(newContentManifest);
@@ -157,9 +158,9 @@ class UpdateLoaderWorker implements Runnable {
         FilesUtility.ensureDirectoryExists(folder);
     }
 
-    private boolean downloadNewAndChagedFiles(ContentManifest.ManifestDiff diff) {
+    private boolean downloadNewAndChagedFiles(ManifestDiff diff) {
         final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
-        List<ContentManifest.File> downloadFiles = diff.getUpdateFiles();
+        List<ManifestFile> downloadFiles = diff.getUpdateFiles();
 
         boolean isFinishedWithSuccess = true;
         try {

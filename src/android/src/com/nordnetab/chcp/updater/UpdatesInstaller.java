@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.model.PluginFilesStructure;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
@@ -80,17 +81,17 @@ public class UpdatesInstaller {
 
     // endregion
 
-    public static boolean install(Context context, final String downloadFolder, final String wwwFolder, final String backupFolder) {
+    public static boolean install(Context context, final PluginFilesStructure filesStructure) {
         if (isInstalling) {
             return false;
         }
 
-        if (!new File(downloadFolder).exists()) {
+        if (!new File(filesStructure.installationFolder()).exists()) {
             EventBus.getDefault().post(new NothingToInstallEvent(null));
             return false;
         }
 
-        InstallationWorker task = new InstallationWorker(context, wwwFolder, downloadFolder, backupFolder);
+        InstallationWorker task = new InstallationWorker(context, filesStructure);
         execute(task);
 
         return true;

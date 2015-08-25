@@ -3,11 +3,11 @@ package com.nordnetab.chcp.updater;
 import android.content.Context;
 import android.util.Log;
 
-import com.nordnetab.chcp.HotCodePushPlugin;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
 import com.nordnetab.chcp.model.ManifestDiff;
 import com.nordnetab.chcp.model.ManifestFile;
+import com.nordnetab.chcp.model.PluginFilesStructure;
 import com.nordnetab.chcp.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.network.ContentManifestDownloader;
 import com.nordnetab.chcp.network.FileDownloader;
@@ -29,20 +29,23 @@ class UpdateLoaderWorker implements Runnable {
 
     private final ApplicationConfigStorage appConfigStorage;
     private final ContentManifestStorage manifestStorage;
-    private final String downloadFolder;
     private final String applicationConfigUrl;
     private final int appBuildVersion;
+    private final PluginFilesStructure filesStructure;
 
     private ApplicationConfig newAppConfig;
 
     private String workerId;
 
-    public UpdateLoaderWorker(Context context, String wwwFolder, String downloadFolder, String configUrl) {
+    public UpdateLoaderWorker(Context context, String configUrl, final PluginFilesStructure filesStructure) {
         this.workerId = generateId();
-        this.downloadFolder = downloadFolder;
+
+        this.filesStructure = filesStructure;
         applicationConfigUrl = configUrl;
-        manifestStorage = new ContentManifestStorage(context, wwwFolder);
-        appConfigStorage = new ApplicationConfigStorage(context, wwwFolder);
+
+        manifestStorage = new ContentManifestStorage(context, filesStructure.wwwFolder());
+        appConfigStorage = new ApplicationConfigStorage(context, filesStructure.wwwFolder());
+
         appBuildVersion = VersionHelper.applicationVersionCode(context);
     }
 
@@ -109,12 +112,12 @@ class UpdateLoaderWorker implements Runnable {
             return;
         }
 
-        recreateDownloadFolder(downloadFolder);
+        recreateDownloadFolder(filesStructure.downloadFolder());
 
         // download files
         boolean isDownloaded = downloadNewAndChagedFiles(diff);
         if (!isDownloaded) {
-            FilesUtility.delete(downloadFolder);
+            FilesUtility.delete(filesStructure.downloadFolder());
             EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_UPDATE_FILES));
             return;
         }
@@ -141,7 +144,7 @@ class UpdateLoaderWorker implements Runnable {
     }
 
     private ContentManifest downloadContentManifest(ApplicationConfig config) {
-        String url = URLUtility.construct(config.getContentConfig().getContentUrl(), HotCodePushPlugin.CONTENT_MANIFEST_FILE_NAME);
+        String url = URLUtility.construct(config.getContentConfig().getContentUrl(), filesStructure.manifestFileName());
 
         ContentManifestDownloader.Result downloadResult = new ContentManifestDownloader(url).download();
         if (downloadResult.error != null) {
@@ -164,7 +167,7 @@ class UpdateLoaderWorker implements Runnable {
 
         boolean isFinishedWithSuccess = true;
         try {
-            FileDownloader.downloadFiles(downloadFolder, contentUrl, downloadFiles);
+            FileDownloader.downloadFiles(filesStructure.downloadFolder(), contentUrl, downloadFiles);
         } catch (IOException e) {
             e.printStackTrace();
             isFinishedWithSuccess = false;

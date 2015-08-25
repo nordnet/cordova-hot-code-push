@@ -4,7 +4,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
@@ -14,6 +13,8 @@ import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.config.PluginConfig;
 import com.nordnetab.chcp.js.PluginResultHelper;
+import com.nordnetab.chcp.model.PluginFilesStructure;
+import com.nordnetab.chcp.model.PluginFilesStructureImpl;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.PluginConfigStorage;
 import com.nordnetab.chcp.storage.Storage;
@@ -46,7 +47,6 @@ import de.greenrobot.event.EventBus;
  */
 
 // TODO: add install folder, like in iOS.
-// TODO: add FolderStructure interface, like in iOS
 // TODO: simplify events, like in iOS
 // TODO: store configs in folders, not in preferences
 // TODO: don't force redirect on first start: install www folder in background and let it be
@@ -62,24 +62,16 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private static final String FILE_PREFIX = "file://";
     public static final String WWW_FOLDER = "www";
-    private static final String WWW_DOWNLOAD_FOLDER = "www_tmp";
-    private static final String WWW_BACKUP_FOLDER = "www_backup";
     public static final String LOCAL_ASSETS_FOLDER = "file:///android_asset/www";
-    public static final String APPLICATION_CONFIG_FILE_NAME = "chcp.json";
-    public static final String CONTENT_MANIFEST_FILE_NAME = "chcp.manifest";
 
     public static final String BLANK_PAGE = "about:blank";
-    public static final String CONTENT_FOLDER_DEFAULT = "cordova-hot-code-push-plugin";
 
-    private static String contentFolderLocation;
-    private static String startingPage;
-    private static Storage<ApplicationConfig> appConfigStorage;
-    private static String wwwFolder;
-    private static String backupFolder;
-    private static String downloadFolder;
-    private static PluginConfig pluginConfig;
-    private static Storage<PluginConfig> pluginConfigStorage;
-    private static ChcpXmlConfig chcpXmlConfig;
+    private String startingPage;
+    private Storage<ApplicationConfig> appConfigStorage;
+    private PluginConfig pluginConfig;
+    private Storage<PluginConfig> pluginConfigStorage;
+    private ChcpXmlConfig chcpXmlConfig;
+    private PluginFilesStructure fileStructure;
 
     //private ProgressDialog progressDialog;
 
@@ -100,38 +92,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         public static final String INIT = "jsInitPlugin";
     }
 
-    public static String getContentFolderLocation() {
-        return contentFolderLocation;
-    }
-
-    public static String getWwwFolder() {
-        if (wwwFolder == null) {
-            wwwFolder = Paths.get(getContentFolderLocation(), WWW_FOLDER);
-        }
-
-        return wwwFolder;
-    }
-
-    public static String getDownloadFolder() {
-        if (downloadFolder == null) {
-            downloadFolder = Paths.get(getContentFolderLocation(), WWW_DOWNLOAD_FOLDER);
-        }
-
-        return downloadFolder;
-    }
-
-    public static String getBackupFolder() {
-        if (backupFolder == null) {
-            backupFolder = Paths.get(getContentFolderLocation(), WWW_BACKUP_FOLDER);
-        }
-
-        return backupFolder;
-    }
-
-    public static String getApplicationConfigUrl() {
-        return pluginConfig.getConfigUrl();
-    }
-
     @Override
     public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -139,18 +99,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
         fetchTasks = new HashMap<String, CallbackContext>();
         handler = new Handler();
 
+        fileStructure = new PluginFilesStructureImpl(cordova.getActivity());
+
         parseCordovaConfigXml();
         loadPluginConfig();
 
-        // location of the cache folder
-        if (contentFolderLocation == null) {
-            contentFolderLocation = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
-            //contentFolderLocation = Paths.get(cordova.getActivity().getFilesDir().getAbsolutePath(), CONTENT_FOLDER_DEFAULT);
-        }
-
-        if (appConfigStorage == null) {
-            appConfigStorage = new ApplicationConfigStorage(cordova.getActivity(), getWwwFolder());
-        }
+        appConfigStorage = new ApplicationConfigStorage(cordova.getActivity(), fileStructure.wwwFolder());
     }
 
     private void connectToLocalDevSocket() {
@@ -189,9 +143,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private boolean isWwwFolderExists() {
-        String externalWwwFolder = getWwwFolder();
-
-        return new File(externalWwwFolder).exists();
+        return new File(fileStructure.wwwFolder()).exists();
     }
 
     private void parseCordovaConfigXml() {
@@ -272,7 +224,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         //showProgressDialog();
         //webView.getView().setVisibility(View.INVISIBLE);
 
-        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), HotCodePushPlugin.WWW_FOLDER, getWwwFolder());
+        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(),
+                HotCodePushPlugin.WWW_FOLDER, fileStructure.wwwFolder());
     }
 
 //    private void dismissProgressDialog() {
@@ -379,7 +332,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         currentUrl = currentUrl.replace(LOCAL_ASSETS_FOLDER, "");
-        String external = Paths.get(getWwwFolder(), currentUrl);
+        String external = Paths.get(fileStructure.wwwFolder(), currentUrl);
         if (!new File(external).exists()) {
             return;
         }
@@ -392,9 +345,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), getWwwFolder(),
-                getDownloadFolder(), getApplicationConfigUrl());
-
+        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), pluginConfig.getConfigUrl(), fileStructure);
         if (jsCallback != null) {
             fetchTasks.put(taskId, jsCallback);
         }
@@ -405,7 +356,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), getDownloadFolder(), getWwwFolder(), getBackupFolder());
+        boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), fileStructure);
         if (!didLaunchInstall) {
             return;
         }
@@ -429,7 +380,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             String url = parser.getLaunchUrl();
 
             startingPage = url.replace(LOCAL_ASSETS_FOLDER, "");
-            startingPage = FILE_PREFIX + Paths.get(getWwwFolder(), startingPage);
+            startingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
         }
 
         return startingPage;

@@ -7,6 +7,7 @@ import android.util.Log;
 import com.nordnetab.chcp.HotCodePushPlugin;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.model.PluginFilesStructure;
 import com.nordnetab.chcp.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.network.ContentManifestDownloader;
 import com.nordnetab.chcp.network.FileDownloader;
@@ -95,8 +96,8 @@ public class UpdatesLoader {
     private static ConcurrentLinkedQueue<Runnable> queue;
     private static boolean isExecuting;
 
-    public static String addUpdateTaskToQueue(Context context, String wwwFolder, String downloadFolder, String configUrl) {
-        UpdateLoaderWorker task = new UpdateLoaderWorker(context, wwwFolder, downloadFolder, configUrl);
+    public static String addUpdateTaskToQueue(Context context, final String configURL, final PluginFilesStructure filesStructure) {
+        UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, filesStructure);
         getQueue().add(task);
 
         if (!isExecuting) {

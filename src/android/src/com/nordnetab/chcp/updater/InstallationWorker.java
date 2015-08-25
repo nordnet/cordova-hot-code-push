@@ -6,6 +6,7 @@ import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
 import com.nordnetab.chcp.model.ManifestDiff;
 import com.nordnetab.chcp.model.ManifestFile;
+import com.nordnetab.chcp.model.PluginFilesStructure;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
@@ -30,15 +31,15 @@ class InstallationWorker implements Runnable {
     private ContentManifest manifest;
     private ContentManifestStorage manifestStorage;
 
-    public InstallationWorker(Context context, String wwwFolderPath, String downloadFolderPath, String backupFolderPath) {
-        manifestStorage = new ContentManifestStorage(context, wwwFolderPath);
+    public InstallationWorker(Context context, final PluginFilesStructure filesStructure) {
+        manifestStorage = new ContentManifestStorage(context, filesStructure.wwwFolder());
         ContentManifest oldManifest = manifestStorage.loadFromFS();
         manifest = manifestStorage.loadFromPreference();
-        appConfigStorage = new ApplicationConfigStorage(context, wwwFolderPath);
+        appConfigStorage = new ApplicationConfigStorage(context, filesStructure.wwwFolder());
 
-        downloadFolder = new File(downloadFolderPath);
-        wwwFolder = new File(wwwFolderPath);
-        backupFolder = new File(backupFolderPath);
+        downloadFolder = new File(filesStructure.downloadFolder());
+        wwwFolder = new File(filesStructure.wwwFolder());
+        backupFolder = new File(filesStructure.backupFolder());
         appConfig = appConfigStorage.loadFromPreference();
         manifestDiff = oldManifest.calculateDifference(manifest);
     }

@@ -5,6 +5,10 @@ import android.util.Log;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.events.NothingToUpdateEvent;
+import com.nordnetab.chcp.events.UpdateDownloadErrorEvent;
+import com.nordnetab.chcp.events.UpdateIsReadyToInstallEvent;
+import com.nordnetab.chcp.model.ChcpError;
 import com.nordnetab.chcp.model.ManifestDiff;
 import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
@@ -81,35 +85,37 @@ class UpdateLoaderWorker implements Runnable {
         // download new application config
         newAppConfig = downloadApplicationConfig();
         if (newAppConfig == null) {
-            EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(null, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG));
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG);
             return;
         }
 
         // check if there is a new content version available
         if (newAppConfig.getContentConfig().getReleaseVersion().equals(oldAppConfig.getContentConfig().getReleaseVersion())) {
-            EventBus.getDefault().post(new UpdatesLoader.NothingToUpdateEvent(newAppConfig, getWorkerId()));
+            dispatchNothingToUpdateEvent();
             return;
         }
 
         // check if current native version supports new content
         if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appBuildVersion) {
-            EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.APPLICATION_BUILD_VERSION_TOO_LOW));
+            dispatchErrorEvent(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW);
             return;
         }
 
         // download new content manifest
         ContentManifest newContentManifest = downloadContentManifest(newAppConfig);
         if (newContentManifest == null) {
-            EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST));
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST);
             return;
         }
 
         // find files that were updated
         ManifestDiff diff = oldContentManifest.calculateDifference(newContentManifest);
         if (diff.isEmpty()) {
-            EventBus.getDefault().post(new UpdatesLoader.NothingToUpdateEvent(newAppConfig, getWorkerId()));
             manifestStorage.storeInFolder(newContentManifest, filesStructure.wwwFolder());
             appConfigStorage.storeInFolder(newAppConfig, filesStructure.wwwFolder());
+
+            dispatchNothingToUpdateEvent();
+
             return;
         }
 
@@ -119,7 +125,8 @@ class UpdateLoaderWorker implements Runnable {
         boolean isDownloaded = downloadNewAndChagedFiles(diff);
         if (!isDownloaded) {
             cleanUp();
-            EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_DOWNLOAD_UPDATE_FILES));
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES);
+
             return;
         }
 
@@ -132,16 +139,28 @@ class UpdateLoaderWorker implements Runnable {
         boolean isReadyToInstall = moveDownloadedContentToInstallationFolder();
         if (!isReadyToInstall) {
             cleanUp();
-            EventBus.getDefault().post(new UpdatesLoader.UpdateErrorEvent(newAppConfig, getWorkerId(), UpdatesLoader.ErrorType.FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER));
+            dispatchErrorEvent(ChcpError.FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER);
             return;
         }
 
         cleanUp();
 
         // notify that we are done
-        EventBus.getDefault().post(new UpdatesLoader.UpdateIsReadyToInstallEvent(newAppConfig, getWorkerId()));
+        dispatchSuccessEvent();
 
         Log.d("CHCP", "Loader worker " + getWorkerId() + " has finished");
+    }
+
+    private void dispatchErrorEvent(ChcpError error) {
+        EventBus.getDefault().post(new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig));
+    }
+
+    private void dispatchSuccessEvent() {
+        EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig));
+    }
+
+    private void dispatchNothingToUpdateEvent() {
+        EventBus.getDefault().post(new NothingToUpdateEvent(getWorkerId(), newAppConfig));
     }
 
     private ApplicationConfig downloadApplicationConfig() {

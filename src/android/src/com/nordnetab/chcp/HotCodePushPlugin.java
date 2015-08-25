@@ -11,6 +11,12 @@ import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.config.PluginConfig;
+import com.nordnetab.chcp.events.NothingToInstallEvent;
+import com.nordnetab.chcp.events.NothingToUpdateEvent;
+import com.nordnetab.chcp.events.UpdateDownloadErrorEvent;
+import com.nordnetab.chcp.events.UpdateInstallationErrorEvent;
+import com.nordnetab.chcp.events.UpdateInstalledEvent;
+import com.nordnetab.chcp.events.UpdateIsReadyToInstallEvent;
 import com.nordnetab.chcp.js.PluginResultHelper;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.model.PluginFilesStructureImpl;
@@ -47,7 +53,6 @@ import de.greenrobot.event.EventBus;
  */
 
 // TODO: simplify events, like in iOS
-// TODO: don't force redirect on first start: install www folder in background and let it be
 // TODO: update queue: should store only 1 task, like in iOS
 // TODO: simplify dependencies on update time, like in iOS
 // TODO: set storage place to data directory, not sdcard
@@ -432,10 +437,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return jsCallback;
     }
 
-    public void onEvent(UpdatesLoader.UpdateIsReadyToInstallEvent event) {
+    public void onEvent(UpdateIsReadyToInstallEvent event) {
         Log.d("CHCP", "Update is ready for installation");
 
-        PluginResult jsResult = PluginResultHelper.getResultForUpdateLoadSuccess();
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         // notify JS
         CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
@@ -452,10 +457,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
-    public void onEvent(UpdatesLoader.NothingToUpdateEvent event) {
+    public void onEvent(NothingToUpdateEvent event) {
         Log.d("CHCP", "Nothing to update");
 
-        PluginResult jsResult = PluginResultHelper.getResultForNothingToUpdate();
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         //notify JS
         CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
@@ -466,10 +471,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         sendMessageToDefaultCallback(jsResult);
     }
 
-    public void onEvent(UpdatesLoader.UpdateErrorEvent event) {
+    public void onEvent(UpdateDownloadErrorEvent event) {
         Log.d("CHCP", "Failed to update");
 
-        PluginResult jsResult = PluginResultHelper.getResultForUpdateLoadError(event.error);
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         // notify JS
         CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
@@ -484,10 +489,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // region Update installation events
 
-    public void onEvent(UpdatesInstaller.UpdateInstalledEvent event) {
+    public void onEvent(UpdateInstalledEvent event) {
         Log.d("CHCP", "Update is installed");
 
-        final PluginResult jsResult = PluginResultHelper.getResultForInstallationSuccess();
+        final PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         if (installJsCallback != null) {
             installJsCallback.sendPluginResult(jsResult);
@@ -516,10 +521,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         });
     }
 
-    public void onEvent(UpdatesInstaller.InstallationErrorEvent event) {
+    public void onEvent(UpdateInstallationErrorEvent event) {
         Log.d("CHCP", "Failed to install");
 
-        PluginResult jsResult = PluginResultHelper.getResultForInstallationError(event.error);
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         // notify js
         if (installJsCallback != null) {
@@ -538,10 +543,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 //        });
     }
 
-    public void onEvent(UpdatesInstaller.NothingToInstallEvent event) {
+    public void onEvent(NothingToInstallEvent event) {
         Log.d("CHCP", "Nothing to install");
 
-        PluginResult jsResult = PluginResultHelper.getResultForNothingToInstall();
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         // notify JS
         if (installJsCallback != null) {

@@ -2,6 +2,10 @@ package com.nordnetab.chcp.updater;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
+import com.nordnetab.chcp.events.NothingToInstallEvent;
+import com.nordnetab.chcp.events.UpdateInstallationErrorEvent;
+import com.nordnetab.chcp.events.UpdateInstalledEvent;
+import com.nordnetab.chcp.model.ChcpError;
 import com.nordnetab.chcp.model.ManifestDiff;
 import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
@@ -40,13 +44,13 @@ class InstallationWorker implements Runnable {
 
         // validate update
         if (!isUpdateValid(installationFolder, manifestDiff)) {
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.UPDATE_IS_INVALID));
+            dispatchErrorEvent(ChcpError.UPDATE_IS_INVALID);
             return;
         }
 
         // backup before installing
         if (!backupCurrentFiles()) {
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.FAILED_TO_CREATE_BACKUP));
+            dispatchErrorEvent(ChcpError.FAILED_TO_CREATE_BACKUP);
             return;
         }
 
@@ -59,7 +63,7 @@ class InstallationWorker implements Runnable {
             rollback();
             cleanUp();
 
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.FAILED_TO_COPY_NEW_CONTENT_FILES));
+            dispatchErrorEvent(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
             return;
         }
 
@@ -67,7 +71,7 @@ class InstallationWorker implements Runnable {
         cleanUp();
 
         // send notification, that we finished
-        EventBus.getDefault().post(new UpdatesInstaller.UpdateInstalledEvent(newAppConfig));
+        dispatchSuccessEvent();
     }
 
     private void init() {
@@ -83,6 +87,18 @@ class InstallationWorker implements Runnable {
         ContentManifest newManifest = manifestStorage.loadFromFolder(filesStructure.installationFolder());
 
         manifestDiff = oldManifest.calculateDifference(newManifest);
+    }
+
+    private void dispatchErrorEvent(ChcpError error) {
+        EventBus.getDefault().post(new UpdateInstallationErrorEvent(error, newAppConfig));
+    }
+
+    private void dispatchSuccessEvent() {
+        EventBus.getDefault().post(new UpdateInstalledEvent(newAppConfig));
+    }
+
+    private void dispatchNothingToInstallEvent() {
+        EventBus.getDefault().post(new NothingToInstallEvent(newAppConfig));
     }
 
     private boolean backupCurrentFiles() {

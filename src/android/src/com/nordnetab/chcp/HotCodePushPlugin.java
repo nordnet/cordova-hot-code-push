@@ -1,6 +1,5 @@
 package com.nordnetab.chcp;
 
-import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,11 +12,12 @@ import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.config.PluginConfig;
 import com.nordnetab.chcp.js.PluginResultHelper;
-import com.nordnetab.chcp.model.PluginFilesStructure;
+import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.model.PluginFilesStructureImpl;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
+import com.nordnetab.chcp.storage.IConfigFileStorage;
+import com.nordnetab.chcp.storage.IConfigPreferenceStorage;
 import com.nordnetab.chcp.storage.PluginConfigStorage;
-import com.nordnetab.chcp.storage.Storage;
 import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.AssetsHelper;
@@ -46,14 +46,11 @@ import de.greenrobot.event.EventBus;
  * Plugin entry point.
  */
 
-// TODO: add install folder, like in iOS.
 // TODO: simplify events, like in iOS
-// TODO: store configs in folders, not in preferences
 // TODO: don't force redirect on first start: install www folder in background and let it be
 // TODO: update queue: should store only 1 task, like in iOS
-// TODO: temporary disable progress dialog
 // TODO: set storage place to data directory, not sdcard
-// TODO: simplify dependens on update time, like in iOS
+// TODO: simplify dependencies on update time, like in iOS
 // TODO: implement rollback in installation worker
 
 // DONE: change names of javascript actions, called from web
@@ -67,11 +64,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public static final String BLANK_PAGE = "about:blank";
 
     private String startingPage;
-    private Storage<ApplicationConfig> appConfigStorage;
+    private IConfigFileStorage<ApplicationConfig> appConfigStorage;
     private PluginConfig pluginConfig;
-    private Storage<PluginConfig> pluginConfigStorage;
+    private IConfigPreferenceStorage<PluginConfig> pluginConfigStorage;
     private ChcpXmlConfig chcpXmlConfig;
-    private PluginFilesStructure fileStructure;
+    private IPluginFilesStructure fileStructure;
 
     //private ProgressDialog progressDialog;
 
@@ -104,7 +101,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         parseCordovaConfigXml();
         loadPluginConfig();
 
-        appConfigStorage = new ApplicationConfigStorage(cordova.getActivity(), fileStructure.wwwFolder());
+        appConfigStorage = new ApplicationConfigStorage(fileStructure);
     }
 
     private void connectToLocalDevSocket() {
@@ -189,7 +186,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         redirectToLocalStorage();
 
         if (pluginConfig.isAutoInstallIsAllowed()) {
-            ApplicationConfig appConfig = appConfigStorage.loadFromPreference();
+            ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
             if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_START) {
                 installUpdate(null);
             }
@@ -209,7 +206,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         if (pluginConfig.isAutoInstallIsAllowed()) {
-            ApplicationConfig appConfig = appConfigStorage.loadFromPreference();
+            ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
             if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_RESUME) {
                 installUpdate(null);
             }
@@ -356,7 +353,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        boolean didLaunchInstall = UpdatesInstaller.install(cordova.getActivity(), fileStructure);
+        boolean didLaunchInstall = UpdatesInstaller.install(fileStructure);
         if (!didLaunchInstall) {
             return;
         }
@@ -391,7 +388,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onEvent(AssetsHelper.AssetsInstalledEvent event) {
         // update stored application version
         pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
-        pluginConfigStorage.storeOnFS(pluginConfig);
+        pluginConfigStorage.storeInPreference(pluginConfig);
 
         isPluginReadyForWork = true;
 

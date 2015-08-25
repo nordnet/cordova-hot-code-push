@@ -1,28 +1,11 @@
 package com.nordnetab.chcp.updater;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.util.Log;
 
-import com.nordnetab.chcp.HotCodePushPlugin;
 import com.nordnetab.chcp.config.ApplicationConfig;
-import com.nordnetab.chcp.config.ContentManifest;
-import com.nordnetab.chcp.model.PluginFilesStructure;
-import com.nordnetab.chcp.network.ApplicationConfigDownloader;
-import com.nordnetab.chcp.network.ContentManifestDownloader;
-import com.nordnetab.chcp.network.FileDownloader;
-import com.nordnetab.chcp.storage.ApplicationConfigStorage;
-import com.nordnetab.chcp.storage.ContentManifestStorage;
-import com.nordnetab.chcp.utils.AssetsHelper;
-import com.nordnetab.chcp.utils.FilesUtility;
-import com.nordnetab.chcp.utils.URLUtility;
+import com.nordnetab.chcp.model.IPluginFilesStructure;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.
@@ -37,7 +20,8 @@ public class UpdatesLoader {
         FAILED_TO_DOWNLOAD_APPLICATION_CONFIG(-1, "Failed to download application configuration file"),
         APPLICATION_BUILD_VERSION_TOO_LOW(-2, "Application build version is too low for this update"),
         FAILED_TO_DOWNLOAD_CONTENT_MANIFEST(-3, "Failed to download content manifest file"),
-        FAILED_TO_DOWNLOAD_UPDATE_FILES(-4, "Failed to download update files");
+        FAILED_TO_DOWNLOAD_UPDATE_FILES(-4, "Failed to download update files"),
+        FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER(-5, "Failed to move downloaded files to the installation folder");
 
         private String errorDescription;
         private int errorCode;
@@ -96,7 +80,7 @@ public class UpdatesLoader {
     private static ConcurrentLinkedQueue<Runnable> queue;
     private static boolean isExecuting;
 
-    public static String addUpdateTaskToQueue(Context context, final String configURL, final PluginFilesStructure filesStructure) {
+    public static String addUpdateTaskToQueue(Context context, final String configURL, final IPluginFilesStructure filesStructure) {
         UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, filesStructure);
         getQueue().add(task);
 

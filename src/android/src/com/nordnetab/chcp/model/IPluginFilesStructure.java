@@ -3,7 +3,7 @@ package com.nordnetab.chcp.model;
 /**
  * Created by Nikolay Demyankov on 21.08.15.
  */
-public interface PluginFilesStructure {
+public interface IPluginFilesStructure {
 
     String contentFolder();
 

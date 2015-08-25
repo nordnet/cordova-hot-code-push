@@ -49,6 +49,10 @@ public class FilesUtility {
         }
     }
 
+    public static void copy(String src, String dst) throws IOException {
+        copy(new File(src), new File(dst));
+    }
+
     public static void copy(File src, File dst) throws IOException {
         if (src.isDirectory()) {
             ensureDirectoryExists(dst);

@@ -8,7 +8,7 @@ import com.nordnetab.chcp.utils.Paths;
 /**
  * Created by Nikolay Demyankov on 21.08.15.
  */
-public class PluginFilesStructureImpl implements PluginFilesStructure {
+public class PluginFilesStructureImpl implements IPluginFilesStructure {
 
     private static final String CONFIG_FILE_NAME = "chcp.json";
     private static final String MANIFEST_FILE_NAME = "chcp.manifest";

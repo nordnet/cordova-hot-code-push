@@ -3,16 +3,9 @@ package com.nordnetab.chcp.updater;
 import android.content.Context;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
-import com.nordnetab.chcp.config.ContentManifest;
-import com.nordnetab.chcp.model.PluginFilesStructure;
-import com.nordnetab.chcp.storage.ApplicationConfigStorage;
-import com.nordnetab.chcp.storage.ContentManifestStorage;
-import com.nordnetab.chcp.utils.FilesUtility;
-import com.nordnetab.chcp.utils.Paths;
+import com.nordnetab.chcp.model.IPluginFilesStructure;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -81,7 +74,7 @@ public class UpdatesInstaller {
 
     // endregion
 
-    public static boolean install(Context context, final PluginFilesStructure filesStructure) {
+    public static boolean install(final IPluginFilesStructure filesStructure) {
         if (isInstalling) {
             return false;
         }
@@ -91,7 +84,7 @@ public class UpdatesInstaller {
             return false;
         }
 
-        InstallationWorker task = new InstallationWorker(context, filesStructure);
+        InstallationWorker task = new InstallationWorker(filesStructure);
         execute(task);
 
         return true;

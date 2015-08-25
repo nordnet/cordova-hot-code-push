@@ -1,14 +1,13 @@
 package com.nordnetab.chcp.updater;
 
-import android.content.Context;
-
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ContentManifest;
 import com.nordnetab.chcp.model.ManifestDiff;
 import com.nordnetab.chcp.model.ManifestFile;
-import com.nordnetab.chcp.model.PluginFilesStructure;
+import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
+import com.nordnetab.chcp.storage.IConfigFileStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
 
 import java.io.File;
@@ -22,67 +21,71 @@ import de.greenrobot.event.EventBus;
  */
 class InstallationWorker implements Runnable {
 
-    private File downloadFolder;
     private File wwwFolder;
     private File backupFolder;
+    private File installationFolder;
+
     private ManifestDiff manifestDiff;
-    private ApplicationConfig appConfig;
-    private ApplicationConfigStorage appConfigStorage;
-    private ContentManifest manifest;
-    private ContentManifestStorage manifestStorage;
+    private ApplicationConfig newAppConfig;
 
-    public InstallationWorker(Context context, final PluginFilesStructure filesStructure) {
-        manifestStorage = new ContentManifestStorage(context, filesStructure.wwwFolder());
-        ContentManifest oldManifest = manifestStorage.loadFromFS();
-        manifest = manifestStorage.loadFromPreference();
-        appConfigStorage = new ApplicationConfigStorage(context, filesStructure.wwwFolder());
+    private IPluginFilesStructure filesStructure;
 
-        downloadFolder = new File(filesStructure.downloadFolder());
-        wwwFolder = new File(filesStructure.wwwFolder());
-        backupFolder = new File(filesStructure.backupFolder());
-        appConfig = appConfigStorage.loadFromPreference();
-        manifestDiff = oldManifest.calculateDifference(manifest);
+    public InstallationWorker(final IPluginFilesStructure filesStructure) {
+        this.filesStructure = filesStructure;
     }
 
     @Override
     public void run() {
+        init();
+
         // validate update
-        if (!isUpdateValid(downloadFolder, manifestDiff)) {
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(appConfig, UpdatesInstaller.Error.UPDATE_IS_INVALID));
+        if (!isUpdateValid(installationFolder, manifestDiff)) {
+            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.UPDATE_IS_INVALID));
             return;
         }
 
         // backup before installing
-        if (!backupCurrentFiles(wwwFolder, backupFolder)) {
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(appConfig, UpdatesInstaller.Error.FAILED_TO_CREATE_BACKUP));
+        if (!backupCurrentFiles()) {
+            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.FAILED_TO_CREATE_BACKUP));
             return;
         }
 
         // remove old manifest files
-        deleteUnusedFiles(wwwFolder, manifestDiff.deletedFiles());
+        deleteUnusedFiles();
 
         // install the update
-        boolean isInstalled = moveFilesToNewDirectory(downloadFolder, wwwFolder);
+        boolean isInstalled = moveFilesFromInstallationFolderToWwwFodler();
         if (!isInstalled) {
-            rollback(backupFolder, wwwFolder);
-            cleanUp(downloadFolder, backupFolder);
+            rollback();
+            cleanUp();
 
-            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(appConfig, UpdatesInstaller.Error.FAILED_TO_COPY_NEW_CONTENT_FILES));
+            EventBus.getDefault().post(new UpdatesInstaller.InstallationErrorEvent(newAppConfig, UpdatesInstaller.Error.FAILED_TO_COPY_NEW_CONTENT_FILES));
             return;
         }
 
-        // save new configuration in www folder
-        appConfigStorage.storeOnFS(appConfig);
-        manifestStorage.storeOnFS(manifest);
-
         // perform cleaning
-        cleanUp(downloadFolder, backupFolder);
+        cleanUp();
 
         // send notification, that we finished
-        EventBus.getDefault().post(new UpdatesInstaller.UpdateInstalledEvent(appConfig));
+        EventBus.getDefault().post(new UpdatesInstaller.UpdateInstalledEvent(newAppConfig));
     }
 
-    private boolean backupCurrentFiles(File wwwFolder, File backupFolder) {
+    private void init() {
+        installationFolder = new File(filesStructure.installationFolder());
+        wwwFolder = new File(filesStructure.wwwFolder());
+        backupFolder = new File(filesStructure.backupFolder());
+
+        IConfigFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(filesStructure);
+        newAppConfig = appConfigStorage.loadFromFolder(filesStructure.installationFolder());
+
+        IConfigFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(filesStructure);
+        ContentManifest oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
+        ContentManifest newManifest = manifestStorage.loadFromFolder(filesStructure.installationFolder());
+
+        manifestDiff = oldManifest.calculateDifference(newManifest);
+    }
+
+    private boolean backupCurrentFiles() {
         boolean result = true;
         try {
             FilesUtility.copy(wwwFolder, backupFolder);
@@ -94,30 +97,26 @@ class InstallationWorker implements Runnable {
         return result;
     }
 
-    private void cleanUp(File downloadFolder, File backupFolder) {
-        // clear preferences
-        appConfigStorage.clearPreference();
-        manifestStorage.clearPreference();
-
-        // remove temporary folders
-        FilesUtility.delete(downloadFolder);
+    private void cleanUp() {
+        FilesUtility.delete(installationFolder);
         FilesUtility.delete(backupFolder);
     }
 
-    private void rollback(File backupFolder, File wwwFolder) {
+    private void rollback() {
 
     }
 
-    private void deleteUnusedFiles(File wwwFolder, List<ManifestFile> files) {
+    private void deleteUnusedFiles() {
+        final List<ManifestFile> files = manifestDiff.deletedFiles();
         for (ManifestFile file : files) {
             File fileToDelete = new File(wwwFolder, file.name);
             FilesUtility.delete(fileToDelete);
         }
     }
 
-    private boolean moveFilesToNewDirectory(File downloadFolder, File wwwFolder) {
+    private boolean moveFilesFromInstallationFolderToWwwFodler() {
         try {
-            FilesUtility.copy(downloadFolder, wwwFolder);
+            FilesUtility.copy(installationFolder, wwwFolder);
 
             return true;
         } catch (IOException e) {

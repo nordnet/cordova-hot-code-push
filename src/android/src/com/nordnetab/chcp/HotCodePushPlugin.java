@@ -52,12 +52,9 @@ import de.greenrobot.event.EventBus;
  * Plugin entry point.
  */
 
-// TODO: simplify events, like in iOS
 // TODO: update queue: should store only 1 task, like in iOS
 // TODO: simplify dependencies on update time, like in iOS
 // TODO: set storage place to data directory, not sdcard
-
-// DONE: change names of javascript actions, called from web
 
 public class HotCodePushPlugin extends CordovaPlugin {
 
@@ -111,7 +108,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private void connectToLocalDevSocket() {
         try {
             URL serverURL = new URL(pluginConfig.getConfigUrl());
-            String socketUrl = serverURL.getProtocol() + serverURL.getAuthority();
+            String socketUrl = serverURL.getProtocol() + "://" + serverURL.getAuthority();
 
             devSocket = IO.socket(socketUrl);
             devSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -260,7 +257,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onStop() {
         EventBus.getDefault().unregister(this);
 
-        devSocket.disconnect();
+        if (devSocket != null) {
+            devSocket.disconnect();
+        }
 
         super.onStop();
     }

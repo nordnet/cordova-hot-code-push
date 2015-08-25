@@ -103,7 +103,14 @@ class InstallationWorker implements Runnable {
     }
 
     private void rollback() {
-
+        FilesUtility.delete(wwwFolder);
+        FilesUtility.ensureDirectoryExists(wwwFolder);
+        try {
+            FilesUtility.copy(backupFolder, wwwFolder);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // nothing we can do
+        }
     }
 
     private void deleteUnusedFiles() {

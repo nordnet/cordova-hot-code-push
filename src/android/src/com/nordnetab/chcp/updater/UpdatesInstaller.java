@@ -1,7 +1,5 @@
 package com.nordnetab.chcp.updater;
 
-import android.content.Context;
-
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 

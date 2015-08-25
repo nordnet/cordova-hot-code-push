@@ -49,9 +49,8 @@ import de.greenrobot.event.EventBus;
 // TODO: simplify events, like in iOS
 // TODO: don't force redirect on first start: install www folder in background and let it be
 // TODO: update queue: should store only 1 task, like in iOS
-// TODO: set storage place to data directory, not sdcard
 // TODO: simplify dependencies on update time, like in iOS
-// TODO: implement rollback in installation worker
+// TODO: set storage place to data directory, not sdcard
 
 // DONE: change names of javascript actions, called from web
 

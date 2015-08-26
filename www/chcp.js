@@ -30,8 +30,6 @@
   }
 
   function nativeCallback(msg) {
-    console.log(msg);
-
     var resultObj = processMessageFromNative(msg);
     if (resultObj.action == null) {
       console.log('Action is not provided, skipping');
@@ -62,7 +60,7 @@
       params.error = nativeMessage.error;
     }
 
-    var chcpEvent = new CustomEvent(nativeMessage.action, params);
+    var chcpEvent = new CustomEvent(nativeMessage.action, {'detail': params});
     document.dispatchEvent(chcpEvent);
   }
 
@@ -81,7 +79,8 @@
     __nativeMethod: {
       FETCH_UPDATE: 'jsFetchUpdate',
       INSTALL_UPDATE: 'jsInstallUpdate',
-      CONFIGURE: 'jsConfigure'
+      CONFIGURE: 'jsConfigure',
+      REQUEST_APP_UPDATE: 'jsRequestAppUpdate'
     },
 
     __PLUGIN_NAME: 'HotCodePush',
@@ -101,8 +100,19 @@
       exec(innerCallback, null, this.__PLUGIN_NAME, this.__nativeMethod.CONFIGURE, [options]);
     },
 
-    // TODO: add support for chcp.json as parameter
-    fetchUpdate: function(config, callback) {
+    requestApplicationUpdate: function(message, onStoreOpenCallback, onUserDismissedDialogCallback) {
+      var onSuccessInnerCallback = function(msg) {
+        onStoreOpenCallback();
+      };
+
+      var onFailureInnerCallback = function(msg) {
+        onUserDismissedDialogCallback();
+      };
+
+      exec(onSuccessInnerCallback, onFailureInnerCallback, this.__PLUGIN_NAME, this.__nativeMethod.REQUEST_APP_UPDATE, [message]);
+    },
+
+    fetchUpdate: function(callback) {
       var innerCallback = function(msg) {
         var resultObj = processMessageFromNative(msg);
         if (callback !== undefined && callback != null) {

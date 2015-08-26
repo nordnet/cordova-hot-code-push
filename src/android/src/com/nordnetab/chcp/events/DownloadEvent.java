@@ -10,7 +10,7 @@ class DownloadEvent extends PluginEvent {
 
     public final String taskId;
 
-    protected DownloadEvent(String taskId, String eventName, ChcpError error, ApplicationConfig config) {
+    protected DownloadEvent(String eventName, String taskId, ChcpError error, ApplicationConfig config) {
         super(eventName, error, config);
 
         this.taskId = taskId;

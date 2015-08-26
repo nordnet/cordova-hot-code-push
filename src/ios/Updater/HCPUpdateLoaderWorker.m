@@ -79,7 +79,7 @@
     
     // check if current native version supports new content
     if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
-        [self notifyWithError:[NSError errorWithCode:-2 description:@"Application build version is too low for this update"]
+        [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode description:@"Application build version is too low for this update"]
             applicationConfig:newAppConfig];
         return;
     }

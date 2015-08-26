@@ -9,6 +9,14 @@
 #import <Foundation/Foundation.h>
 
 extern NSString *const kHCPPluginErrorDomain;
+extern NSInteger const kHCPFailedToDownloadApplicationConfigErrorCode;
+extern NSInteger const kHCPApplicationBuildVersionTooLowErrorCode;
+extern NSInteger const kHCPFailedToDownloadContentManifestErrorCode;
+extern NSInteger const kHCPFailedToDownloadUpdateFilesErrorCode;
+extern NSInteger const kHCPFailedToMoveLoadedFilesToInstallationFolderErrorCode;
+extern NSInteger const kHCPUpdateIsInvalidErrorCode;
+extern NSInteger const kHCPFailedToCreateBackupErrorCode;
+extern NSInteger const kHCPFailedToCopyNewContentFilesErrorCode;
 
 @interface NSError (HCPExtension)
 

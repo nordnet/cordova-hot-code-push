@@ -152,7 +152,7 @@ function installRequiredNodeModules() {
 // endregion
 
 function logStart() {
-  console.log("======== CHCP after installation process ========");
+  console.log("======== CHCP after plugin add process ========");
 }
 
 function logEnd() {

@@ -22,7 +22,13 @@ public class ApplicationConfig {
             JsonNode json = new ObjectMapper().readTree(jsonString);
 
             config.setContentConfig(ContentConfig.fromJson(json));
-            config.setStoreIdentifier(json.get(JsonKeys.STORE_PACKAGE_IDENTIFIER).asText());
+
+            // store identifier is optional
+            if (json.has(JsonKeys.STORE_PACKAGE_IDENTIFIER)) {
+                config.setStoreIdentifier(json.get(JsonKeys.STORE_PACKAGE_IDENTIFIER).asText());
+            } else {
+                config.setStoreIdentifier("");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,6 +69,10 @@ public class ApplicationConfig {
     }
 
     public String getStoreUrl() {
+        if (TextUtils.isEmpty(storeIdentifier)) {
+            return "";
+        }
+
         if (TextUtils.isEmpty(storeUrl)) {
             if (storeIdentifier.startsWith("http://")
                     || storeIdentifier.startsWith("https://")

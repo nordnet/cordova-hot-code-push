@@ -50,6 +50,7 @@ public class ContentConfig {
         ContentConfig config = new ContentConfig();
         try {
             config.setReleaseVersion(node.get(JsonKeys.VERSION).asText());
+            config.setContentUrl(node.get(JsonKeys.CONTENT_URL).asText());
 
             // minimum native version is now optional parameter
             if (node.has(JsonKeys.MINIMUM_NATIVE_VERSION)) {
@@ -58,10 +59,12 @@ public class ContentConfig {
                 config.setMinimumNativeVersion(0);
             }
 
-            config.setContentUrl(node.get(JsonKeys.CONTENT_URL).asText());
-            config.setUpdateTime(
-                    UpdateTime.fromString(node.get(JsonKeys.UPDATE).asText())
-            );
+            // when to perform update
+            if (node.has(JsonKeys.UPDATE)) {
+                config.setUpdateTime(UpdateTime.fromString(node.get(JsonKeys.UPDATE).asText()));
+            } else {
+                config.setUpdateTime(UpdateTime.ON_START);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

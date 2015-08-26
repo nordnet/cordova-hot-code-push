@@ -24,6 +24,10 @@ static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
 #pragma mark Public API
 
 - (NSString *)storeUrl {
+    if (self.storeIdentifier.length == 0) {
+        return nil;
+    }
+    
     if (_storeUrl == nil) {
         if ([self.storeIdentifier containsString:@"http://"] || [self.storeIdentifier containsString:@"https://"]) {
             _storeUrl = self.storeIdentifier;

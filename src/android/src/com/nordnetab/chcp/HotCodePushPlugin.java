@@ -1,5 +1,9 @@
 package com.nordnetab.chcp;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -84,6 +88,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         public static final String INSTALL_UPDATE = "jsInstallUpdate";
         public static final String CONFIGURE = "jsConfigure";
         public static final String INIT = "jsInitPlugin";
+        public static final String REQUEST_APP_UPDATE = "jsRequestAppUpdate";
     }
 
     @Override
@@ -206,10 +211,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 installUpdate(null);
             }
         }
-
-        if (pluginConfig.isAutoDownloadIsAllowed()) {
-            fetchUpdate(null);
-        }
     }
 
     private void installWwwFolder() {
@@ -248,6 +249,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             installUpdate(callbackContext);
         } else if (JSActions.CONFIGURE.equals(action)) {
             jsSetPluginOptions(args, callbackContext);
+        } else if (JSActions.REQUEST_APP_UPDATE.equals(action)) {
+            jsRequestAppUpdate(args, callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -271,8 +274,14 @@ public class HotCodePushPlugin extends CordovaPlugin {
             @Override
             public void run() {
                 webView.clearHistory();
+
             }
         });
+
+        // fetch update when we are initialized
+        if (pluginConfig.isAutoDownloadIsAllowed()) {
+            fetchUpdate(null);
+        }
     }
 
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
@@ -286,6 +295,43 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         callback.success();
+    }
+
+    private void jsRequestAppUpdate(CordovaArgs arguments, final CallbackContext callback) {
+        String msg = null;
+        try {
+            msg = (String)arguments.get(0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (TextUtils.isEmpty(msg)) {
+            return;
+        }
+
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(cordova.getActivity());
+        dialogBuilder.setCancelable(false);
+        dialogBuilder.setMessage(msg);
+        dialogBuilder.setPositiveButton(cordova.getActivity().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.success();
+                dialog.dismiss();
+
+                String storeURL = appConfigStorage.loadFromFolder(fileStructure.wwwFolder()).getStoreUrl();
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(storeURL));
+                cordova.getActivity().startActivity(intent);
+            }
+        });
+        dialogBuilder.setNegativeButton(cordova.getActivity().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.error("");
+            }
+        });
+
+        dialogBuilder.show();
     }
 
     private void redirectToLocalStorage() {

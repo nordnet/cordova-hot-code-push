@@ -101,6 +101,10 @@
     },
 
     requestApplicationUpdate: function(message, onStoreOpenCallback, onUserDismissedDialogCallback) {
+      if (message == undefined || message.length == 0) {
+        return;
+      }
+
       var onSuccessInnerCallback = function(msg) {
         onStoreOpenCallback();
       };

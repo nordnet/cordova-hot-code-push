@@ -106,11 +106,15 @@
       }
 
       var onSuccessInnerCallback = function(msg) {
-        onStoreOpenCallback();
+        if (onStoreOpenCallback) {
+          onStoreOpenCallback();
+        }
       };
 
       var onFailureInnerCallback = function(msg) {
-        onUserDismissedDialogCallback();
+        if (onUserDismissedDialogCallback) {
+          onUserDismissedDialogCallback();
+        }
       };
 
       exec(onSuccessInnerCallback, onFailureInnerCallback, this.__PLUGIN_NAME, this.__nativeMethod.REQUEST_APP_UPDATE, [message]);

@@ -28,7 +28,7 @@ static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
         if ([self.storeIdentifier containsString:@"http://"] || [self.storeIdentifier containsString:@"https://"]) {
             _storeUrl = self.storeIdentifier;
         } else {
-            _storeUrl = [NSString stringWithFormat:@"https://itunes.apple.com/%@", self.storeIdentifier];
+            _storeUrl = [NSString stringWithFormat:@"https://itunes.apple.com/app/%@", self.storeIdentifier];
         }
     }
     

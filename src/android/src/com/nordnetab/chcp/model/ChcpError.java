@@ -11,9 +11,9 @@ public enum ChcpError {
     FAILED_TO_DOWNLOAD_UPDATE_FILES(-4, "Failed to download update files"),
     FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER(-5, "Failed to move downloaded files to the installation folder"),
 
-    UPDATE_IS_INVALID(-100, "Update package is broken"),
-    FAILED_TO_CREATE_BACKUP(-101, "Could not create backup before the installation"),
-    FAILED_TO_COPY_NEW_CONTENT_FILES(-102, "Failed to copy new files to content directory");
+    UPDATE_IS_INVALID(-6, "Update package is broken"),
+    FAILED_TO_CREATE_BACKUP(-7, "Could not create backup before the installation"),
+    FAILED_TO_COPY_NEW_CONTENT_FILES(-8, "Failed to copy new files to content directory");
 
     private int errorCode;
     private String errorDescription;

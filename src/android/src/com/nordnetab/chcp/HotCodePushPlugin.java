@@ -222,6 +222,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (devSocket != null) {
             devSocket.disconnect();
+            devSocket = null;
         }
 
         super.onStop();

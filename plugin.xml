@@ -13,7 +13,8 @@
     <issue>https://github.com/nordnet/cordova-hot-code-push/issues</issue>
 
     <engines>
-      <engine name="cordova" version=">=4" />
+      <engine name="cordova-ios" version=">=3.8" />
+      <engine name="cordova-android" version=">=4" />
       <engine name="cordova-plugman" version=">=4.2.0" /><!-- needed for gradleReference support -->
     </engines>
 
@@ -365,6 +366,6 @@
       <!-- sources for package: com.nordnetab.chcp -->
       <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
         target-dir="src/com/nordnetab/chcp" />
-        
+
     </platform>
 </plugin>

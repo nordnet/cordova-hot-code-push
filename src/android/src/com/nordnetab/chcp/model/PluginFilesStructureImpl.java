@@ -27,8 +27,9 @@ public class PluginFilesStructureImpl implements IPluginFilesStructure {
     private String installationFolder;
 
     public PluginFilesStructureImpl(Context context) {
-        contentFolder = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), PLUGIN_FOLDER);
-        //contentFolder = Paths.get(context.getFilesDir().getAbsolutePath(), PLUGIN_FOLDER);
+        // uncomment this line, if you want store files on sdcard instead of application file directory
+        //contentFolder = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), PLUGIN_FOLDER);
+        contentFolder = Paths.get(context.getFilesDir().getAbsolutePath(), PLUGIN_FOLDER);
     }
 
     @Override

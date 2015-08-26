@@ -53,15 +53,14 @@ import de.greenrobot.event.EventBus;
  */
 
 // TODO: update queue: should store only 1 task, like in iOS
-// TODO: set storage place to data directory, not sdcard
 
 public class HotCodePushPlugin extends CordovaPlugin {
 
     private static final String FILE_PREFIX = "file://";
-    public static final String WWW_FOLDER = "www";
-    public static final String LOCAL_ASSETS_FOLDER = "file:///android_asset/www";
+    private static final String WWW_FOLDER = "www";
+    private static final String LOCAL_ASSETS_FOLDER = "file:///android_asset/www";
 
-    public static final String BLANK_PAGE = "about:blank";
+    private static final String BLANK_PAGE = "about:blank";
 
     private String startingPage;
     private IConfigFileStorage<ApplicationConfig> appConfigStorage;
@@ -69,8 +68,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private IConfigPreferenceStorage<PluginConfig> pluginConfigStorage;
     private ChcpXmlConfig chcpXmlConfig;
     private IPluginFilesStructure fileStructure;
-
-    //private ProgressDialog progressDialog;
 
     private HashMap<String, CallbackContext> fetchTasks;
     private CallbackContext installJsCallback;
@@ -216,8 +213,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     private void installWwwFolder() {
-        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(),
-                HotCodePushPlugin.WWW_FOLDER, fileStructure.wwwFolder());
+        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), WWW_FOLDER, fileStructure.wwwFolder());
     }
 
     @Override

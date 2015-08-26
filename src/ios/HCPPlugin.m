@@ -23,6 +23,7 @@
 #import "HCPXmlConfig.h"
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfigStorage.h"
+#import "HCPAppUpdateRequestAlertDialog.h"
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -36,7 +37,7 @@
     NSString *_installationCallback;
     HCPXmlConfig *_pluginXmllConfig;
     HCPApplicationConfig *_appConfig;
-    
+    HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
     SocketIOClient *_socketIOClient;
 }
 
@@ -92,12 +93,8 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 #pragma mark Private API
 
 - (void)performUpdateProcedureOnStart {
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed && [self _installUpdate:nil]) {
-        return;
-    }
-    
-    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
-        [self _fetchUpdate:nil];
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed) {
+        [self _installUpdate:nil];
     }
 }
 
@@ -430,6 +427,10 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
+    
+    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+        [self _fetchUpdate:nil];
+    }
 }
 
 - (void)jsConfigure:(CDVInvokedUrlCommand *)command {
@@ -464,6 +465,27 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     [self _installUpdate:command.callbackId];
+}
+
+- (void)jsRequestAppUpdate:(CDVInvokedUrlCommand *)command {
+    if (!_isPluginReadyForWork || command.arguments.count == 0) {
+        return;
+    }
+    
+    NSString* message = command.arguments[0];
+    if (message.length == 0) {
+        return;
+    }
+    
+    _appUpdateRequestDialog = [[HCPAppUpdateRequestAlertDialog alloc] initWithMessage:message storeUrl:_appConfig.storeUrl onSuccessBlock:^{
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+        _appUpdateRequestDialog = nil;
+    } onFailureBlock:^{
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+        _appUpdateRequestDialog = nil;
+    }];
+    
+    [_appUpdateRequestDialog show];
 }
 
 #pragma mark Socket IO

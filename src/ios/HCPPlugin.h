@@ -16,5 +16,6 @@
 - (void)jsConfigure:(CDVInvokedUrlCommand *)command;
 - (void)jsFetchUpdate:(CDVInvokedUrlCommand *)command;
 - (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command;
+- (void)jsRequestAppUpdate:(CDVInvokedUrlCommand *)command;
 
 @end

@@ -10,7 +10,7 @@ public class NothingToUpdateEvent extends DownloadEvent {
     private static final String EVENT_NAME = "chcp_nothingToUpdate";
 
     public NothingToUpdateEvent(String taskId, ApplicationConfig config) {
-        super(taskId, EVENT_NAME, null, config);
+        super(EVENT_NAME, taskId, null, config);
     }
 
 }

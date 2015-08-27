@@ -10,6 +10,6 @@ public class UpdateIsReadyToInstallEvent extends DownloadEvent {
     private static final String EVENT_NAME = "chcp_updateIsReadyToInstall";
 
     public UpdateIsReadyToInstallEvent(String taskId, ApplicationConfig config) {
-        super(taskId, EVENT_NAME, null, config);
+        super(EVENT_NAME, taskId, null, config);
     }
 }

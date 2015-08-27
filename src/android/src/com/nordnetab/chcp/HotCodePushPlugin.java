@@ -342,8 +342,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private void redirectToLocalStorage() {
         String currentUrl = webView.getUrl();
-        if (TextUtils.isEmpty(currentUrl) || currentUrl.equals(BLANK_PAGE)
-                || !currentUrl.contains(LOCAL_ASSETS_FOLDER)) {
+        if (TextUtils.isEmpty(currentUrl)) {
+            currentUrl = getStartingPage();
+        } else if (!currentUrl.contains(LOCAL_ASSETS_FOLDER)) {
             return;
         }
 
@@ -392,7 +393,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         String url = parser.getLaunchUrl();
 
         startingPage = url.replace(LOCAL_ASSETS_FOLDER, "");
-        startingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
 
         return startingPage;
     }
@@ -499,7 +499,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             @Override
             public void run() {
                 final String startingPage = getStartingPage();
-                webView.loadUrlIntoView(startingPage, false);
+                final String externalStartingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
+                webView.loadUrlIntoView(externalStartingPage, false);
             }
         });
     }

@@ -6,12 +6,12 @@ import com.nordnetab.chcp.model.ChcpError;
 /**
  * Created by Nikolay Demyankov on 25.08.15.
  * <p/>
- * Base class for plugin specific events. Used internally.
+ * Base class for plugin specific events.
  * All events are dispatched and captured through EventBus.
  *
  * @see de.greenrobot.event.EventBus
  */
-class PluginEvent {
+public class PluginEvent {
 
     /**
      * Error information, that is attached to the event

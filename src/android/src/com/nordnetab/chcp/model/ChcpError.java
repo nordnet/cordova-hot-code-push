@@ -13,7 +13,12 @@ public enum ChcpError {
 
     UPDATE_IS_INVALID(-6, "Update package is broken"),
     FAILED_TO_CREATE_BACKUP(-7, "Could not create backup before the installation"),
-    FAILED_TO_COPY_NEW_CONTENT_FILES(-8, "Failed to copy new files to content directory");
+    FAILED_TO_COPY_NEW_CONTENT_FILES(-8, "Failed to copy new files to content directory"),
+    
+    LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND(-9, "Failed to load current application config"),
+    LOCAL_VERSION_OF_MANIFEST_NOT_FOUND(-10, "Failed to load current manifest file"),
+    LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND(-11, "Failed to load application config from download folder"),
+    LOADED_VERSION_OF_MANIFEST_NOT_FOUND(-12, "Failed to load content manifest from download folder");
 
     private int errorCode;
     private String errorDescription;

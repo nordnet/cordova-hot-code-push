@@ -40,7 +40,10 @@ class InstallationWorker implements Runnable {
 
     @Override
     public void run() {
-        init();
+        // try to initialize before run
+        if (!init()) {
+            return;
+        }
 
         // validate update
         if (!isUpdateValid(installationFolder, manifestDiff)) {
@@ -62,7 +65,6 @@ class InstallationWorker implements Runnable {
         if (!isInstalled) {
             rollback();
             cleanUp();
-
             dispatchErrorEvent(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
             return;
         }
@@ -74,19 +76,34 @@ class InstallationWorker implements Runnable {
         dispatchSuccessEvent();
     }
 
-    private void init() {
+    private boolean init() {
         installationFolder = new File(filesStructure.installationFolder());
         wwwFolder = new File(filesStructure.wwwFolder());
         backupFolder = new File(filesStructure.backupFolder());
 
         IConfigFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(filesStructure);
         newAppConfig = appConfigStorage.loadFromFolder(filesStructure.installationFolder());
+        if (newAppConfig == null) {
+            dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND);
+            return false;
+        }
 
         IConfigFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(filesStructure);
         ContentManifest oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
+        if (oldManifest == null) {
+            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND);
+            return false;
+        }
+
         ContentManifest newManifest = manifestStorage.loadFromFolder(filesStructure.installationFolder());
+        if (newManifest == null) {
+            dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_MANIFEST_NOT_FOUND);
+            return false;
+        }
 
         manifestDiff = oldManifest.calculateDifference(newManifest);
+
+        return true;
     }
 
     private void dispatchErrorEvent(ChcpError error) {

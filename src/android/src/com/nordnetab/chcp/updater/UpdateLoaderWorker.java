@@ -39,9 +39,6 @@ class UpdateLoaderWorker implements Runnable {
     private final String applicationConfigUrl;
     private final int appBuildVersion;
     private final IPluginFilesStructure filesStructure;
-
-    private ApplicationConfig newAppConfig;
-
     private String workerId;
 
     public UpdateLoaderWorker(Context context, String configUrl, final IPluginFilesStructure filesStructure) {
@@ -78,33 +75,43 @@ class UpdateLoaderWorker implements Runnable {
     public void run() {
         Log.d("CHCP", "Starting loader worker " + getWorkerId());
 
-        // load configs
+        // load current application config
         ApplicationConfig oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.wwwFolder());
+        if (oldAppConfig == null) {
+            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
+            return;
+        }
+
+        // load current content manifest
         ContentManifest oldContentManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
+        if (oldContentManifest == null) {
+            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
+            return;
+        }
 
         // download new application config
-        newAppConfig = downloadApplicationConfig();
+        ApplicationConfig newAppConfig = downloadApplicationConfig();
         if (newAppConfig == null) {
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG);
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG, null);
             return;
         }
 
         // check if there is a new content version available
         if (newAppConfig.getContentConfig().getReleaseVersion().equals(oldAppConfig.getContentConfig().getReleaseVersion())) {
-            dispatchNothingToUpdateEvent();
+            dispatchNothingToUpdateEvent(newAppConfig);
             return;
         }
 
         // check if current native version supports new content
         if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appBuildVersion) {
-            dispatchErrorEvent(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW);
+            dispatchErrorEvent(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW, newAppConfig);
             return;
         }
 
         // download new content manifest
         ContentManifest newContentManifest = downloadContentManifest(newAppConfig);
         if (newContentManifest == null) {
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST);
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST, newAppConfig);
             return;
         }
 
@@ -113,8 +120,7 @@ class UpdateLoaderWorker implements Runnable {
         if (diff.isEmpty()) {
             manifestStorage.storeInFolder(newContentManifest, filesStructure.wwwFolder());
             appConfigStorage.storeInFolder(newAppConfig, filesStructure.wwwFolder());
-
-            dispatchNothingToUpdateEvent();
+            dispatchNothingToUpdateEvent(newAppConfig);
 
             return;
         }
@@ -122,10 +128,10 @@ class UpdateLoaderWorker implements Runnable {
         recreateDownloadFolder(filesStructure.downloadFolder());
 
         // download files
-        boolean isDownloaded = downloadNewAndChagedFiles(diff);
+        boolean isDownloaded = downloadNewAndChagedFiles(newAppConfig, diff);
         if (!isDownloaded) {
             cleanUp();
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES);
+            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES, newAppConfig);
 
             return;
         }
@@ -136,30 +142,31 @@ class UpdateLoaderWorker implements Runnable {
 
         waitForInstallationToFinish();
 
+        // copy all loaded content to installation folder
         boolean isReadyToInstall = moveDownloadedContentToInstallationFolder();
         if (!isReadyToInstall) {
             cleanUp();
-            dispatchErrorEvent(ChcpError.FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER);
+            dispatchErrorEvent(ChcpError.FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER, newAppConfig);
             return;
         }
 
         cleanUp();
 
         // notify that we are done
-        dispatchSuccessEvent();
+        dispatchSuccessEvent(newAppConfig);
 
         Log.d("CHCP", "Loader worker " + getWorkerId() + " has finished");
     }
 
-    private void dispatchErrorEvent(ChcpError error) {
+    private void dispatchErrorEvent(ChcpError error, ApplicationConfig newAppConfig) {
         EventBus.getDefault().post(new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig));
     }
 
-    private void dispatchSuccessEvent() {
+    private void dispatchSuccessEvent(ApplicationConfig newAppConfig) {
         EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig));
     }
 
-    private void dispatchNothingToUpdateEvent() {
+    private void dispatchNothingToUpdateEvent(ApplicationConfig newAppConfig) {
         EventBus.getDefault().post(new NothingToUpdateEvent(getWorkerId(), newAppConfig));
     }
 
@@ -192,7 +199,7 @@ class UpdateLoaderWorker implements Runnable {
         FilesUtility.ensureDirectoryExists(folder);
     }
 
-    private boolean downloadNewAndChagedFiles(ManifestDiff diff) {
+    private boolean downloadNewAndChagedFiles(ApplicationConfig newAppConfig, ManifestDiff diff) {
         final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
         List<ManifestFile> downloadFiles = diff.getUpdateFiles();
 

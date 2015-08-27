@@ -1,12 +1,15 @@
 package com.nordnetab.chcp.model;
 
 import android.content.Context;
+
 import com.nordnetab.chcp.utils.Paths;
 
 /**
  * Created by Nikolay Demyankov on 21.08.15.
+ * <p/>
+ * Implementation for IPluginFilesStructure interface.
  *
- * 
+ * @see IPluginFilesStructure
  */
 public class PluginFilesStructureImpl implements IPluginFilesStructure {
 
@@ -26,6 +29,11 @@ public class PluginFilesStructureImpl implements IPluginFilesStructure {
     private String backupFolder;
     private String installationFolder;
 
+    /**
+     * Class constructor
+     *
+     * @param context application context
+     */
     public PluginFilesStructureImpl(Context context) {
         // uncomment this line, if you want store files on sdcard instead of application file directory
         //contentFolder = Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath(), PLUGIN_FOLDER);

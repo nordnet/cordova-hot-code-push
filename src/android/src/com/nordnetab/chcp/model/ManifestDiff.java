@@ -7,6 +7,8 @@ import java.util.List;
  * Created by Nikolay Demyankov on 21.08.15.
  * <p/>
  * Model describes difference between two manifest files.
+ *
+ * @see ManifestFile
  */
 public class ManifestDiff {
 

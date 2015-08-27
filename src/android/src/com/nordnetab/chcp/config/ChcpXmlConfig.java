@@ -4,7 +4,7 @@ import android.content.Context;
 
 /**
  * Created by Nikolay Demyankov on 06.08.15.
- *
+ * <p/>
  * Model for hot-code-push specific preferences in config.xml.
  */
 public class ChcpXmlConfig {
@@ -12,7 +12,7 @@ public class ChcpXmlConfig {
     private String configUrl;
     private DevelopmentOptions developmentOptions;
 
-    private ChcpXmlConfig(){
+    private ChcpXmlConfig() {
         configUrl = "";
         developmentOptions = new DevelopmentOptions();
     }
@@ -40,7 +40,6 @@ public class ChcpXmlConfig {
      * Getter for local development options.
      *
      * @return local development options
-     *
      * @see DevelopmentOptions
      */
     public DevelopmentOptions getDevelopmentOptions() {
@@ -51,7 +50,6 @@ public class ChcpXmlConfig {
      * Load plugins specific preferences from Cordova's config.xml.
      *
      * @param context current context of the activity
-     *
      * @return hot-code-push plugin preferences
      */
     public static ChcpXmlConfig loadFromCordovaConfig(Context context) {

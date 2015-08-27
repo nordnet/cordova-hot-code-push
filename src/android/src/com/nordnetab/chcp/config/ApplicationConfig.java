@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
- *
+ * <p/>
  * Model for application config. Holds information from chcp.json file.
  */
 public class ApplicationConfig {
@@ -32,7 +32,6 @@ public class ApplicationConfig {
      * Create instance of the config from json string.
      *
      * @param jsonString json to process
-     *
      * @return class instance
      */
     public static ApplicationConfig fromJson(String jsonString) {

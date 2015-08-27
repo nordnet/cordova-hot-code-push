@@ -15,16 +15,28 @@ import java.util.List;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
+ * <p/>
+ * Model for content manifest.
+ * Content manifest is a configuration file, that holds the list of all web project files with they hashes.
+ * Used to determine which files has been removed from the project, which are added or updated.
  */
 public class ContentManifest {
 
     // region Json
 
+    // keys to parse json
     private static class JsonKeys {
         public static final String FILE_PATH = "file";
         public static final String FILE_HASH = "hash";
     }
 
+    /**
+     * Create instance of the object from JSON string.
+     * JSON string is a content of the chcp.manifest file.
+     *
+     * @param json JSON string to parse
+     * @return content manifest instance
+     */
     public static ContentManifest fromJson(String json) {
         ContentManifest manifest = new ContentManifest();
         try {
@@ -43,6 +55,11 @@ public class ContentManifest {
         return manifest;
     }
 
+    /**
+     * Convert object into JSON string
+     *
+     * @return JSON string
+     */
     @Override
     public String toString() {
         if (TextUtils.isEmpty(jsonString)) {
@@ -74,10 +91,24 @@ public class ContentManifest {
         this.files = new ArrayList<ManifestFile>();
     }
 
+    /**
+     * Getter for list of web project files.
+     *
+     * @return list of files
+     */
     public List<ManifestFile> getFiles() {
         return files;
     }
 
+    /**
+     * Find differences between this manifest and the new one.
+     * Current object is considered as an old manifest.
+     *
+     * @param manifest new manifest, relative to which we will calculate the difference
+     * @return calculated difference between manifests
+     * @see ManifestDiff
+     * @see ManifestFile
+     */
     // TODO: need more cleaner way to find differences between two lists
     public ManifestDiff calculateDifference(ContentManifest manifest) {
         final List<ManifestFile> oldManifestFiles = files;
@@ -85,9 +116,9 @@ public class ContentManifest {
                 ? manifest.getFiles() : new ArrayList<ManifestFile>();
 
         final ManifestDiff diff = new ManifestDiff();
-        final List<ManifestFile>changedFiles = diff.changedFiles();
-        final List<ManifestFile>deletedFiles = diff.deletedFiles();
-        final List<ManifestFile>addedFiles = diff.addedFiles();
+        final List<ManifestFile> changedFiles = diff.changedFiles();
+        final List<ManifestFile> deletedFiles = diff.deletedFiles();
+        final List<ManifestFile> addedFiles = diff.addedFiles();
 
 
         // find deleted and updated files

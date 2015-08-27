@@ -7,7 +7,7 @@ import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Created by Nikolay Demyankov on 06.08.15.
- *
+ * <p/>
  * XML parser for Cordova's config.xml.
  * Used to read plugin specific preferences.
  *
@@ -38,7 +38,7 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
      * Parse config.xml.
      * Result is set into passed ChcpXmlConfig instance.
      *
-     * @param context current context
+     * @param context    current context
      * @param chcpConfig config instance to which we will set preferences from config.xml
      * @see ChcpXmlConfig
      */

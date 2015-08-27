@@ -17,9 +17,14 @@ extern NSInteger const kHCPFailedToMoveLoadedFilesToInstallationFolderErrorCode;
 extern NSInteger const kHCPUpdateIsInvalidErrorCode;
 extern NSInteger const kHCPFailedToCreateBackupErrorCode;
 extern NSInteger const kHCPFailedToCopyNewContentFilesErrorCode;
+extern NSInteger const kHCPLocalVersionOfApplicationConfigNotFoundErrorCode;
+extern NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode;
+extern NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode;
+extern NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode;
 
 @interface NSError (HCPExtension)
 
 + (NSError *)errorWithCode:(NSInteger)errorCode description:(NSString *)description;
++ (NSError *)errorWithCode:(NSInteger)errorCode descriptionFromError:(NSError *)error;
 
 @end

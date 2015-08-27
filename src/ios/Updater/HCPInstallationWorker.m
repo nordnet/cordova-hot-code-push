@@ -47,13 +47,16 @@
 
 - (void)run {
     NSError *error = nil;
-    if (![self initBeforeRun:&error] || ![self isUpdateValid:&error] ||
-            ![self backupFiles:&error] || ![self deleteUnusedFiles:&error] || ![self moveDownloadedFilesToWwwFolder:&error]) {
-        [self rollback];
-        [self cleanUp];
-        [self dispatchEventWithError:error];
+    if (![self initBeforeRun:&error] ||
+        ![self isUpdateValid:&error] ||
+        ![self backupFiles:&error] ||
+        ![self deleteUnusedFiles:&error] ||
+        ![self moveDownloadedFilesToWwwFolder:&error]) {
+            [self rollback];
+            [self cleanUp];
+            [self dispatchEventWithError:error];
         
-        return;
+            return;
     }
     
     [self saveNewConfigsToWwwFolder];
@@ -87,25 +90,29 @@
     
     _oldConfig = [_configStorage loadFromFolder:_fileStructure.wwwFolder];
     if (_oldConfig == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to load application config from cache folder"];
+        *error = [NSError errorWithCode:kHCPLocalVersionOfApplicationConfigNotFoundErrorCode
+                            description:@"Failed to load application config from cache folder"];
         return NO;
     }
     
     _newConfig = [_configStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newConfig == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to load application config from download folder"];
+        *error = [NSError errorWithCode:kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode
+                            description:@"Failed to load application config from download folder"];
         return NO;
     }
     
     _oldManifest = [_manifestStorage loadFromFolder:_fileStructure.wwwFolder];
     if (_oldManifest == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to load content manifest from cache folder"];
+        *error = [NSError errorWithCode:kHCPLocalVersionOfManifestNotFoundErrorCode
+                            description:@"Failed to load content manifest from cache folder"];
         return NO;
     }
     
     _newManifest = [_manifestStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newManifest == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to load content manifest from download folder"];
+        *error = [NSError errorWithCode:kHCPLoadedVersionOfManifestNotFoundErrorCode
+                            description:@"Failed to load content manifest from download folder"];
         return NO;
     }
     
@@ -122,17 +129,19 @@
     for (HCPManifestFile *updatedFile in updateFileList) {
         NSURL *fileLocalURL = [_fileStructure.installationFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
         if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
-            errorMsg = [NSString stringWithFormat:@"Update validation error! File not found:%@", updatedFile.name];
-            *error = [NSError errorWithCode:kHCPUpdateIsInvalidErrorCode description:errorMsg];
+            errorMsg = [NSString stringWithFormat:@"Update validation error! File not found: %@", updatedFile.name];
             break;
         }
         
         NSString *fileMD5 = [[NSData dataWithContentsOfURL:fileLocalURL] md5];
         if (![fileMD5 isEqualToString:updatedFile.md5Hash]) {
             errorMsg = [NSString stringWithFormat:@"Update validation error! File's %@ hash %@ doesnt match the hash %@ from manifest file", updatedFile.name, fileMD5, updatedFile.md5Hash];
-            *error = [NSError errorWithCode:kHCPUpdateIsInvalidErrorCode description:errorMsg];
             break;
         }
+    }
+    
+    if (errorMsg) {
+        *error = [NSError errorWithCode:kHCPUpdateIsInvalidErrorCode description:errorMsg];
     }
     
     return (*error == nil);
@@ -141,8 +150,20 @@
 - (BOOL)backupFiles:(NSError **)error {
     *error = nil;
     
-    return [_fileManager createDirectoryAtURL:[_fileStructure.backupFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:error] &&
-            [_fileManager copyItemAtURL:_fileStructure.wwwFolder toURL:_fileStructure.backupFolder error:error];
+    // create backup folder
+    NSURL *backupParentFolderURL = [_fileStructure.backupFolder URLByDeletingLastPathComponent];
+    if (![_fileManager createDirectoryAtURL:backupParentFolderURL withIntermediateDirectories:YES attributes:nil error:error]) {
+        *error = [NSError errorWithCode:kHCPFailedToCreateBackupErrorCode descriptionFromError:*error];
+        return NO;
+    }
+    
+    // copy items from www to backup
+    if (![_fileManager copyItemAtURL:_fileStructure.wwwFolder toURL:_fileStructure.backupFolder error:error]) {
+        *error = [NSError errorWithCode:kHCPFailedToCreateBackupErrorCode descriptionFromError:*error];
+        return NO;
+    }
+    
+    return YES;
 }
 
 - (BOOL)deleteUnusedFiles:(NSError **)error {
@@ -151,11 +172,16 @@
     for (HCPManifestFile *deletedFile in deletedFiles) {
         NSURL *filePath = [_fileStructure.wwwFolder URLByAppendingPathComponent:deletedFile.name];
         if (![_fileManager removeItemAtURL:filePath error:error]) {
-            break;
+            NSLog(@"CHCP Warinig! Failed to delete file: %@", filePath.absoluteString);
+            //break;
         }
     }
     
-    return (*error == nil);
+    // Since we are deleting files and some doesn't exist - probably it's not important and we can skip that kind of error in this situation.
+    // If not - we should uncomment that line
+    //return (*error == nil);
+    
+    return YES;
 }
 
 - (BOOL)moveDownloadedFilesToWwwFolder:(NSError **)error {
@@ -173,6 +199,10 @@
             NSLog(@"%@", [(*error).userInfo[NSUnderlyingErrorKey] localizedDescription]);
             break;
         }
+    }
+    
+    if (*error) {
+        *error = [NSError errorWithCode:kHCPFailedToCopyNewContentFilesErrorCode descriptionFromError:*error];
     }
     
     return (*error == nil);

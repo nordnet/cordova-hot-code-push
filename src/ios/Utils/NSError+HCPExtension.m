@@ -18,7 +18,10 @@ NSInteger const kHCPFailedToMoveLoadedFilesToInstallationFolderErrorCode = -5;
 NSInteger const kHCPUpdateIsInvalidErrorCode = -6;
 NSInteger const kHCPFailedToCreateBackupErrorCode = -7;
 NSInteger const kHCPFailedToCopyNewContentFilesErrorCode = -8;
-
+NSInteger const kHCPLocalVersionOfApplicationConfigNotFoundErrorCode = -9;
+NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode = -10;
+NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode = -11;
+NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode = -12;
 
 @implementation NSError (HCPExtension)
 
@@ -26,6 +29,10 @@ NSInteger const kHCPFailedToCopyNewContentFilesErrorCode = -8;
     NSDictionary *userInfo = @{NSLocalizedDescriptionKey: description};
     
     return [NSError errorWithDomain:kHCPPluginErrorDomain code:errorCode userInfo:userInfo];
+}
+
++ (NSError *)errorWithCode:(NSInteger)errorCode descriptionFromError:(NSError *)error {
+    return [NSError errorWithDomain:kHCPPluginErrorDomain code:errorCode userInfo:error.userInfo];
 }
 
 @end

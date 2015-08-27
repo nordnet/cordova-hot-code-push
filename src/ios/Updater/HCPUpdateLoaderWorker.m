@@ -25,6 +25,8 @@
     id<HCPFilesStructure> _pluginFiles;
     id<HCPConfigFileStorage> _appConfigStorage;
     id<HCPConfigFileStorage> _manifestStorage;
+    HCPApplicationConfig *_oldAppConfig;
+    HCPContentManifest *_oldManifest;
 }
 
 @property (nonatomic, strong, readwrite) NSString *workerId;
@@ -50,36 +52,28 @@
 
 - (void)run {
     NSError *error = nil;
-    
-    HCPApplicationConfig *oldAppConfig = [_appConfigStorage loadFromFolder:_pluginFiles.wwwFolder];
-    if (oldAppConfig == nil) {
-        [self notifyWithError:[NSError errorWithCode:0 description:@"Failed to load current application config"]
-            applicationConfig:nil];
-        return;
-    }
-    
-    HCPContentManifest *oldManifest = [_manifestStorage loadFromFolder:_pluginFiles.wwwFolder];
-    if (oldManifest == nil) {
-        [self notifyWithError:[NSError errorWithCode:0 description:@"Failed to load current manifest file"]
-            applicationConfig:nil];
+    if (![self loadLocalConfigs:&error]) {
+        [self notifyWithError:error applicationConfig:nil];
         return;
     }
     
     // download new application config
     HCPApplicationConfig *newAppConfig = [HCPApplicationConfig downloadSyncFromURL:_configURL error:&error];
     if (error) {
-        [self notifyWithError:error applicationConfig:newAppConfig];
+        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
+            applicationConfig:nil];
         return;
     }
     
-    if ([newAppConfig.contentConfig.releaseVersion isEqualToString:oldAppConfig.contentConfig.releaseVersion]) {
+    if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
         [self notifyNothingToUpdate:newAppConfig];
         return;
     }
     
     // check if current native version supports new content
     if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
-        [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode description:@"Application build version is too low for this update"]
+        [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
+                                         description:@"Application build version is too low for this update"]
             applicationConfig:newAppConfig];
         return;
     }
@@ -88,12 +82,13 @@
     NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
     HCPContentManifest *newManifest = [HCPContentManifest downloadSyncFromURL:manifestFileURL error:&error];
     if (error) {
-        [self notifyWithError:error applicationConfig:newAppConfig];
+        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode descriptionFromError:error]
+            applicationConfig:newAppConfig];
         return;
     }
     
     // find files that were updated
-    NSArray *updatedFiles = [oldManifest calculateDifference:newManifest].updateFileList;
+    NSArray *updatedFiles = [_oldManifest calculateDifference:newManifest].updateFileList;
     if (updatedFiles.count == 0) {
         [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
         [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
@@ -109,7 +104,8 @@
     [downloader downloadFilesSync:updatedFiles fromURL:newAppConfig.contentConfig.contentURL toFolder:_pluginFiles.downloadFolder error:&error];
     if (error) {
         [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:&error];
-        [self notifyWithError:error applicationConfig:newAppConfig];
+        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode descriptionFromError:error]
+            applicationConfig:newAppConfig];
         return;
     }
     
@@ -125,6 +121,25 @@
 }
 
 #pragma mark Private API
+
+- (BOOL)loadLocalConfigs:(NSError **)error {
+    *error = nil;
+    _oldAppConfig = [_appConfigStorage loadFromFolder:_pluginFiles.wwwFolder];
+    if (_oldAppConfig == nil) {
+        *error = [NSError errorWithCode:kHCPLocalVersionOfApplicationConfigNotFoundErrorCode
+                            description:@"Failed to load current application config"];
+        return NO;
+    }
+    
+    _oldManifest = [_manifestStorage loadFromFolder:_pluginFiles.wwwFolder];
+    if (_oldManifest == nil) {
+        *error = [NSError errorWithCode:kHCPLocalVersionOfManifestNotFoundErrorCode
+                            description:@"Failed to load current manifest file"];
+        return NO;
+    }
+    
+    return YES;
+}
 
 - (void)moveDownloadedContentToInstallationFolder {
     [self waitForInstallationToComplete];

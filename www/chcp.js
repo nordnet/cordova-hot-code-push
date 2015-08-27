@@ -5,6 +5,8 @@
   channel.onCordovaReady.subscribe(function() {
     console.log('Sending callback to native side');
     exec(nativeCallback, null, 'HotCodePush', 'jsInitPlugin', []);
+
+    ensureCustomEventExists();
   });
 
   function processMessageFromNative(msg) {
@@ -53,6 +55,28 @@
   }
 
   // region Update/Install events
+
+  /*
+   * Polyfill for adding CustomEvent
+   * see : https://developer.mozilla.org/fr/docs/Web/API/CustomEvent
+   * It doesn't exist on older versions of Android.
+   */
+  function ensureCustomEventExists() {
+    // Create only if it doesn't exist
+    if (window.CustomEvent) {
+      return;
+    }
+
+    var CustomEvent = function ( event, params ) {
+        params = params || { bubbles: false, cancelable: false, detail: undefined };
+        var evt = document.createEvent( 'CustomEvent' );
+        evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+        return evt;
+    };
+
+    CustomEvent.prototype = window.Event.prototype;
+    window.CustomEvent = CustomEvent;
+  }
 
   function processEventFromNative(nativeMessage) {
     var params = {};

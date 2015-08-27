@@ -5,21 +5,20 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.events.PluginEvent;
-import com.nordnetab.chcp.model.ChcpError;
-import com.nordnetab.chcp.updater.UpdatesInstaller;
-import com.nordnetab.chcp.updater.UpdatesLoader;
 
 import org.apache.cordova.PluginResult;
 
 /**
  * Created by Nikolay Demyankov on 29.07.15.
  *
+ * Helper class to generate proper instance of PluginResult, which is send to the web side.
  *
+ * @see PluginResult
  */
 public class PluginResultHelper {
 
+    // keywords for JSON string, that is send to JavaScript side
     private static class JsParams {
-
         private static class General {
             public static final String ACTION = "action";
             public static final String ERROR = "error";
@@ -36,6 +35,15 @@ public class PluginResultHelper {
         }
     }
 
+    /**
+     * Create PluginResult instance from event.
+     *
+     * @param event hot-code-push plugin event
+     *
+     * @return cordova's plugin result
+     * @see PluginResult
+     * @see PluginEvent
+     */
     public static PluginResult pluginResultFromEvent(PluginEvent event) {
         JsonNode errorNode = null;
         JsonNode dataNode = null;
@@ -50,6 +58,8 @@ public class PluginResultHelper {
 
         return getResult(event.eventName, dataNode, errorNode);
     }
+
+    // region Private API
 
     private static JsonNode createDataNode(ApplicationConfig config) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
@@ -86,5 +96,7 @@ public class PluginResultHelper {
 
         return new PluginResult(PluginResult.Status.OK, resultObject.toString());
     }
+
+    // endregion
 
 }

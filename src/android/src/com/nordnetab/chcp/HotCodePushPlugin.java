@@ -24,6 +24,7 @@ import com.nordnetab.chcp.events.UpdateIsReadyToInstallEvent;
 import com.nordnetab.chcp.js.PluginResultHelper;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.model.PluginFilesStructureImpl;
+import com.nordnetab.chcp.model.UpdateTime;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.IConfigFileStorage;
 import com.nordnetab.chcp.storage.IConfigPreferenceStorage;
@@ -217,7 +218,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (pluginConfig.isAutoInstallIsAllowed()) {
             ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
-            if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.ON_RESUME) {
+            if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == UpdateTime.ON_RESUME) {
                 installUpdate(null);
             }
         }
@@ -443,7 +444,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // perform installation if allowed or if we in local development mode
         if (pluginConfig.isAutoInstallIsAllowed()
-                && (event.config.getContentConfig().getUpdateTime() == ContentConfig.UpdateTime.NOW)) {
+                && (event.config.getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
             installUpdate(null);
         }
     }

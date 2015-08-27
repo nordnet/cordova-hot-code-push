@@ -42,7 +42,7 @@ abstract class FileStorageAbs<T> implements IConfigFileStorage<T> {
             String json = FilesUtility.readFromFile(pathToStorableFile);
             result = createInstance(json);
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return result;

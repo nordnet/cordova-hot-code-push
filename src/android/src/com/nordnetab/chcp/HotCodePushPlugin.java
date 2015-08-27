@@ -160,7 +160,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        chcpXmlConfig = ChcpXmlConfig.parse(cordova.getActivity());
+        chcpXmlConfig = ChcpXmlConfig.loadFromCordovaConfig(cordova.getActivity());
     }
 
     private void loadPluginConfig() {

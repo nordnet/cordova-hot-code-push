@@ -1,12 +1,12 @@
 package com.nordnetab.chcp.model;
 
 import android.content.Context;
-import android.os.Environment;
-
 import com.nordnetab.chcp.utils.Paths;
 
 /**
  * Created by Nikolay Demyankov on 21.08.15.
+ *
+ * 
  */
 public class PluginFilesStructureImpl implements IPluginFilesStructure {
 

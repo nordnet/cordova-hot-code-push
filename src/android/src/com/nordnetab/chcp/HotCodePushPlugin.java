@@ -141,6 +141,16 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
+    private void disconnectFromLocalDevSocket() {
+        if (devSocket == null) {
+            return;
+        }
+
+        devSocket.close();
+        devSocket.off();
+        devSocket = null;
+    }
+
     private boolean isWwwFolderExists() {
         return new File(fileStructure.wwwFolder()).exists();
     }
@@ -220,11 +230,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @Override
     public void onStop() {
         EventBus.getDefault().unregister(this);
-
-        if (devSocket != null) {
-            devSocket.disconnect();
-            devSocket = null;
-        }
+        disconnectFromLocalDevSocket();
 
         super.onStop();
     }

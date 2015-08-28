@@ -4,46 +4,17 @@ import com.nordnetab.chcp.config.ApplicationConfig;
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.
+ *
+ * Helper class to download application config from the server.
  */
-public class ApplicationConfigDownloader extends JsonDownloader {
-
-    public static class Result {
-
-        public final ApplicationConfig config;
-        public final Exception error;
-
-        public Result(ApplicationConfig config) {
-            this(config, null);
-        }
-
-        public Result(Exception error) {
-            this(null, error);
-        }
-
-        public Result(ApplicationConfig config, Exception error) {
-            this.config = config;
-            this.error = error;
-        }
-    }
+public class ApplicationConfigDownloader extends JsonDownloader<ApplicationConfig> {
 
     public ApplicationConfigDownloader(String url) {
         super(url);
     }
 
-    public Result download() {
-        Result result;
-
-        try {
-            String json = downloadJson();
-            ApplicationConfig config = ApplicationConfig.fromJson(json);
-
-            result = new Result(config);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            result = new Result(e);
-        }
-
-        return result;
+    @Override
+    protected ApplicationConfig createInstance(String json) {
+        return ApplicationConfig.fromJson(json);
     }
 }

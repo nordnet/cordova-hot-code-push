@@ -10,15 +10,34 @@ import java.net.URLConnection;
 /**
  * Created by Nikolay Demyankov on 22.07.15.
  */
-class JsonDownloader {
+abstract class JsonDownloader<T> {
 
     private String downloadUrl;
+
+    protected abstract T createInstance(String json);
 
     public JsonDownloader(String url) {
         this.downloadUrl = url;
     }
 
-    protected String downloadJson() throws Exception {
+    public DownloadResult<T> download() {
+        DownloadResult<T> result;
+
+        try {
+            String json = downloadJson();
+            T value = createInstance(json);
+
+            result = new DownloadResult<T>(value);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            result = new DownloadResult<T>(e);
+        }
+
+        return result;
+    }
+
+    private String downloadJson() throws Exception {
         StringBuilder jsonContent = new StringBuilder();
 
         // many of these calls can throw exceptions, so i've just

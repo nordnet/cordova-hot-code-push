@@ -14,6 +14,7 @@ import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.network.ContentManifestDownloader;
+import com.nordnetab.chcp.network.DownloadResult;
 import com.nordnetab.chcp.network.FileDownloader;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
@@ -171,27 +172,27 @@ class UpdateLoaderWorker implements Runnable {
     }
 
     private ApplicationConfig downloadApplicationConfig() {
-        ApplicationConfigDownloader.Result downloadResult = new ApplicationConfigDownloader(applicationConfigUrl).download();
+        DownloadResult<ApplicationConfig> downloadResult = new ApplicationConfigDownloader(applicationConfigUrl).download();
         if (downloadResult.error != null) {
             Log.d("CHCP", "Failed to download application config");
 
             return null;
         }
 
-        return downloadResult.config;
+        return downloadResult.value;
     }
 
     private ContentManifest downloadContentManifest(ApplicationConfig config) {
         String url = URLUtility.construct(config.getContentConfig().getContentUrl(), filesStructure.manifestFileName());
 
-        ContentManifestDownloader.Result downloadResult = new ContentManifestDownloader(url).download();
+        DownloadResult<ContentManifest> downloadResult = new ContentManifestDownloader(url).download();
         if (downloadResult.error != null) {
             Log.d("CHCP", "Failed to download content manifest");
 
             return null;
         }
 
-        return downloadResult.manifest;
+        return downloadResult.value;
     }
 
     private void recreateDownloadFolder(final String folder) {

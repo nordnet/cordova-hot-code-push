@@ -39,6 +39,8 @@
     }
 
     switch (resultObj.action) {
+      case 'chcp_assetsInstallationError':
+      case 'chcp_assetsInstalledOnExternalStorage':
       case 'chcp_updateLoadFailed':
       case 'chcp_nothingToUpdate':
       case 'chcp_updateIsReadyToInstall':

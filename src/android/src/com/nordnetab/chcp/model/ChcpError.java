@@ -20,7 +20,9 @@ public enum ChcpError {
     LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND(-9, "Failed to load current application config"),
     LOCAL_VERSION_OF_MANIFEST_NOT_FOUND(-10, "Failed to load current manifest file"),
     LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND(-11, "Failed to load application config from download folder"),
-    LOADED_VERSION_OF_MANIFEST_NOT_FOUND(-12, "Failed to load content manifest from download folder");
+    LOADED_VERSION_OF_MANIFEST_NOT_FOUND(-12, "Failed to load content manifest from download folder"),
+
+    FAILED_TO_INSTALL_ASSETS_ON_EXTERNAL_STORAGE(-13, "Failed to copy assets from application bundle in to external storage");
 
     private int errorCode;
     private String errorDescription;

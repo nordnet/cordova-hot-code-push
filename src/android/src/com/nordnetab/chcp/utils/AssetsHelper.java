@@ -2,6 +2,9 @@ package com.nordnetab.chcp.utils;
 
 import android.content.res.AssetManager;
 
+import com.nordnetab.chcp.events.AssetsInstallationErrorEvent;
+import com.nordnetab.chcp.events.AssetsInstalledEvent;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,16 +18,6 @@ import de.greenrobot.event.EventBus;
  *
  */
 public class AssetsHelper {
-
-    // region Events
-
-    public static class AssetsInstalledEvent {
-    }
-
-    public static class AssetsInstallationFailedEvent {
-    }
-
-    // endregion
 
     private static boolean isWorking;
 
@@ -45,7 +38,7 @@ public class AssetsHelper {
                     EventBus.getDefault().post(new AssetsInstalledEvent());
                 } catch (IOException e) {
                     e.printStackTrace();
-                    EventBus.getDefault().post(new AssetsInstallationFailedEvent());
+                    EventBus.getDefault().post(new AssetsInstallationErrorEvent());
                 } finally {
                     isWorking = false;
                 }

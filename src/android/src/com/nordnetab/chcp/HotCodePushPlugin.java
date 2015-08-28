@@ -14,6 +14,8 @@ import com.github.nkzawa.socketio.client.Socket;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.PluginConfig;
+import com.nordnetab.chcp.events.AssetsInstallationErrorEvent;
+import com.nordnetab.chcp.events.AssetsInstalledEvent;
 import com.nordnetab.chcp.events.NothingToInstallEvent;
 import com.nordnetab.chcp.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.events.UpdateDownloadErrorEvent;
@@ -399,18 +401,24 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // region Assets installation events
 
-    public void onEvent(AssetsHelper.AssetsInstalledEvent event) {
+    public void onEvent(AssetsInstalledEvent event) {
         // update stored application version
         pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
         pluginConfigStorage.storeInPreference(pluginConfig);
 
         isPluginReadyForWork = true;
 
+        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
+        sendMessageToDefaultCallback(result);
+
         fetchUpdate(null);
     }
 
-    public void onEvent(AssetsHelper.AssetsInstallationFailedEvent event) {
+    public void onEvent(AssetsInstallationErrorEvent event) {
         Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
+
+        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
+        sendMessageToDefaultCallback(result);
     }
 
     // endregion

@@ -14,8 +14,8 @@ import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 21.07.15.
- *
- *
+ * <p/>
+ * Utility class to copy files from assets folder into the external storage.
  */
 public class AssetsHelper {
 
@@ -24,6 +24,14 @@ public class AssetsHelper {
     private AssetsHelper() {
     }
 
+    /**
+     * Copy files from the assets folder into the specific folder on the external storage.
+     * Method runs asynchronously. Results are dispatched through events.
+     *
+     * @param assetManager  assets manager
+     * @param fromDirectory which directory in assets we want to copy
+     * @param toDirectory   absolute path to the destination folder on the external storage
+     */
     public static void copyAssetDirectoryToAppDirectory(final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
         if (isWorking) {
             return;

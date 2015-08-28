@@ -11,7 +11,7 @@ import com.nordnetab.chcp.model.ManifestFile;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
-import com.nordnetab.chcp.storage.IConfigFileStorage;
+import com.nordnetab.chcp.storage.IObjectFileStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
 
 import java.io.File;
@@ -81,14 +81,14 @@ class InstallationWorker implements Runnable {
         wwwFolder = new File(filesStructure.wwwFolder());
         backupFolder = new File(filesStructure.backupFolder());
 
-        IConfigFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(filesStructure);
+        IObjectFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(filesStructure);
         newAppConfig = appConfigStorage.loadFromFolder(filesStructure.installationFolder());
         if (newAppConfig == null) {
             dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND);
             return false;
         }
 
-        IConfigFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(filesStructure);
+        IObjectFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(filesStructure);
         ContentManifest oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
         if (oldManifest == null) {
             dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND);

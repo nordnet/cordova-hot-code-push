@@ -13,7 +13,6 @@ import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
-import com.nordnetab.chcp.config.ContentConfig;
 import com.nordnetab.chcp.config.PluginConfig;
 import com.nordnetab.chcp.events.NothingToInstallEvent;
 import com.nordnetab.chcp.events.NothingToUpdateEvent;
@@ -26,8 +25,8 @@ import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.model.PluginFilesStructureImpl;
 import com.nordnetab.chcp.model.UpdateTime;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
-import com.nordnetab.chcp.storage.IConfigFileStorage;
-import com.nordnetab.chcp.storage.IConfigPreferenceStorage;
+import com.nordnetab.chcp.storage.IObjectFileStorage;
+import com.nordnetab.chcp.storage.IObjectPreferenceStorage;
 import com.nordnetab.chcp.storage.PluginConfigStorage;
 import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
@@ -68,9 +67,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private static final String BLANK_PAGE = "about:blank";
 
     private String startingPage;
-    private IConfigFileStorage<ApplicationConfig> appConfigStorage;
+    private IObjectFileStorage<ApplicationConfig> appConfigStorage;
     private PluginConfig pluginConfig;
-    private IConfigPreferenceStorage<PluginConfig> pluginConfigStorage;
+    private IObjectPreferenceStorage<PluginConfig> pluginConfigStorage;
     private ChcpXmlConfig chcpXmlConfig;
     private IPluginFilesStructure fileStructure;
 

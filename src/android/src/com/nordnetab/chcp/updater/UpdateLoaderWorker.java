@@ -18,7 +18,7 @@ import com.nordnetab.chcp.network.DownloadResult;
 import com.nordnetab.chcp.network.FileDownloader;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.ContentManifestStorage;
-import com.nordnetab.chcp.storage.IConfigFileStorage;
+import com.nordnetab.chcp.storage.IObjectFileStorage;
 import com.nordnetab.chcp.utils.FilesUtility;
 import com.nordnetab.chcp.utils.URLUtility;
 import com.nordnetab.chcp.utils.VersionHelper;
@@ -35,8 +35,8 @@ import de.greenrobot.event.EventBus;
  */
 class UpdateLoaderWorker implements Runnable {
 
-    private final IConfigFileStorage<ApplicationConfig> appConfigStorage;
-    private final IConfigFileStorage<ContentManifest> manifestStorage;
+    private final IObjectFileStorage<ApplicationConfig> appConfigStorage;
+    private final IObjectFileStorage<ContentManifest> manifestStorage;
     private final String applicationConfigUrl;
     private final int appBuildVersion;
     private final IPluginFilesStructure filesStructure;

@@ -6,11 +6,22 @@ import com.nordnetab.chcp.utils.Paths;
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.
+ * <p/>
+ * Utility class to save and load application config from the certain folder.
+ *
+ * @see ApplicationConfig
+ * @see IObjectFileStorage
  */
 public class ApplicationConfigStorage extends FileStorageAbs<ApplicationConfig> {
 
     private final String fileName;
 
+    /**
+     * Class constructor
+     *
+     * @param filesStructure structure of plugins directories
+     * @see IPluginFilesStructure
+     */
     public ApplicationConfigStorage(IPluginFilesStructure filesStructure) {
         fileName = filesStructure.configFileName();
     }

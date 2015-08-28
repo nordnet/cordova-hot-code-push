@@ -7,14 +7,25 @@ import com.nordnetab.chcp.config.PluginConfig;
 
 /**
  * Created by Nikolay Demyankov on 28.07.15.
+ * <p/>
+ * Utility class to store plugin config in shared preferences
+ *
+ * @see PluginConfig
+ * @see IObjectPreferenceStorage
+ * @see SharedPreferences
  */
-public class PluginConfigStorage implements IConfigPreferenceStorage<PluginConfig> {
+public class PluginConfigStorage implements IObjectPreferenceStorage<PluginConfig> {
 
     private static final String PREF_FILE_NAME = "chcp_plugin_config_pref";
     private static final String PREF_KEY = "config_json";
 
     private SharedPreferences preferences;
 
+    /**
+     * Class constructor
+     *
+     * @param context application context
+     */
     public PluginConfigStorage(Context context) {
         preferences = context.getSharedPreferences(PREF_FILE_NAME, 0);
     }

@@ -8,7 +8,8 @@ import java.util.Map;
 /**
  * Created by Nikolay Demyankov on 25.08.15.
  * <p/>
- * Base class for plugin specific events.
+ * Implementation of the IPluginEvent interface.
+ * Also, base class for all plugin specific events.
  * All events are dispatched and captured through EventBus.
  *
  * @see de.greenrobot.event.EventBus

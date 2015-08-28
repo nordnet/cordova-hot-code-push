@@ -8,7 +8,7 @@ import com.nordnetab.chcp.model.ChcpError;
  * <p/>
  * Event is send when some error has happened during the installation process.
  */
-public class UpdateInstallationErrorEvent extends PluginEvent {
+public class UpdateInstallationErrorEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_updateInstallFailed";
 
@@ -19,6 +19,6 @@ public class UpdateInstallationErrorEvent extends PluginEvent {
      * @param config application config that was used for installation process
      */
     public UpdateInstallationErrorEvent(ChcpError error, ApplicationConfig config) {
-        super(EVENT_NAME, error, config);
+        super(EVENT_NAME, error, null, config);
     }
 }

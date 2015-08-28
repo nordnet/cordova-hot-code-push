@@ -8,7 +8,7 @@ import com.nordnetab.chcp.model.ChcpError;
  * <p/>
  * Event is send when some error happened during the update download.
  */
-public class UpdateDownloadErrorEvent extends DownloadEvent {
+public class UpdateDownloadErrorEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_updateLoadFailed";
 
@@ -20,6 +20,6 @@ public class UpdateDownloadErrorEvent extends DownloadEvent {
      * @param config application config that was used for update download
      */
     public UpdateDownloadErrorEvent(String taskId, ChcpError error, ApplicationConfig config) {
-        super(EVENT_NAME, taskId, error, config);
+        super(EVENT_NAME, error, taskId, config);
     }
 }

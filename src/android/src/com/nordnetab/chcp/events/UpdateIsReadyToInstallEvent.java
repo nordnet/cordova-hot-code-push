@@ -7,7 +7,7 @@ import com.nordnetab.chcp.config.ApplicationConfig;
  * <p/>
  * Event is send when update is successfully loaded and ready for installation.
  */
-public class UpdateIsReadyToInstallEvent extends DownloadEvent {
+public class UpdateIsReadyToInstallEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_updateIsReadyToInstall";
 
@@ -18,6 +18,6 @@ public class UpdateIsReadyToInstallEvent extends DownloadEvent {
      * @param config application config that was used for update download
      */
     public UpdateIsReadyToInstallEvent(String taskId, ApplicationConfig config) {
-        super(EVENT_NAME, taskId, null, config);
+        super(EVENT_NAME, null, taskId, config);
     }
 }

@@ -7,7 +7,7 @@ import com.nordnetab.chcp.model.ChcpError;
  *
  * Event is send when error occurred while copying assets from bundle onto external storage.
  */
-public class AssetsInstallationErrorEvent extends PluginEvent {
+public class AssetsInstallationErrorEvent extends PluginEventImpl {
 
     private static final String EVENT_NAME = "chcp_assetsInstallationError";
 
@@ -15,6 +15,6 @@ public class AssetsInstallationErrorEvent extends PluginEvent {
      * Class constructor
      */
     public AssetsInstallationErrorEvent() {
-        super(EVENT_NAME, ChcpError.FAILED_TO_INSTALL_ASSETS_ON_EXTERNAL_STORAGE, null);
+        super(EVENT_NAME, ChcpError.FAILED_TO_INSTALL_ASSETS_ON_EXTERNAL_STORAGE);
     }
 }

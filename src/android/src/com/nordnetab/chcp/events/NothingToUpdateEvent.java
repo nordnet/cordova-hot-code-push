@@ -7,7 +7,7 @@ import com.nordnetab.chcp.config.ApplicationConfig;
  * <p/>
  * Event is send when there is nothing new to download from server.
  */
-public class NothingToUpdateEvent extends DownloadEvent {
+public class NothingToUpdateEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_nothingToUpdate";
 
@@ -18,7 +18,7 @@ public class NothingToUpdateEvent extends DownloadEvent {
      * @param config application config that was used for update download
      */
     public NothingToUpdateEvent(String taskId, ApplicationConfig config) {
-        super(EVENT_NAME, taskId, null, config);
+        super(EVENT_NAME, null, taskId, config);
     }
 
 }

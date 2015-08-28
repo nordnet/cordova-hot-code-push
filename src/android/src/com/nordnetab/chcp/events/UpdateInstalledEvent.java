@@ -7,7 +7,7 @@ import com.nordnetab.chcp.config.ApplicationConfig;
  * <p/>
  * Event is send when update has been installed.
  */
-public class UpdateInstalledEvent extends PluginEvent {
+public class UpdateInstalledEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_updateInstalled";
 
@@ -17,6 +17,6 @@ public class UpdateInstalledEvent extends PluginEvent {
      * @param config application config that was used for installation
      */
     public UpdateInstalledEvent(ApplicationConfig config) {
-        super(EVENT_NAME, null, config);
+        super(EVENT_NAME, null, null, config);
     }
 }

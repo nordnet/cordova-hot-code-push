@@ -7,7 +7,7 @@ import com.nordnetab.chcp.config.ApplicationConfig;
  * <p/>
  * Event is send when there is nothing to install.
  */
-public class NothingToInstallEvent extends PluginEvent {
+public class NothingToInstallEvent extends WorkerEvent {
 
     private static final String EVENT_NAME = "chcp_nothingToInstall";
 
@@ -17,6 +17,6 @@ public class NothingToInstallEvent extends PluginEvent {
      * @param config Application config that was used for installation.
      */
     public NothingToInstallEvent(ApplicationConfig config) {
-        super(EVENT_NAME, null, config);
+        super(EVENT_NAME, null, null, config);
     }
 }

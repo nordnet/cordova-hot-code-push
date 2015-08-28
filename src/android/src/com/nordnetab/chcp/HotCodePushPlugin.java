@@ -451,7 +451,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // perform installation if allowed or if we in local development mode
         if (pluginConfig.isAutoInstallIsAllowed()
-                && (event.config.getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
+                && (event.applicationConfig().getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
             installUpdate(null);
         }
     }

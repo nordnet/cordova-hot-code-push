@@ -5,7 +5,7 @@ package com.nordnetab.chcp.events;
  *
  * Event is send when plugin successfully copied assets from the bundle into external storage.
  */
-public class AssetsInstalledEvent extends PluginEvent {
+public class AssetsInstalledEvent extends PluginEventImpl {
 
     private static final String EVENT_NAME = "chcp_assetsInstalledOnExternalStorage";
 
@@ -13,6 +13,6 @@ public class AssetsInstalledEvent extends PluginEvent {
      * Class constructor
      */
     public AssetsInstalledEvent() {
-        super(EVENT_NAME, null, null);
+        super(EVENT_NAME, null);
     }
 }

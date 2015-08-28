@@ -12,4 +12,8 @@
 
 + (NSInteger)applicationBuildVersion;
 
++ (NSString *)pathToWwwFolder;
+
++ (NSString *)pathToCordovaConfigXml;
+
 @end

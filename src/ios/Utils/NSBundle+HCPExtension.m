@@ -8,6 +8,8 @@
 
 #import "NSBundle+HCPExtension.h"
 
+static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
+
 @implementation NSBundle (HCPExtension)
 
 + (NSInteger)applicationBuildVersion {
@@ -19,5 +21,14 @@
     
     return [appBuildVersion integerValue];
 }
+
++ (NSString *)pathToWwwFolder {
+    return [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:WWW_FOLDER_IN_BUNDLE];
+}
+
++ (NSString *)pathToCordovaConfigXml {
+    return [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
+}
+
 
 @end

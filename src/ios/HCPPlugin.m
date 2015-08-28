@@ -29,7 +29,6 @@
     id<HCPFilesStructure> _filesStructure;
     HCPUpdateLoader *_updatesLoader;
     NSString *_defaultCallbackID;
-    NSString *_wwwFolderPathInBundle;
     BOOL _isPluginReadyForWork;
     HCPPluginConfig *_pluginConfig;
     HCPUpdateInstaller *_updateInstaller;
@@ -44,7 +43,6 @@
 @end
 
 static NSString *const BLANK_PAGE = @"about:blank";
-static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 @implementation HCPPlugin
 
@@ -127,7 +125,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     // copy www folder from bundle to cache folder
-    NSURL *localWww = [NSURL fileURLWithPath:[self pathToWwwFolderInBundle] isDirectory:YES];
+    NSURL *localWww = [NSURL fileURLWithPath:[NSBundle pathToWwwFolder] isDirectory:YES];
     _isPluginReadyForWork = [fileManager copyItemAtURL:localWww toURL:_filesStructure.wwwFolder error:&error];
     if (error) {
         NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
@@ -219,8 +217,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
         _installationCallback = callbackID;
     }
     
-    //TODO: show progress dialog
-    
     return YES;
 }
 
@@ -238,7 +234,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
         currentUrl = [self getStartingPagePath];
     }
     
-    currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[self pathToWwwFolderInBundle] withString:@""];
+    currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[NSBundle pathToWwwFolder] withString:@""];
     NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:currentUrl];
     if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalURL.path]) {
         return;
@@ -275,8 +271,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
     
     // read from config.xml in the app bundle
-    NSString* path = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
-    NSURL* url = [NSURL fileURLWithPath:path];
+    NSURL* url = [NSURL fileURLWithPath:[NSBundle pathToCordovaConfigXml]];
     
     NSXMLParser *configParser = [[NSXMLParser alloc] initWithContentsOfURL:url];
     [configParser setDelegate:((id <NSXMLParserDelegate>)delegate)];
@@ -287,14 +282,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     return @"index.html";
-}
-
-- (NSString *)pathToWwwFolderInBundle {
-    if (_wwwFolderPathInBundle == nil) {
-        _wwwFolderPathInBundle = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:WWW_FOLDER_IN_BUNDLE];
-    }
-    
-    return _wwwFolderPathInBundle;
 }
 
 - (void)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
@@ -402,9 +389,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     [self invokeDefaultCallbackWithMessage:pluginResult];
-    
-    // TODO: hide installation progress dialog
-    
 }
 
 - (void)onUpdateInstalledEvent:(NSNotification *)notification {
@@ -416,8 +400,6 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     }
     
     [self invokeDefaultCallbackWithMessage:pluginResult];
-    
-    // TODO: remove installation progress dialog
     
     NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     [self loadURL:startingPageURL];

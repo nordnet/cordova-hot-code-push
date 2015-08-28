@@ -6,27 +6,26 @@ import com.nordnetab.chcp.model.IPluginFilesStructure;
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.
- *
+ * <p/>
  * Utility class to perform update download.
  * It only schedules the download and executes it as soon as possible.
- *
+ * <p/>
  * Queue consists from 1 task, because we don't need to store 100 tasks for download request,
  * we need only the last one. But if for some reason you need a large queue of download tasks -
  * use ConcurrentLinkedQueue, that is commented out at the moment.
  */
 public class UpdatesLoader {
 
-//    private static ConcurrentLinkedQueue<Runnable> queue;
+    //    private static ConcurrentLinkedQueue<Runnable> queue;
     private static boolean isExecuting;
     private static Runnable scheduledTask;
 
     /**
      * Add update download task to queue. It will be executed as fast as possible.
      *
-     * @param context application context
-     * @param configURL url from which we should download application config
+     * @param context        application context
+     * @param configURL      url from which we should download application config
      * @param filesStructure plugins files structure
-     *
      * @return string identifier of the task.
      */
     public static String addUpdateTaskToQueue(Context context, final String configURL, final IPluginFilesStructure filesStructure) {
@@ -52,6 +51,7 @@ public class UpdatesLoader {
     private static void executeTaskFromQueue() {
         //final Runnable task = getQueue().poll();
         final Runnable task = scheduledTask;
+        scheduledTask = null;
         if (task == null) {
             isExecuting = false;
             return;

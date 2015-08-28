@@ -315,6 +315,8 @@
         target-dir="src/com/nordnetab/chcp/network" />
       <source-file src="src/android/src/com/nordnetab/chcp/network/JsonDownloader.java"
         target-dir="src/com/nordnetab/chcp/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/network/DownloadResult.java"
+        target-dir="src/com/nordnetab/chcp/network" />
 
       <!-- sources for package: com.nordnetab.chcp.storage -->
       <source-file src="src/android/src/com/nordnetab/chcp/storage/ApplicationConfigStorage.java"

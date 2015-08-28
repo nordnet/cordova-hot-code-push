@@ -16,4 +16,6 @@
 
 + (NSString *)pathToCordovaConfigXml;
 
++ (void)installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL;
+
 @end

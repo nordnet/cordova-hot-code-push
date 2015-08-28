@@ -42,7 +42,7 @@
 
 @end
 
-static NSString *const BLANK_PAGE = @"about:blank";
+static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 @implementation HCPPlugin
 
@@ -55,13 +55,7 @@ static NSString *const BLANK_PAGE = @"about:blank";
     
     // install WWW folder if it is needed
     if ([self isWWwFolderNeedsToBeInstalled]) {
-        dispatch_async(dispatch_queue_create(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self installWwwFolder];
-            [self loadApplicationConfig];
-            if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
-                [self _fetchUpdate:nil];
-            }
-        });
+        [NSBundle installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];
         return;
     }
     
@@ -107,34 +101,6 @@ static NSString *const BLANK_PAGE = @"about:blank";
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     
     return isApplicationUpdated || !isWWwFolderExists;
-}
-
-- (void)installWwwFolder {
-    NSError *error = nil;
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
-    // remove previous version of the www folder
-    if (isWWwFolderExists) {
-        [fileManager removeItemAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] error:&error];
-    }
-    
-    // create new www folder
-    if (![fileManager createDirectoryAtURL:[_filesStructure.wwwFolder URLByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:&error]) {
-        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
-        return;
-    }
-    
-    // copy www folder from bundle to cache folder
-    NSURL *localWww = [NSURL fileURLWithPath:[NSBundle pathToWwwFolder] isDirectory:YES];
-    _isPluginReadyForWork = [fileManager copyItemAtURL:localWww toURL:_filesStructure.wwwFolder error:&error];
-    if (error) {
-        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
-        return;
-    }
-    
-    // update stored config with new application build version
-    _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
-    [_pluginConfig saveToUserDefaults];
 }
 
 - (void)doLocalInit {
@@ -230,7 +196,7 @@ static NSString *const BLANK_PAGE = @"about:blank";
         return;
     }
     
-    if (currentUrl.length == 0 || [currentUrl isEqualToString:BLANK_PAGE]) {
+    if (currentUrl.length == 0) {
         currentUrl = [self getStartingPagePath];
     }
     
@@ -281,7 +247,7 @@ static NSString *const BLANK_PAGE = @"about:blank";
         return delegate.startPage;
     }
     
-    return @"index.html";
+    return DEFAULT_STARTING_PAGE;
 }
 
 - (void)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
@@ -315,15 +281,39 @@ static NSString *const BLANK_PAGE = @"about:blank";
 - (void)subscriveToPluginInternalEvents {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
+    // bundle installation events
+    [notificationCenter addObserver:self
+                           selector:@selector(onAssetsInstalledOnExternalStorageEvent:)
+                               name:kHCPBundleAssetsInstalledOnExternalStorageEvent
+                             object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onAssetsInstallationErrorEvent:)
+                               name:kHCPBundleAssetsInstallationErrorEvent
+                             object:nil];
+    
     // update download events
-    [notificationCenter addObserver:self selector:@selector(onUpdateDownloadErrorEvent:) name:kHCPUpdateDownloadErrorEvent object:nil];
-    [notificationCenter addObserver:self selector:@selector(onNothingToUpdateEvent:) name:kHCPNothingToUpdateEvent object:nil];
-    [notificationCenter addObserver:self selector:@selector(onUpdateIsReadyForInstallation:) name:kHCPUpdateIsReadyForInstallationEvent object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onUpdateDownloadErrorEvent:)
+                               name:kHCPUpdateDownloadErrorEvent
+                             object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onNothingToUpdateEvent:)
+                               name:kHCPNothingToUpdateEvent
+                             object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onUpdateIsReadyForInstallation:)
+                               name:kHCPUpdateIsReadyForInstallationEvent
+                             object:nil];
     
     // update installation events
-    [notificationCenter addObserver:self selector:@selector(onUpdateInstallationErrorEvent:) name:kHCPUpdateInstallationErrorEvent object:nil];
-    [notificationCenter addObserver:self selector:@selector(onUpdateInstalledEvent:) name:kHCPUpdateIsInstalledEvent object:nil];
-    
+    [notificationCenter addObserver:self
+                           selector:@selector(onUpdateInstallationErrorEvent:)
+                               name:kHCPUpdateInstallationErrorEvent
+                             object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onUpdateInstalledEvent:)
+                               name:kHCPUpdateIsInstalledEvent
+                             object:nil];
 }
 
 - (void)unsubscribeFromEvents {
@@ -333,6 +323,33 @@ static NSString *const BLANK_PAGE = @"about:blank";
 #pragma mark Cordova events
 
 - (void)didLoadWebPage:(NSNotification *)notification {
+}
+
+#pragma mark Bundle installation events
+
+- (void)onAssetsInstalledOnExternalStorageEvent:(NSNotification *)notification {
+    // update stored config with new application build version
+    _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
+    [_pluginConfig saveToUserDefaults];
+    
+    // allow work
+    _isPluginReadyForWork = YES;
+    
+    // send notification to web
+    [self invokeDefaultCallbackWithMessage:[CDVPluginResult pluginResultForNotification:notification]];
+    
+    // fetch update
+    [self loadApplicationConfig];
+    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+        [self _fetchUpdate:nil];
+    }
+}
+
+- (void)onAssetsInstallationErrorEvent:(NSNotification *)notification {
+    _isPluginReadyForWork = NO;
+    
+    // send notification to web
+    [self invokeDefaultCallbackWithMessage:[CDVPluginResult pluginResultForNotification:notification]];
 }
 
 #pragma mark Update download events

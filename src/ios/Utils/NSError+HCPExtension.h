@@ -21,6 +21,7 @@ extern NSInteger const kHCPLocalVersionOfApplicationConfigNotFoundErrorCode;
 extern NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode;
 extern NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode;
 extern NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode;
+extern NSInteger const kHCPFailedToInstallAssetsOnExternalStorageErrorCode;
 
 @interface NSError (HCPExtension)
 

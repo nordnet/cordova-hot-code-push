@@ -50,7 +50,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -58,7 +57,7 @@ import de.greenrobot.event.EventBus;
 /**
  * Created by Nikolay Demyankov on 23.07.15.
  * <p/>
- * Plugin entry point.
+ * Plugin main class.
  */
 public class HotCodePushPlugin extends CordovaPlugin {
 
@@ -81,15 +80,32 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private boolean isPluginReadyForWork;
     private Socket devSocket;
 
+    /**
+     * Helper class to store JavaScript callbacks
+     */
     private static class DownloadTaskJsCallback {
+        /**
+         * task identifier
+         */
         public final String taskId;
+        /**
+         * javascript callback
+         */
         public final CallbackContext callback;
 
-        public DownloadTaskJsCallback (String taskId, CallbackContext callback) {
+        /**
+         * Class constructor
+         *
+         * @param taskId   task identifier
+         * @param callback javascript callback
+         */
+        public DownloadTaskJsCallback(String taskId, CallbackContext callback) {
             this.taskId = taskId;
             this.callback = callback;
         }
     }
+
+    // region Plugin lifecycle
 
     @Override
     public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
@@ -106,6 +122,604 @@ public class HotCodePushPlugin extends CordovaPlugin {
         appConfigStorage = new ApplicationConfigStorage(fileStructure);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        EventBus.getDefault().register(this);
+
+        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
+            connectToLocalDevSocket();
+        }
+
+        // ensure that www folder installed on external storage;
+        // if not - install it
+        isPluginReadyForWork = isWwwFolderExists() && !isApplicationHasBeenUpdated();
+        if (!isPluginReadyForWork) {
+            installWwwFolder();
+            return;
+        }
+
+        redirectToLocalStorage();
+
+        // install update if there is anything to install
+        if (pluginConfig.isAutoInstallIsAllowed()) {
+            installUpdate(null);
+        }
+    }
+
+    @Override
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+
+        if (!isPluginReadyForWork) {
+            return;
+        }
+
+        if (pluginConfig.isAutoInstallIsAllowed()) {
+            ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
+            if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == UpdateTime.ON_RESUME) {
+                installUpdate(null);
+            }
+        }
+    }
+
+    @Override
+    public void onStop() {
+        EventBus.getDefault().unregister(this);
+        disconnectFromLocalDevSocket();
+
+        super.onStop();
+    }
+
+    // endregion
+
+    // region Config loaders and initialization
+
+    /**
+     * Read hot-code-push plugin preferences from cordova config.xml
+     *
+     * @see ChcpXmlConfig
+     */
+    private void parseCordovaConfigXml() {
+        if (chcpXmlConfig != null) {
+            return;
+        }
+
+        chcpXmlConfig = ChcpXmlConfig.loadFromCordovaConfig(cordova.getActivity());
+    }
+
+    /**
+     * Load plugin config from preferences.
+     *
+     * @see PluginConfig
+     * @see PluginConfigStorage
+     */
+    private void loadPluginConfig() {
+        if (pluginConfig != null) {
+            return;
+        }
+
+        pluginConfigStorage = new PluginConfigStorage(cordova.getActivity());
+        PluginConfig config = pluginConfigStorage.loadFromPreference();
+        if (config == null) {
+            config = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
+            pluginConfigStorage.storeInPreference(config);
+        }
+        pluginConfig = config;
+
+        // Always set config url from cordova.xml.
+        // Maybe later we can change this so it would do that only if application
+        // was updated through Google Play.
+        pluginConfig.setConfigUrl(chcpXmlConfig.getConfigUrl());
+    }
+
+    // endregion
+
+    // region JavaScript processing
+
+    @Override
+    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
+        // initialize even if we are not ready to do all other work
+        if (JSAction.INIT.equals(action)) {
+            initJs(callbackContext);
+            return true;
+        }
+
+        // if www folder is not yet created on external storage - ignore requests from JavaScript
+        if (!isPluginReadyForWork) {
+            return false;
+        }
+
+        boolean cmdProcessed = true;
+        if (JSAction.FETCH_UPDATE.equals(action)) {
+            fetchUpdate(callbackContext);
+        } else if (JSAction.INSTALL_UPDATE.equals(action)) {
+            installUpdate(callbackContext);
+        } else if (JSAction.CONFIGURE.equals(action)) {
+            jsSetPluginOptions(args, callbackContext);
+        } else if (JSAction.REQUEST_APP_UPDATE.equals(action)) {
+            jsRequestAppUpdate(args, callbackContext);
+        } else {
+            cmdProcessed = false;
+        }
+
+        return cmdProcessed;
+    }
+
+    /**
+     * Send message to default plugin callback.
+     * Default callback - is a callback that we receive on initialization (device ready).
+     * Through it we are broadcasting different events.
+     *
+     * @param message message to send to web side
+     */
+    private void sendMessageToDefaultCallback(PluginResult message) {
+        if (jsDefaultCallback == null) {
+            return;
+        }
+
+        message.setKeepCallback(true);
+        jsDefaultCallback.sendPluginResult(message);
+    }
+
+    /**
+     * Initialize default callback, received from the web side.
+     *
+     * @param callback callback to use for events broadcasting
+     */
+    private void initJs(CallbackContext callback) {
+        jsDefaultCallback = callback;
+
+        // Clear web history.
+        // In some cases this is necessary, because on the launch we redirect user to the
+        // external storage. And if he presses back button - browser will lead him back to
+        // assets folder, which we don't want.
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                webView.clearHistory();
+
+            }
+        });
+
+        // fetch update when we are initialized
+        if (pluginConfig.isAutoDownloadIsAllowed()) {
+            fetchUpdate(null);
+        }
+    }
+
+    /**
+     * Set plugin options. Method is called from JavaScript.
+     *
+     * @param arguments arguments from JavaScript
+     * @param callback  callback where to send result
+     */
+    private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
+        try {
+            JSONObject jsonObject = (JSONObject) arguments.get(0);
+            pluginConfig.mergeOptionsFromJs(jsonObject);
+            pluginConfigStorage.storeInPreference(pluginConfig);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        callback.success();
+    }
+
+    /**
+     * Show dialog with request to update the application through the Google Play.
+     *
+     * @param arguments arguments from JavaScript
+     * @param callback  callback where to send result
+     */
+    private void jsRequestAppUpdate(CordovaArgs arguments, final CallbackContext callback) {
+        String msg = null;
+        try {
+            msg = (String) arguments.get(0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (TextUtils.isEmpty(msg)) {
+            return;
+        }
+
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(cordova.getActivity());
+        dialogBuilder.setCancelable(false);
+        dialogBuilder.setMessage(msg);
+        dialogBuilder.setPositiveButton(cordova.getActivity().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.success();
+                dialog.dismiss();
+
+                String storeURL = appConfigStorage.loadFromFolder(fileStructure.wwwFolder()).getStoreUrl();
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(storeURL));
+                cordova.getActivity().startActivity(intent);
+            }
+        });
+        dialogBuilder.setNegativeButton(cordova.getActivity().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.error("");
+            }
+        });
+
+        dialogBuilder.show();
+    }
+
+    /**
+     * Perform update availability check.
+     * Basically, queue update task.
+     *
+     * @param jsCallback callback where to send the result;
+     *                   used, when update is requested manually from JavaScript
+     */
+    private void fetchUpdate(CallbackContext jsCallback) {
+        if (!isPluginReadyForWork) {
+            return;
+        }
+
+        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), pluginConfig.getConfigUrl(), fileStructure);
+        if (jsCallback != null) {
+            putFetchTaskJsCallback(taskId, jsCallback);
+        }
+    }
+
+    /**
+     * Install update if any available.
+     *
+     * @param jsCallback callback where to send the result;
+     *                   used, when installation os requested manually from JavaScript
+     */
+    private void installUpdate(CallbackContext jsCallback) {
+        if (UpdatesInstaller.isInstalling()) {
+            return;
+        }
+
+        boolean didLaunchInstall = UpdatesInstaller.install(fileStructure);
+        if (!didLaunchInstall) {
+            return;
+        }
+
+        if (jsCallback != null) {
+            installJsCallback = jsCallback;
+        }
+    }
+
+    // endregion
+
+    // region Private API
+
+    /**
+     * Check if external version of www folder exists.
+     *
+     * @return <code>true</code> if it is in place; <code>false</code> - otherwise
+     */
+    private boolean isWwwFolderExists() {
+        return new File(fileStructure.wwwFolder()).exists();
+    }
+
+    /**
+     * Check if application has been updated through the Google Play since the last launch.
+     *
+     * @return <code>true</code> if application was update; <code>false</code> - otherwise
+     */
+    private boolean isApplicationHasBeenUpdated() {
+        return pluginConfig.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
+    }
+
+    /**
+     * Install assets folder onto the external storage
+     */
+    private void installWwwFolder() {
+        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), WWW_FOLDER, fileStructure.wwwFolder());
+    }
+
+    /**
+     * Redirect user onto the page, that resides on the external storage instead of the assets folder.
+     */
+    private void redirectToLocalStorage() {
+        String currentUrl = webView.getUrl();
+        if (TextUtils.isEmpty(currentUrl)) {
+            currentUrl = getStartingPage();
+        } else if (!currentUrl.contains(LOCAL_ASSETS_FOLDER)) {
+            return;
+        }
+
+        currentUrl = currentUrl.replace(LOCAL_ASSETS_FOLDER, "");
+        String external = Paths.get(fileStructure.wwwFolder(), currentUrl);
+        if (!new File(external).exists()) {
+            return;
+        }
+
+        webView.loadUrlIntoView(FILE_PREFIX + external, false);
+    }
+
+    /**
+     * Getter for the startup page.
+     *
+     * @return startup page relative path
+     */
+    private String getStartingPage() {
+        if (!TextUtils.isEmpty(startingPage)) {
+            return startingPage;
+        }
+
+        ConfigXmlParser parser = new ConfigXmlParser();
+        parser.parse(cordova.getActivity());
+        String url = parser.getLaunchUrl();
+
+        startingPage = url.replace(LOCAL_ASSETS_FOLDER, "");
+
+        return startingPage;
+    }
+
+    // endregion
+
+    // region Assets installation events
+
+    /**
+     * Listener for event that assets folder are now installed on the external storage.
+     * From that moment all content will be displayed from it.
+     *
+     * @param event event details
+     * @see AssetsInstalledEvent
+     * @see AssetsHelper
+     * @see EventBus
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(AssetsInstalledEvent event) {
+        // update stored application version
+        pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
+        pluginConfigStorage.storeInPreference(pluginConfig);
+
+        isPluginReadyForWork = true;
+
+        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
+        sendMessageToDefaultCallback(result);
+
+        fetchUpdate(null);
+    }
+
+    /**
+     * Listener for event that we failed to install assets folder on the external storage.
+     * If so - nothing we can do, plugin is not gonna work.
+     *
+     * @param event event details
+     * @see AssetsInstallationErrorEvent
+     * @see AssetsHelper
+     * @see EventBus
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(AssetsInstallationErrorEvent event) {
+        Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
+
+        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
+        sendMessageToDefaultCallback(result);
+    }
+
+    // endregion
+
+    // region Update download events
+
+    /**
+     * Get JavaScript callback that is associated with the given task identifier.
+     *
+     * @param taskId task whose callback we need
+     * @return JavaScript callback where we should send the result
+     * <p/>
+     * TODO: need cleaner approach
+     */
+    private CallbackContext pollFetchTaskJsCallback(String taskId) {
+        CallbackContext callback = null;
+        int foundIndex = -1;
+        for (int i = 0, len = fetchTasks.size(); i < len; i++) {
+            DownloadTaskJsCallback jsTask = fetchTasks.get(i);
+            if (jsTask.taskId.equals(taskId)) {
+                callback = jsTask.callback;
+                foundIndex = i;
+                break;
+            }
+        }
+
+        if (foundIndex >= 0) {
+            fetchTasks.remove(foundIndex);
+        }
+
+        return callback;
+    }
+
+    /**
+     * Store JavaScript callback until download has finished his job.
+     *
+     * @param taskId          download task identifier
+     * @param callbackContext JavaScript callback where we should send result in the future
+     */
+    private void putFetchTaskJsCallback(String taskId, CallbackContext callbackContext) {
+        // for now we store only 2 tasks
+        DownloadTaskJsCallback taskJsCallback = new DownloadTaskJsCallback(taskId, callbackContext);
+        if (fetchTasks.size() < 2) {
+            fetchTasks.add(taskJsCallback);
+        } else {
+            fetchTasks.set(1, taskJsCallback);
+        }
+    }
+
+    /**
+     * Listener for the event that update is loaded and ready for the installation.
+     *
+     * @param event event information
+     * @see EventBus
+     * @see UpdateIsReadyToInstallEvent
+     * @see UpdatesLoader
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(UpdateIsReadyToInstallEvent event) {
+        Log.d("CHCP", "Update is ready for installation");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        // notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            jsCallback.sendPluginResult(jsResult);
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+
+        // perform installation if allowed
+        if (pluginConfig.isAutoInstallIsAllowed()
+                && (event.applicationConfig().getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
+            installUpdate(null);
+        }
+    }
+
+    /**
+     * Listener for event that there is no update available at the moment.
+     * We are as fresh as possible.
+     *
+     * @param event event information
+     * @see EventBus
+     * @see NothingToUpdateEvent
+     * @see UpdatesLoader
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(NothingToUpdateEvent event) {
+        Log.d("CHCP", "Nothing to update");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        //notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            jsCallback.sendPluginResult(jsResult);
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    /**
+     * Listener for event that some error has happened during the update download process.
+     *
+     * @param event event information
+     * @see EventBus
+     * @see UpdateDownloadErrorEvent
+     * @see UpdatesLoader
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(UpdateDownloadErrorEvent event) {
+        Log.d("CHCP", "Failed to update");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        // notify JS
+        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
+        if (jsCallback != null) {
+            jsCallback.sendPluginResult(jsResult);
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    // endregion
+
+    // region Update installation events
+
+    /**
+     * Listener for event that we successfully installed new update.
+     *
+     * @param event event information
+     * @see EventBus
+     * @see UpdateInstalledEvent
+     * @see UpdatesInstaller
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(UpdateInstalledEvent event) {
+        Log.d("CHCP", "Update is installed");
+
+        final PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        if (installJsCallback != null) {
+            installJsCallback.sendPluginResult(jsResult);
+            installJsCallback = null;
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+        resetApplicationToStartingPage();
+    }
+
+    /**
+     * Reset web content to starting page.
+     * Called after the update.
+     */
+    private void resetApplicationToStartingPage() {
+        cordova.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final String startingPage = getStartingPage();
+                final String externalStartingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
+                webView.loadUrlIntoView(externalStartingPage, false);
+            }
+        });
+    }
+
+    /**
+     * Listener for event that some error happened during the update installation.
+     *
+     * @param event event information
+     * @see UpdateInstallationErrorEvent
+     * @see EventBus
+     * @see UpdatesInstaller
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(UpdateInstallationErrorEvent event) {
+        Log.d("CHCP", "Failed to install");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        // notify js
+        if (installJsCallback != null) {
+            installJsCallback.sendPluginResult(jsResult);
+            installJsCallback = null;
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    /**
+     * Listener for event that there is nothing to install.
+     *
+     * @param event event information
+     * @see NothingToInstallEvent
+     * @see UpdatesInstaller
+     * @see EventBus
+     */
+    @SuppressWarnings("unused")
+    public void onEvent(NothingToInstallEvent event) {
+        Log.d("CHCP", "Nothing to install");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        // notify JS
+        if (installJsCallback != null) {
+            installJsCallback.sendPluginResult(jsResult);
+            installJsCallback = null;
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    // endregion
+
+    // region Local development socket
+
+    /**
+     * Connect to local server to listen for update in real time.
+     * Called only when local development mode is enabled in config.xml
+     */
     private void connectToLocalDevSocket() {
         try {
             URL serverURL = new URL(pluginConfig.getConfigUrl());
@@ -141,6 +755,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Disconnect from local server.
+     */
     private void disconnectFromLocalDevSocket() {
         if (devSocket == null) {
             return;
@@ -149,413 +766,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         devSocket.close();
         devSocket.off();
         devSocket = null;
-    }
-
-    private boolean isWwwFolderExists() {
-        return new File(fileStructure.wwwFolder()).exists();
-    }
-
-    private void parseCordovaConfigXml() {
-        if (chcpXmlConfig != null) {
-            return;
-        }
-
-        chcpXmlConfig = ChcpXmlConfig.loadFromCordovaConfig(cordova.getActivity());
-    }
-
-    private void loadPluginConfig() {
-        if (pluginConfig != null) {
-            return;
-        }
-
-        pluginConfigStorage = new PluginConfigStorage(cordova.getActivity());
-        PluginConfig config = pluginConfigStorage.loadFromPreference();
-        if (config == null) {
-            config = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
-            pluginConfigStorage.storeInPreference(config);
-        }
-        pluginConfig = config;
-        pluginConfig.setConfigUrl(chcpXmlConfig.getConfigUrl());
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        EventBus.getDefault().register(this);
-
-        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
-            connectToLocalDevSocket();
-        }
-
-        // ensure that www folder installed on external storage
-        isPluginReadyForWork = isWwwFolderExists() && !isApplicationHasBeenUpdated();
-        if (!isPluginReadyForWork) {
-            installWwwFolder();
-            return;
-        }
-
-        redirectToLocalStorage();
-
-        // install update if there is anything to install
-        if (pluginConfig.isAutoInstallIsAllowed()) {
-            installUpdate(null);
-        }
-    }
-
-    private boolean isApplicationHasBeenUpdated() {
-        return pluginConfig.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
-    }
-
-    @Override
-    public void onResume(boolean multitasking) {
-        super.onResume(multitasking);
-
-        if (!isPluginReadyForWork) {
-            return;
-        }
-
-        if (pluginConfig.isAutoInstallIsAllowed()) {
-            ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
-            if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == UpdateTime.ON_RESUME) {
-                installUpdate(null);
-            }
-        }
-    }
-
-    private void installWwwFolder() {
-        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), WWW_FOLDER, fileStructure.wwwFolder());
-    }
-
-    @Override
-    public void onStop() {
-        EventBus.getDefault().unregister(this);
-        disconnectFromLocalDevSocket();
-
-        super.onStop();
-    }
-
-    @Override
-    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-        Log.d("CHCP", "Action from JS: " + action);
-
-        if (JSAction.INIT.equals(action)) {
-            initJs(callbackContext);
-            return true;
-        }
-
-        if (!isPluginReadyForWork) {
-            return false;
-        }
-
-        boolean cmdProcessed = true;
-        if (JSAction.FETCH_UPDATE.equals(action)) {
-            fetchUpdate(callbackContext);
-        } else if (JSAction.INSTALL_UPDATE.equals(action)) {
-            installUpdate(callbackContext);
-        } else if (JSAction.CONFIGURE.equals(action)) {
-            jsSetPluginOptions(args, callbackContext);
-        } else if (JSAction.REQUEST_APP_UPDATE.equals(action)) {
-            jsRequestAppUpdate(args, callbackContext);
-        } else {
-            cmdProcessed = false;
-        }
-
-        return cmdProcessed;
-    }
-
-    private void sendMessageToDefaultCallback(PluginResult message) {
-        if (jsDefaultCallback == null) {
-            return;
-        }
-
-        message.setKeepCallback(true);
-        jsDefaultCallback.sendPluginResult(message);
-    }
-
-    private void initJs(CallbackContext callback) {
-        jsDefaultCallback = callback;
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                webView.clearHistory();
-
-            }
-        });
-
-        // fetch update when we are initialized
-        if (pluginConfig.isAutoDownloadIsAllowed()) {
-            fetchUpdate(null);
-        }
-    }
-
-    private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
-        // TODO: send correct message back to JS
-        try {
-            JSONObject jsonObject = (JSONObject) arguments.get(0);
-            pluginConfig.mergeOptionsFromJs(jsonObject);
-            pluginConfigStorage.storeInPreference(pluginConfig);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        callback.success();
-    }
-
-    private void jsRequestAppUpdate(CordovaArgs arguments, final CallbackContext callback) {
-        String msg = null;
-        try {
-            msg = (String)arguments.get(0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (TextUtils.isEmpty(msg)) {
-            return;
-        }
-
-        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(cordova.getActivity());
-        dialogBuilder.setCancelable(false);
-        dialogBuilder.setMessage(msg);
-        dialogBuilder.setPositiveButton(cordova.getActivity().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                callback.success();
-                dialog.dismiss();
-
-                String storeURL = appConfigStorage.loadFromFolder(fileStructure.wwwFolder()).getStoreUrl();
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(storeURL));
-                cordova.getActivity().startActivity(intent);
-            }
-        });
-        dialogBuilder.setNegativeButton(cordova.getActivity().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                callback.error("");
-            }
-        });
-
-        dialogBuilder.show();
-    }
-
-    private void redirectToLocalStorage() {
-        String currentUrl = webView.getUrl();
-        if (TextUtils.isEmpty(currentUrl)) {
-            currentUrl = getStartingPage();
-        } else if (!currentUrl.contains(LOCAL_ASSETS_FOLDER)) {
-            return;
-        }
-
-        currentUrl = currentUrl.replace(LOCAL_ASSETS_FOLDER, "");
-        String external = Paths.get(fileStructure.wwwFolder(), currentUrl);
-        if (!new File(external).exists()) {
-            return;
-        }
-
-        webView.loadUrlIntoView(FILE_PREFIX + external, false);
-    }
-
-    private void fetchUpdate(CallbackContext jsCallback) {
-        if (!isPluginReadyForWork) {
-            return;
-        }
-
-        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), pluginConfig.getConfigUrl(), fileStructure);
-        if (jsCallback != null) {
-            putFetchTaskJsCallback(taskId, jsCallback);
-        }
-    }
-
-    private void installUpdate(CallbackContext jsCallback) {
-        if (UpdatesInstaller.isInstalling()) {
-            return;
-        }
-
-        boolean didLaunchInstall = UpdatesInstaller.install(fileStructure);
-        if (!didLaunchInstall) {
-            return;
-        }
-
-        if (jsCallback != null) {
-            installJsCallback = jsCallback;
-        }
-    }
-
-    private String getStartingPage() {
-        if (!TextUtils.isEmpty(startingPage)) {
-            return startingPage;
-        }
-
-        ConfigXmlParser parser = new ConfigXmlParser();
-        parser.parse(cordova.getActivity());
-        String url = parser.getLaunchUrl();
-
-        startingPage = url.replace(LOCAL_ASSETS_FOLDER, "");
-
-        return startingPage;
-    }
-
-    // region Assets installation events
-
-    public void onEvent(AssetsInstalledEvent event) {
-        // update stored application version
-        pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
-        pluginConfigStorage.storeInPreference(pluginConfig);
-
-        isPluginReadyForWork = true;
-
-        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
-        sendMessageToDefaultCallback(result);
-
-        fetchUpdate(null);
-    }
-
-    public void onEvent(AssetsInstallationErrorEvent event) {
-        Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
-
-        PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
-        sendMessageToDefaultCallback(result);
-    }
-
-    // endregion
-
-    // region Update download events
-
-    // TODO: need cleaner approach
-    private CallbackContext pollFetchTaskJsCallback(String taskId) {
-        CallbackContext callback = null;
-        int foundIndex = -1;
-        for (int i=0, len=fetchTasks.size(); i<len; i++) {
-            DownloadTaskJsCallback jsTask = fetchTasks.get(i);
-            if (jsTask.taskId.equals(taskId)) {
-                callback = jsTask.callback;
-                foundIndex = i;
-                break;
-            }
-        }
-
-        if (foundIndex >= 0) {
-            fetchTasks.remove(foundIndex);
-        }
-
-        return callback;
-    }
-
-    private void putFetchTaskJsCallback(String taskId, CallbackContext callbackContext) {
-        DownloadTaskJsCallback taskJsCallback = new DownloadTaskJsCallback(taskId, callbackContext);
-
-        if (fetchTasks.size() < 2) {
-            fetchTasks.add(taskJsCallback);
-        } else {
-            fetchTasks.set(1, taskJsCallback);
-        }
-    }
-
-    public void onEvent(UpdateIsReadyToInstallEvent event) {
-        Log.d("CHCP", "Update is ready for installation");
-
-        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        // notify JS
-        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
-        if (jsCallback != null) {
-            jsCallback.sendPluginResult(jsResult);
-        }
-
-        sendMessageToDefaultCallback(jsResult);
-
-        // perform installation if allowed or if we in local development mode
-        if (pluginConfig.isAutoInstallIsAllowed()
-                && (event.applicationConfig().getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
-            installUpdate(null);
-        }
-    }
-
-    public void onEvent(NothingToUpdateEvent event) {
-        Log.d("CHCP", "Nothing to update");
-
-        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        //notify JS
-        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
-        if (jsCallback != null) {
-            jsCallback.sendPluginResult(jsResult);
-        }
-
-        sendMessageToDefaultCallback(jsResult);
-    }
-
-    public void onEvent(UpdateDownloadErrorEvent event) {
-        Log.d("CHCP", "Failed to update");
-
-        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        // notify JS
-        CallbackContext jsCallback = pollFetchTaskJsCallback(event.taskId);
-        if (jsCallback != null) {
-            jsCallback.sendPluginResult(jsResult);
-        }
-
-        sendMessageToDefaultCallback(jsResult);
-    }
-
-    // endregion
-
-    // region Update installation events
-
-    public void onEvent(UpdateInstalledEvent event) {
-        Log.d("CHCP", "Update is installed");
-
-        final PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        if (installJsCallback != null) {
-            installJsCallback.sendPluginResult(jsResult);
-            installJsCallback = null;
-        }
-
-        sendMessageToDefaultCallback(jsResult);
-        resetApplicationToStartingPage();
-    }
-
-    private void resetApplicationToStartingPage() {
-        cordova.getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                final String startingPage = getStartingPage();
-                final String externalStartingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
-                webView.loadUrlIntoView(externalStartingPage, false);
-            }
-        });
-    }
-
-    public void onEvent(UpdateInstallationErrorEvent event) {
-        Log.d("CHCP", "Failed to install");
-
-        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        // notify js
-        if (installJsCallback != null) {
-            installJsCallback.sendPluginResult(jsResult);
-            installJsCallback = null;
-        }
-
-        sendMessageToDefaultCallback(jsResult);
-    }
-
-    public void onEvent(NothingToInstallEvent event) {
-        Log.d("CHCP", "Nothing to install");
-
-        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
-
-        // notify JS
-        if (installJsCallback != null) {
-            installJsCallback.sendPluginResult(jsResult);
-            installJsCallback = null;
-        }
-
-        sendMessageToDefaultCallback(jsResult);
     }
 
     // endregion

@@ -327,9 +327,9 @@
         target-dir="src/com/nordnetab/chcp/storage" />
       <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginConfigStorage.java"
         target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/IConfigFileStorage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/IObjectFileStorage.java"
         target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/IConfigPreferenceStorage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/IObjectPreferenceStorage.java"
         target-dir="src/com/nordnetab/chcp/storage" />
 
       <!-- sources for package: com.nordnetab.chcp.model -->

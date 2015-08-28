@@ -22,6 +22,15 @@ import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 28.07.15.
+ * <p/>
+ * Worker, that implements installation logic.
+ * During the installation process events are dispatched to notify the subscribers about the progress.
+ * <p/>
+ * Used internally.
+ *
+ * @see UpdatesInstaller
+ * @see UpdateInstallationErrorEvent
+ * @see UpdateInstalledEvent
  */
 class InstallationWorker implements Runnable {
 
@@ -34,6 +43,12 @@ class InstallationWorker implements Runnable {
 
     private IPluginFilesStructure filesStructure;
 
+    /**
+     * Class constructor.
+     *
+     * @param filesStructure structure of plugin files
+     * @see IPluginFilesStructure
+     */
     public InstallationWorker(final IPluginFilesStructure filesStructure) {
         this.filesStructure = filesStructure;
     }
@@ -76,11 +91,18 @@ class InstallationWorker implements Runnable {
         dispatchSuccessEvent();
     }
 
+    /**
+     * Initialize variables and other pre-work stuff.
+     *
+     * @return <code>true</code> if all initialized and ready; <code>false</code> - otherwise
+     */
     private boolean init() {
+        // working directories
         installationFolder = new File(filesStructure.installationFolder());
         wwwFolder = new File(filesStructure.wwwFolder());
         backupFolder = new File(filesStructure.backupFolder());
 
+        // loaded application config
         IObjectFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(filesStructure);
         newAppConfig = appConfigStorage.loadFromFolder(filesStructure.installationFolder());
         if (newAppConfig == null) {
@@ -88,6 +110,7 @@ class InstallationWorker implements Runnable {
             return false;
         }
 
+        // old manifest file
         IObjectFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(filesStructure);
         ContentManifest oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
         if (oldManifest == null) {
@@ -95,29 +118,25 @@ class InstallationWorker implements Runnable {
             return false;
         }
 
+        // loaded manifest file
         ContentManifest newManifest = manifestStorage.loadFromFolder(filesStructure.installationFolder());
         if (newManifest == null) {
             dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_MANIFEST_NOT_FOUND);
             return false;
         }
 
+        // difference between old and the new manifest files
         manifestDiff = oldManifest.calculateDifference(newManifest);
 
         return true;
     }
 
-    private void dispatchErrorEvent(ChcpError error) {
-        EventBus.getDefault().post(new UpdateInstallationErrorEvent(error, newAppConfig));
-    }
-
-    private void dispatchSuccessEvent() {
-        EventBus.getDefault().post(new UpdateInstalledEvent(newAppConfig));
-    }
-
-    private void dispatchNothingToInstallEvent() {
-        EventBus.getDefault().post(new NothingToInstallEvent(newAppConfig));
-    }
-
+    /**
+     * Create backup of the current www folder.
+     * If something will go wrong - we will use it to rollback.
+     *
+     * @return <code>true</code> if backup created; <code>false</code> - otherwise
+     */
     private boolean backupCurrentFiles() {
         boolean result = true;
         try {
@@ -130,11 +149,17 @@ class InstallationWorker implements Runnable {
         return result;
     }
 
+    /**
+     * Remove temporary folders
+     */
     private void cleanUp() {
         FilesUtility.delete(installationFolder);
         FilesUtility.delete(backupFolder);
     }
 
+    /**
+     * Restore www folder from backup.
+     */
     private void rollback() {
         FilesUtility.delete(wwwFolder);
         FilesUtility.ensureDirectoryExists(wwwFolder);
@@ -146,6 +171,9 @@ class InstallationWorker implements Runnable {
         }
     }
 
+    /**
+     * Delete from project unused files
+     */
     private void deleteUnusedFiles() {
         final List<ManifestFile> files = manifestDiff.deletedFiles();
         for (ManifestFile file : files) {
@@ -154,6 +182,13 @@ class InstallationWorker implements Runnable {
         }
     }
 
+    //
+
+    /**
+     * Copy downloaded files into www folder
+     *
+     * @return <code>true</code> if files are copied; <code>false</code> - otherwise
+     */
     private boolean moveFilesFromInstallationFolderToWwwFodler() {
         try {
             FilesUtility.copy(installationFolder, wwwFolder);
@@ -166,6 +201,14 @@ class InstallationWorker implements Runnable {
         }
     }
 
+    /**
+     * Check if update is ready for installation.
+     * We will check, if all files are loaded and their hashes are correct.
+     *
+     * @param downloadFolder folder, where our files are situated
+     * @param manifestDiff   difference between old and the new manifest. Holds information about updated files.
+     * @return <code>true</code> update is valid and we are good to go; <code>false</code> - otherwise
+     */
     private boolean isUpdateValid(File downloadFolder, ManifestDiff manifestDiff) {
         if (!downloadFolder.exists()) {
             return false;
@@ -192,6 +235,20 @@ class InstallationWorker implements Runnable {
 
         return isValid;
     }
+
+    // region Events
+
+    private void dispatchErrorEvent(ChcpError error) {
+        EventBus.getDefault().post(new UpdateInstallationErrorEvent(error, newAppConfig));
+    }
+
+    private void dispatchSuccessEvent() {
+        EventBus.getDefault().post(new UpdateInstalledEvent(newAppConfig));
+    }
+
+    private void dispatchNothingToInstallEvent() {
+        EventBus.getDefault().post(new NothingToInstallEvent(newAppConfig));
+    }
+
+    // endregion
 }
-
-

@@ -30,27 +30,35 @@ import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 28.07.15.
+ * <p/>
+ * Worker, that implements update download logic.
+ * During the download process events are dispatched to notify the subscribers about the progress.
+ * <p/>
+ * Used internally.
  *
- *
+ * @see UpdatesLoader
+ * @see UpdateDownloadErrorEvent
+ * @see UpdateIsReadyToInstallEvent
+ * @see NothingToUpdateEvent
  */
 class UpdateLoaderWorker implements Runnable {
 
-    private final IObjectFileStorage<ApplicationConfig> appConfigStorage;
-    private final IObjectFileStorage<ContentManifest> manifestStorage;
     private final String applicationConfigUrl;
     private final int appBuildVersion;
     private final IPluginFilesStructure filesStructure;
-    private String workerId;
+    private final String workerId;
 
-    public UpdateLoaderWorker(Context context, String configUrl, final IPluginFilesStructure filesStructure) {
+    private IObjectFileStorage<ApplicationConfig> appConfigStorage;
+    private IObjectFileStorage<ContentManifest> manifestStorage;
+
+    private ApplicationConfig oldAppConfig;
+    private ContentManifest oldManifest;
+
+    public UpdateLoaderWorker(Context context, final String configUrl, final IPluginFilesStructure filesStructure) {
         this.workerId = generateId();
 
         this.filesStructure = filesStructure;
         applicationConfigUrl = configUrl;
-
-        manifestStorage = new ContentManifestStorage(filesStructure);
-        appConfigStorage = new ApplicationConfigStorage(filesStructure);
-
         appBuildVersion = VersionHelper.applicationVersionCode(context);
     }
 
@@ -62,31 +70,11 @@ class UpdateLoaderWorker implements Runnable {
         return workerId;
     }
 
-    private void waitForInstallationToFinish() {
-        while (UpdatesInstaller.isInstalling()) {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     @Override
     public void run() {
         Log.d("CHCP", "Starting loader worker " + getWorkerId());
-
-        // load current application config
-        ApplicationConfig oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.wwwFolder());
-        if (oldAppConfig == null) {
-            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
-            return;
-        }
-
-        // load current content manifest
-        ContentManifest oldContentManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
-        if (oldContentManifest == null) {
-            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
+        // initialize before running
+        if (!init()) {
             return;
         }
 
@@ -117,7 +105,7 @@ class UpdateLoaderWorker implements Runnable {
         }
 
         // find files that were updated
-        ManifestDiff diff = oldContentManifest.calculateDifference(newContentManifest);
+        ManifestDiff diff = oldManifest.calculateDifference(newContentManifest);
         if (diff.isEmpty()) {
             manifestStorage.storeInFolder(newContentManifest, filesStructure.wwwFolder());
             appConfigStorage.storeInFolder(newAppConfig, filesStructure.wwwFolder());
@@ -159,18 +147,37 @@ class UpdateLoaderWorker implements Runnable {
         Log.d("CHCP", "Loader worker " + getWorkerId() + " has finished");
     }
 
-    private void dispatchErrorEvent(ChcpError error, ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig));
+    /**
+     * Initialize all required variables before running the update.
+     *
+     * @return <code>true</code> if we are good to go, <code>false</code> - failed to initialize
+     */
+    private boolean init() {
+        manifestStorage = new ContentManifestStorage(filesStructure);
+        appConfigStorage = new ApplicationConfigStorage(filesStructure);
+
+        // load current application config
+        oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.wwwFolder());
+        if (oldAppConfig == null) {
+            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
+            return false;
+        }
+
+        // load current content manifest
+        oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
+        if (oldManifest == null) {
+            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
+            return false;
+        }
+
+        return true;
     }
 
-    private void dispatchSuccessEvent(ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig));
-    }
-
-    private void dispatchNothingToUpdateEvent(ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new NothingToUpdateEvent(getWorkerId(), newAppConfig));
-    }
-
+    /**
+     * Download application config from server.
+     *
+     * @return new application config
+     */
     private ApplicationConfig downloadApplicationConfig() {
         DownloadResult<ApplicationConfig> downloadResult = new ApplicationConfigDownloader(applicationConfigUrl).download();
         if (downloadResult.error != null) {
@@ -182,6 +189,12 @@ class UpdateLoaderWorker implements Runnable {
         return downloadResult.value;
     }
 
+    /**
+     * Download new content manifest from server.
+     *
+     * @param config new application config from which we will take content url
+     * @return new content manifest
+     */
     private ContentManifest downloadContentManifest(ApplicationConfig config) {
         String url = URLUtility.construct(config.getContentConfig().getContentUrl(), filesStructure.manifestFileName());
 
@@ -195,11 +208,23 @@ class UpdateLoaderWorker implements Runnable {
         return downloadResult.value;
     }
 
+    /**
+     * Remove old version of download folder and create a new one.
+     *
+     * @param folder absolute path to download folder
+     */
     private void recreateDownloadFolder(final String folder) {
         FilesUtility.delete(folder);
         FilesUtility.ensureDirectoryExists(folder);
     }
 
+    /**
+     * Download from server new and update files.
+     *
+     * @param newAppConfig new application config, from which we will use content url
+     * @param diff         manifest difference from which we will know, what files to download
+     * @return <code>true</code> if files are loaded; <code>false</code> - otherwise
+     */
     private boolean downloadNewAndChagedFiles(ApplicationConfig newAppConfig, ManifestDiff diff) {
         final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
         List<ManifestFile> downloadFiles = diff.getUpdateFiles();
@@ -215,6 +240,11 @@ class UpdateLoaderWorker implements Runnable {
         return isFinishedWithSuccess;
     }
 
+    /**
+     * Copy all loaded files into installation folder.
+     *
+     * @return <code>true</code> if files are copied; <code>false</code> otherwise
+     */
     private boolean moveDownloadedContentToInstallationFolder() {
         boolean isMoved = false;
         FilesUtility.ensureDirectoryExists(filesStructure.installationFolder());
@@ -228,8 +258,40 @@ class UpdateLoaderWorker implements Runnable {
         return isMoved;
     }
 
+    /**
+     * Remove temporary files
+     */
     private void cleanUp() {
         FilesUtility.delete(filesStructure.downloadFolder());
     }
 
+    /**
+     * It is possible that download and installation are performed at the same time.
+     * In that case we must wait for installation to finish before copying downloaded data into installation folder.
+     */
+    private void waitForInstallationToFinish() {
+        while (UpdatesInstaller.isInstalling()) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // region Events
+
+    private void dispatchErrorEvent(ChcpError error, ApplicationConfig newAppConfig) {
+        EventBus.getDefault().post(new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig));
+    }
+
+    private void dispatchSuccessEvent(ApplicationConfig newAppConfig) {
+        EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig));
+    }
+
+    private void dispatchNothingToUpdateEvent(ApplicationConfig newAppConfig) {
+        EventBus.getDefault().post(new NothingToUpdateEvent(getWorkerId(), newAppConfig));
+    }
+
+    // endregion
 }

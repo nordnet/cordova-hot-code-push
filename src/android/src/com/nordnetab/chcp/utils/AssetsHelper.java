@@ -31,6 +31,10 @@ public class AssetsHelper {
      * @param assetManager  assets manager
      * @param fromDirectory which directory in assets we want to copy
      * @param toDirectory   absolute path to the destination folder on the external storage
+     *
+     * @see AssetsInstallationErrorEvent
+     * @see AssetsInstalledEvent
+     * @see EventBus
      */
     public static void copyAssetDirectoryToAppDirectory(final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
         if (isWorking) {

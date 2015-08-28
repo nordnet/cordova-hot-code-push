@@ -3,10 +3,12 @@ package com.nordnetab.chcp.js;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nordnetab.chcp.config.ApplicationConfig;
-import com.nordnetab.chcp.events.PluginEvent;
+import com.nordnetab.chcp.events.IPluginEvent;
 
 import org.apache.cordova.PluginResult;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Nikolay Demyankov on 29.07.15.
@@ -25,10 +27,6 @@ public class PluginResultHelper {
             public static final String DATA = "data";
         }
 
-        private static class UserInfo {
-            public static final String CONFIG = "config";
-        }
-
         private static class Error {
             public static final String CODE = "code";
             public static final String DESCRIPTION = "description";
@@ -42,30 +40,38 @@ public class PluginResultHelper {
      *
      * @return cordova's plugin result
      * @see PluginResult
-     * @see PluginEvent
+     * @see IPluginEvent
      */
-    public static PluginResult pluginResultFromEvent(PluginEvent event) {
+    public static PluginResult pluginResultFromEvent(IPluginEvent event) {
         JsonNode errorNode = null;
         JsonNode dataNode = null;
 
-        if (event.error != null) {
-            errorNode = createErrorNode(event.error.getErrorCode(), event.error.getErrorDescription());
+        if (event.error() != null) {
+            errorNode = createErrorNode(event.error().getErrorCode(), event.error().getErrorDescription());
         }
 
-        if (event.config != null) {
-            dataNode = createDataNode(event.config);
+        if (event.data() != null && event.data().size() > 0) {
+            dataNode = createDataNode(event.data());
         }
 
-        return getResult(event.eventName, dataNode, errorNode);
+        return getResult(event.name(), dataNode, errorNode);
     }
 
     // region Private API
 
-    private static JsonNode createDataNode(ApplicationConfig config) {
+    private static JsonNode createDataNode(Map<String, Object> data) {
         JsonNodeFactory factory = JsonNodeFactory.instance;
-
         ObjectNode dataNode = factory.objectNode();
-        dataNode.set(JsParams.UserInfo.CONFIG, factory.textNode(config.toString()));
+
+        Set<Map.Entry<String, Object>> dataSet = data.entrySet();
+        for (Map.Entry<String, Object> entry : dataSet) {
+            Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
+
+            dataNode.set(entry.getKey(), factory.textNode(value.toString()));
+        }
 
         return dataNode;
     }

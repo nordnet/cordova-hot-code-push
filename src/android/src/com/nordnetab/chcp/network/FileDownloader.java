@@ -26,8 +26,19 @@ import java.util.List;
  */
 public class FileDownloader {
 
-    //TODO: add feature to continue previous download
-
+    /**
+     * Download list of files.
+     * Full url to the file is constructed from the contentFolderUrl and ManifestFile#hash (relative path).
+     * For each downloaded file we perform check of his hash. If it is different from the one, that provided
+     * if ManifestFile#hash - exception will be thrown.
+     * Download stops on any error.
+     *
+     * @param downloadFolder   absolute path to the folder, where downloaded files should be placed
+     * @param contentFolderUrl root url on the server, where all files are located
+     * @param files            list of files to download
+     * @throws IOException
+     * @see ManifestFile
+     */
     public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ManifestFile> files) throws IOException {
         for (ManifestFile file : files) {
             String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
@@ -42,7 +53,7 @@ public class FileDownloader {
      * @param urlFrom  url to download from
      * @param filePath where to save file
      * @param checkSum checksum of the file
-     * @return true - if file is downloaded and not corrupted; otherwise - false
+     * @throws IOException
      */
     public static void download(String urlFrom, String filePath, String checkSum) throws IOException {
         Log.d("CHCP", "Loading file: " + urlFrom);

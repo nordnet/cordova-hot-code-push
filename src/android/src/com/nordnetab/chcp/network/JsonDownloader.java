@@ -9,17 +9,39 @@ import java.net.URLConnection;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
+ * <p/>
+ * Helper class to download JSON and convert it into appropriate object.
+ * Used internally.
+ *
+ * @see DownloadResult
  */
 abstract class JsonDownloader<T> {
 
     private String downloadUrl;
 
+    /**
+     * Create instance of the object from json string.
+     *
+     * @param json loaded JSON string
+     * @return instance of the object, created from the JSON string
+     */
     protected abstract T createInstance(String json);
 
+    /**
+     * Class constructor
+     *
+     * @param url url from which JSON should be loaded
+     */
     public JsonDownloader(String url) {
         this.downloadUrl = url;
     }
 
+    /**
+     * Perform download.
+     *
+     * @return result of the download
+     * @see DownloadResult
+     */
     public DownloadResult<T> download() {
         DownloadResult<T> result;
 
@@ -40,9 +62,6 @@ abstract class JsonDownloader<T> {
     private String downloadJson() throws Exception {
         StringBuilder jsonContent = new StringBuilder();
 
-        // many of these calls can throw exceptions, so i've just
-        // wrapped them all in one try/catch statement.
-        // create a url object
         URL url = URLUtility.stringToUrl(downloadUrl);
         if (url == null) {
             throw new Exception("Invalid url format:" + downloadUrl);

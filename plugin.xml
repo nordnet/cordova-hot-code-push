@@ -352,7 +352,6 @@
       <source-file src="src/android/src/com/nordnetab/chcp/model/UpdateTime.java"
           target-dir="src/com/nordnetab/chcp/model" />
 
-
       <!-- sources for package: com.nordnetab.chcp.utils -->
       <source-file src="src/android/src/com/nordnetab/chcp/utils/AssetsHelper.java"
         target-dir="src/com/nordnetab/chcp/utils" />
@@ -379,6 +378,8 @@
 
       <!-- sources for package: com.nordnetab.chcp.js -->
       <source-file src="src/android/src/com/nordnetab/chcp/js/PluginResultHelper.java"
+        target-dir="src/com/nordnetab/chcp/js" />
+      <source-file src="src/android/src/com/nordnetab/chcp/js/JSAction.java"
         target-dir="src/com/nordnetab/chcp/js" />
 
       <!-- sources for package: com.nordnetab.chcp -->

@@ -22,6 +22,7 @@ import com.nordnetab.chcp.events.UpdateDownloadErrorEvent;
 import com.nordnetab.chcp.events.UpdateInstallationErrorEvent;
 import com.nordnetab.chcp.events.UpdateInstalledEvent;
 import com.nordnetab.chcp.events.UpdateIsReadyToInstallEvent;
+import com.nordnetab.chcp.js.JSAction;
 import com.nordnetab.chcp.js.PluginResultHelper;
 import com.nordnetab.chcp.model.IPluginFilesStructure;
 import com.nordnetab.chcp.model.PluginFilesStructureImpl;
@@ -48,7 +49,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -57,16 +60,11 @@ import de.greenrobot.event.EventBus;
  * <p/>
  * Plugin entry point.
  */
-
-// TODO: update queue: should store only 1 task, like in iOS
-
 public class HotCodePushPlugin extends CordovaPlugin {
 
     private static final String FILE_PREFIX = "file://";
     private static final String WWW_FOLDER = "www";
     private static final String LOCAL_ASSETS_FOLDER = "file:///android_asset/www";
-
-    private static final String BLANK_PAGE = "about:blank";
 
     private String startingPage;
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
@@ -75,29 +73,29 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private ChcpXmlConfig chcpXmlConfig;
     private IPluginFilesStructure fileStructure;
 
-    private HashMap<String, CallbackContext> fetchTasks;
+    private List<DownloadTaskJsCallback> fetchTasks;
     private CallbackContext installJsCallback;
     private CallbackContext jsDefaultCallback;
 
     private Handler handler;
-
     private boolean isPluginReadyForWork;
-
     private Socket devSocket;
 
-    private static class JSActions {
-        public static final String FETCH_UPDATE = "jsFetchUpdate";
-        public static final String INSTALL_UPDATE = "jsInstallUpdate";
-        public static final String CONFIGURE = "jsConfigure";
-        public static final String INIT = "jsInitPlugin";
-        public static final String REQUEST_APP_UPDATE = "jsRequestAppUpdate";
+    private static class DownloadTaskJsCallback {
+        public final String taskId;
+        public final CallbackContext callback;
+
+        public DownloadTaskJsCallback (String taskId, CallbackContext callback) {
+            this.taskId = taskId;
+            this.callback = callback;
+        }
     }
 
     @Override
     public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
         super.initialize(cordova, webView);
 
-        fetchTasks = new HashMap<String, CallbackContext>();
+        fetchTasks = new ArrayList<DownloadTaskJsCallback>();
         handler = new Handler();
 
         fileStructure = new PluginFilesStructureImpl(cordova.getActivity());
@@ -241,7 +239,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         Log.d("CHCP", "Action from JS: " + action);
 
-        if (JSActions.INIT.equals(action)) {
+        if (JSAction.INIT.equals(action)) {
             initJs(callbackContext);
             return true;
         }
@@ -251,13 +249,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         boolean cmdProcessed = true;
-        if (JSActions.FETCH_UPDATE.equals(action)) {
+        if (JSAction.FETCH_UPDATE.equals(action)) {
             fetchUpdate(callbackContext);
-        } else if (JSActions.INSTALL_UPDATE.equals(action)) {
+        } else if (JSAction.INSTALL_UPDATE.equals(action)) {
             installUpdate(callbackContext);
-        } else if (JSActions.CONFIGURE.equals(action)) {
+        } else if (JSAction.CONFIGURE.equals(action)) {
             jsSetPluginOptions(args, callbackContext);
-        } else if (JSActions.REQUEST_APP_UPDATE.equals(action)) {
+        } else if (JSAction.REQUEST_APP_UPDATE.equals(action)) {
             jsRequestAppUpdate(args, callbackContext);
         } else {
             cmdProcessed = false;
@@ -366,7 +364,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), pluginConfig.getConfigUrl(), fileStructure);
         if (jsCallback != null) {
-            fetchTasks.put(taskId, jsCallback);
+            putFetchTaskJsCallback(taskId, jsCallback);
         }
     }
 
@@ -425,15 +423,34 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // region Update download events
 
+    // TODO: need cleaner approach
     private CallbackContext pollFetchTaskJsCallback(String taskId) {
-        if (!fetchTasks.containsKey(taskId)) {
-            return null;
+        CallbackContext callback = null;
+        int foundIndex = -1;
+        for (int i=0, len=fetchTasks.size(); i<len; i++) {
+            DownloadTaskJsCallback jsTask = fetchTasks.get(i);
+            if (jsTask.taskId.equals(taskId)) {
+                callback = jsTask.callback;
+                foundIndex = i;
+                break;
+            }
         }
 
-        CallbackContext jsCallback = fetchTasks.get(taskId);
-        fetchTasks.remove(taskId);
+        if (foundIndex >= 0) {
+            fetchTasks.remove(foundIndex);
+        }
 
-        return jsCallback;
+        return callback;
+    }
+
+    private void putFetchTaskJsCallback(String taskId, CallbackContext callbackContext) {
+        DownloadTaskJsCallback taskJsCallback = new DownloadTaskJsCallback(taskId, callbackContext);
+
+        if (fetchTasks.size() < 2) {
+            fetchTasks.add(taskJsCallback);
+        } else {
+            fetchTasks.set(1, taskJsCallback);
+        }
     }
 
     public void onEvent(UpdateIsReadyToInstallEvent event) {

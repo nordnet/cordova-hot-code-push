@@ -31,12 +31,16 @@
     });
 }
 
-- (void)downloadFilesSync:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
+- (BOOL)downloadFilesSync:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
     [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL error:error];
+    
+    return (*error == nil);
 }
 
-- (void)downloadFileSyncFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum error:(NSError **)error {
+- (BOOL)downloadFileSyncFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum error:(NSError **)error {
     [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum error:error];
+    
+    return (*error == nil);
 }
 
 #pragma mark Private API

@@ -19,7 +19,7 @@
  *  @param onSuccess block to call when user agrees to go to App Store
  *  @param onFailure block to call when user declines the redirection
  *
- *  @return instalce of the object
+ *  @return instance of the object
  */
 - (instancetype)initWithMessage:(NSString *)message storeUrl:(NSString *)storeUrl onSuccessBlock:(void (^)())onSuccess onFailureBlock:(void (^)())onFailure;
 

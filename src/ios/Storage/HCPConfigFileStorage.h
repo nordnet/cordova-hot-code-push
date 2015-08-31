@@ -18,9 +18,10 @@
  *
  *  @param config    config to save
  *  @param folderURL absolute URL to folder, where to save the object
+ *  @return <code>YES</code> if config is saved; <code>NO</code> if failed
  *  @see HCPJsonConvertable
  */
-- (void)store:(id<HCPJsonConvertable>)config inFolder:(NSURL *)folderURL;
+- (BOOL)store:(id<HCPJsonConvertable>)config inFolder:(NSURL *)folderURL;
 
 /**
  *  Load object from folder.

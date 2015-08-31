@@ -1,29 +1,30 @@
 //
 //  HCPConfigStorageImpl.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 12.08.15.
-//
 //
 
 #import "HCPConfigStorageImpl.h"
 
 @implementation HCPConfigStorageImpl
 
-- (void)store:(id<HCPJsonConvertable>)config inFolder:(NSURL *)folderURL {
-    NSURL *fileURL = [self getFullUrlToFileInFolder:folderURL];
+- (BOOL)store:(id<HCPJsonConvertable>)config inFolder:(NSURL *)folderURL {
+    NSError *error = nil;
     
     id jsonObject = [config toJson];
-    NSError *error = nil;
     NSData *data = [NSJSONSerialization dataWithJSONObject:jsonObject options:kNilOptions error:&error];
-    if (error != nil) {
-        return;
+    if (error) {
+        [self logError:error];
+        return NO;
     }
-    
+
+    NSURL *fileURL = [self getFullUrlToFileInFolder:folderURL];
     [data writeToURL:fileURL options:kNilOptions error:&error];
     if (error) {
-        NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+        [self logError:error];
     }
+    
+    return (error == nil);
 }
 
 - (id<HCPJsonConvertable>)loadFromFolder:(NSURL *)folderURL {
@@ -55,5 +56,10 @@
     return nil;
 }
 
+#pragma mark Private API
+
+- (void)logError:(NSError *)error {
+    NSLog(@"%@", [error.userInfo[NSUnderlyingErrorKey] localizedDescription]);
+}
 
 @end

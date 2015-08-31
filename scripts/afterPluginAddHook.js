@@ -1,3 +1,10 @@
+/**
+Hook is executed when plugin is added to the project.
+It will check all necessary module dependencies and install the missing ones locally.
+Also, it will suggest to user to install CLI client for that plugin.
+It can be found in https://github.com/nordnet/cordova-hot-code-push-cli.git
+*/
+
 var exec = require('child_process').exec,
     isWindows = /^win/.test(process.platform),
     chcpCliGitRepository = 'https://github.com/nordnet/cordova-hot-code-push-cli.git',
@@ -6,6 +13,9 @@ var exec = require('child_process').exec,
 
 // region CLI specific
 
+/**
+ * Install cordova-hcp utility if needed.
+ */
 function runCliInstall() {
   checkIfChcpInstalled(function(err) {
     if (err) {
@@ -16,6 +26,12 @@ function runCliInstall() {
   });
 }
 
+/**
+ * Check if cordova-hcp utility is installed.
+ * If not - we will prompt user to install it.
+ *
+ * @param {Callback(error)} callback
+ */
 function checkIfChcpInstalled(callback) {
   var cmd = 'npm -g list ' + chcpCliPackageName;
   exec(cmd, function(err, stdout, stderr) {
@@ -29,6 +45,7 @@ function checkIfChcpInstalled(callback) {
 function installChcpCLI() {
   console.log('Installing CHCP CLI client...');
 
+  // installation command depends on the platform
   var cmd;
   if (isWindows) {
     cmd = 'npm -g install ' + chcpCliGitRepository;

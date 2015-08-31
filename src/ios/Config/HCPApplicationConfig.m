@@ -1,9 +1,7 @@
 //
 //  HCPApplicationConfig.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPApplicationConfig.h"
@@ -17,7 +15,13 @@
 
 @end
 
+#pragma mark JSON keys declaration
+
 static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
+
+#pragma mark Local constants
+
+static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
 
 @implementation HCPApplicationConfig
 
@@ -32,7 +36,7 @@ static NSString *const STORE_PACKAGE_IDENTIFIER_JSON_KEY = @"ios_identifier";
         if ([self.storeIdentifier containsString:@"http://"] || [self.storeIdentifier containsString:@"https://"]) {
             _storeUrl = self.storeIdentifier;
         } else {
-            _storeUrl = [NSString stringWithFormat:@"https://itunes.apple.com/app/%@", self.storeIdentifier];
+            _storeUrl = [NSString stringWithFormat:STORE_URL_TEMPLATE, self.storeIdentifier];
         }
     }
     

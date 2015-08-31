@@ -1,13 +1,13 @@
 //
 //  HCPFilesStructureImpl.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 12.08.15.
-//
 //
 
 #import "HCPFilesStructureImpl.h"
 #import "NSFileManager+HCPExtension.h"
+
+#pragma mark Predefined folders and file names of the plugin
 
 static NSString *const CHCP_FOLDER = @"cordova-hot-code-push-plugin";
 static NSString *const DOWNLOAD_FOLDER = @"www_tmp";
@@ -30,6 +30,8 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 @end
 
 @implementation HCPFilesStructureImpl
+
+#pragma mark Public API
 
 - (NSURL *)contentFolder {
     if (_contentFolder) {

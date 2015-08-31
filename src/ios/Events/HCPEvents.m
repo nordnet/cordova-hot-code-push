@@ -1,12 +1,12 @@
 //
 //  HCPEvents.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 13.08.15.
 //
-//
 
 #import "HCPEvents.h"
+
+#pragma mark Event names declaration
 
 NSString *const kHCPUpdateDownloadErrorEvent = @"chcp_updateLoadFailed";
 NSString *const kHCPNothingToUpdateEvent = @"chcp_nothingToUpdate";
@@ -21,9 +21,9 @@ NSString *const kHCPEventUserInfoErrorKey = @"error";
 NSString *const kHCPEventUserInfoTaskIdKey = @"taskId";
 NSString *const kHCPEventUserInfoApplicationConfigKey = @"appConfig";
 
-
-
 @implementation HCPEvents
+
+#pragma mark Public API
 
 + (NSNotification *)notificationWithName:(NSString *)name applicationConfig:(HCPApplicationConfig *)appConfig taskId:(NSString *)taskId {
     return [HCPEvents notificationWithName:name applicationConfig:appConfig taskId:taskId error:nil];
@@ -45,6 +45,5 @@ NSString *const kHCPEventUserInfoApplicationConfigKey = @"appConfig";
     
     return [NSNotification notificationWithName:name object:nil userInfo:userInfo];
 }
-
 
 @end

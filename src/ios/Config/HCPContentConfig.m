@@ -1,9 +1,7 @@
 //
 //  HCPContentConfig.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPContentConfig.h"
@@ -34,6 +32,13 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
 
 #pragma mark Private API
 
+/**
+ *  Convert HCPUpdateTime instance to string.
+ *
+ *  @param updateTime
+ *
+ *  @return string representation of the update time option
+ */
 - (NSString *)updateTimeEnumToString:(HCPUpdateTime)updateTime {
     NSString *value = @"";
     switch (updateTime) {
@@ -59,6 +64,13 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
     return value;
 }
 
+/**
+ *  Convert update time option from string to enum
+ *
+ *  @param updateTime string version
+ *
+ *  @return enum version of the string
+ */
 - (HCPUpdateTime)updateTimeStringToEnum:(NSString *)updateTime {
     HCPUpdateTime value = HCPUpdateTimeUndefined;
     if ([updateTime isEqualToString:UPDATE_TIME_NOW]) {

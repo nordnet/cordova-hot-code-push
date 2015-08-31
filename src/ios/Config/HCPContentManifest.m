@@ -1,9 +1,7 @@
 //
 //  HCPContentManifest.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPContentManifest.h"

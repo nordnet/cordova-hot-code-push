@@ -1,9 +1,7 @@
 //
 //  HCPJsonDownloader.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 11.08.15.
-//
 //
 
 #import "HCPJsonDownloader.h"
@@ -35,13 +33,8 @@
         }
         
         NSError *jsonError = nil;
-        id json = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonError];
-        if (jsonError) {
-            block(jsonError, nil);
-            return;
-        }
-        
-        block(nil, json);
+        id jsonObject = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+        block(jsonError, jsonObject);
     }];
 }
 

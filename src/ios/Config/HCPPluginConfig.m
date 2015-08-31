@@ -1,13 +1,13 @@
 //
 //  HCPPluginConfig.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPPluginConfig.h"
 #import "NSBundle+HCPExtension.h"
+
+#pragma mark JSON keys for plugin options
 
 static NSString *const ALLOW_UPDATES_AUTO_DOWNLOAD = @"allow_auto_download";
 static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"allow_auto_install";

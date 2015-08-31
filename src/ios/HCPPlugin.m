@@ -1,9 +1,7 @@
 //
 //  HCPPlugin.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 07.08.15.
-//
 //
 
 #import <Cordova/CDVConfigParser.h>

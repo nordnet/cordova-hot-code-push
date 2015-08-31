@@ -1,9 +1,7 @@
 //
 //  HCPXmlConfigParser.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 07.08.15.
-//
 //
 
 #import "HCPXmlConfigParser.h"
@@ -21,15 +19,21 @@
 
 @end
 
+#pragma mark Plugin specific preference keys in config.xml
+
 static NSString *const MAIN_TAG = @"chcp";
 
+// Keys for processing application config location on the server
 static NSString *const CONFIG_FILE_TAG = @"config-file";
 static NSString *const CONFIG_FILE_URL_ATTRIBUTE = @"url";
 
+// Keys for processing local development options
 static NSString *const LOCAL_DEVELOPMENT_TAG = @"local-development";
 static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
 
 @implementation HCPXmlConfigParser
+
+#pragma mark Public API
 
 - (instancetype)init {
     self = [super init];

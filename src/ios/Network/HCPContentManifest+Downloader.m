@@ -1,9 +1,7 @@
 //
 //  HCPContentManifest+Downloader.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPContentManifest+Downloader.h"
@@ -33,6 +31,5 @@
     
     return [HCPContentManifest instanceFromJsonObject:json];
 }
-
 
 @end

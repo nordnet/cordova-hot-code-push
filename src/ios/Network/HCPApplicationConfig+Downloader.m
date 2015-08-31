@@ -1,9 +1,7 @@
 //
 //  HCPApplicationConfig+Downloader.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "HCPApplicationConfig+Downloader.h"

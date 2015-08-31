@@ -1,12 +1,12 @@
 //
 //  HCPManifestFile.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
 //
-//
 
 #import "HCPManifestFile.h"
+
+#pragma mark JSON keys declaration
 
 static NSString *const FILE_PATH = @"file";
 static NSString *const FILE_HASH = @"hash";

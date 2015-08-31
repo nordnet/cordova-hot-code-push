@@ -1,9 +1,7 @@
 //
 //  HCPXmlConfig.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 07.08.15.
-//
 //
 
 #import "HCPXmlConfig.h"

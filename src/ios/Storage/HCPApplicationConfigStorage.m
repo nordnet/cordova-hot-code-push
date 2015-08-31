@@ -1,9 +1,7 @@
 //
 //  HCPApplicationConfigStorage.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 12.08.15.
-//
 //
 
 #import "HCPApplicationConfigStorage.h"

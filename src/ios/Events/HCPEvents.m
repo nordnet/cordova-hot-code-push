@@ -21,6 +21,8 @@ NSString *const kHCPEventUserInfoErrorKey = @"error";
 NSString *const kHCPEventUserInfoTaskIdKey = @"taskId";
 NSString *const kHCPEventUserInfoApplicationConfigKey = @"appConfig";
 
+
+
 @implementation HCPEvents
 
 + (NSNotification *)notificationWithName:(NSString *)name applicationConfig:(HCPApplicationConfig *)appConfig taskId:(NSString *)taskId {

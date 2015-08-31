@@ -1,12 +1,12 @@
 //
-//  CDVPluginResult+HCPEvent.m
+//  CDVPluginResult+HCPEvents.m
 //  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 13.08.15.
 //
 //
 
-#import "CDVPluginResult+HCPEvent.h"
+#import "CDVPluginResult+HCPEvents.h"
 #import "HCPApplicationConfig.h"
 #import "HCPEvents.h"
 
@@ -19,7 +19,7 @@ static NSString *const ERROR_KEY = @"error";
 static NSString *const ERROR_USER_INFO_CODE = @"code";
 static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
 
-@implementation CDVPluginResult (HCPEvent)
+@implementation CDVPluginResult (HCPEvents)
 
 + (NSDictionary *)constructErrorBlock:(NSError *)error {
     return @{ERROR_USER_INFO_CODE: @(error.code),

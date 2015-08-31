@@ -19,7 +19,7 @@
 #import "HCPPluginConfig+UserDefaults.h"
 #import "HCPUpdateInstaller.h"
 #import "NSJSONSerialization+HCPExtension.h"
-#import "CDVPluginResult+HCPEvent.h"
+#import "CDVPluginResult+HCPEvents.h"
 #import "HCPXmlConfig.h"
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfigStorage.h"

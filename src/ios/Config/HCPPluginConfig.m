@@ -18,7 +18,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 
 #pragma mark Public API
 
-+ (instancetype)defaultConfig {
++ (HCPPluginConfig *)defaultConfig {
     HCPPluginConfig *pluginConfig = [[HCPPluginConfig alloc] init];
     pluginConfig.allowUpdatesAutoDownload = YES;
     pluginConfig.allowUpdatesAutoInstallation = YES;

@@ -1,9 +1,7 @@
 //
 //  NSJSONSerialization+HCPExtension.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 11.08.15.
-//
 //
 
 #import "NSJSONSerialization+HCPExtension.h"

@@ -1,9 +1,7 @@
 //
 //  HCPPluginConfig+UserDefaults.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 13.08.15.
-//
 //
 
 #import "HCPPluginConfig+UserDefaults.h"

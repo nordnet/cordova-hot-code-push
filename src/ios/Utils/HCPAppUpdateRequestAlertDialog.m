@@ -1,9 +1,7 @@
 //
 //  HCPAppUpdateRequestAlertDialog.m
-//  TestIosCHCP3
 //
 //  Created by Nikolay Demyankov on 26.08.15.
-//
 //
 
 #import "HCPAppUpdateRequestAlertDialog.h"

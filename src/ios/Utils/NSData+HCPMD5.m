@@ -1,9 +1,7 @@
 //
 //  NSData+MD5.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import <CommonCrypto/CommonDigest.h>

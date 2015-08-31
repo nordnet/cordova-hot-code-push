@@ -1,9 +1,7 @@
 //
 //  HCPUpdateLoaderWorker.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 11.08.15.
-//
 //
 
 #import "HCPUpdateLoaderWorker.h"
@@ -52,6 +50,8 @@
 
 - (void)run {
     NSError *error = nil;
+    
+    // initialize before the run
     if (![self loadLocalConfigs:&error]) {
         [self notifyWithError:error applicationConfig:nil];
         return;
@@ -65,6 +65,7 @@
         return;
     }
     
+    // check if there is anything new on the server
     if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
         [self notifyNothingToUpdate:newAppConfig];
         return;
@@ -82,7 +83,8 @@
     NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
     HCPContentManifest *newManifest = [HCPContentManifest downloadSyncFromURL:manifestFileURL error:&error];
     if (error) {
-        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode descriptionFromError:error]
+        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
+                                descriptionFromError:error]
             applicationConfig:newAppConfig];
         return;
     }
@@ -101,10 +103,14 @@
     
     // download files
     HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
-    [downloader downloadFilesSync:updatedFiles fromURL:newAppConfig.contentConfig.contentURL toFolder:_pluginFiles.downloadFolder error:&error];
-    if (error) {
+    BOOL isDataLoaded = [downloader downloadFilesSync:updatedFiles
+                                              fromURL:newAppConfig.contentConfig.contentURL
+                                             toFolder:_pluginFiles.downloadFolder
+                                                error:&error];
+    if (!isDataLoaded) {
         [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:&error];
-        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode descriptionFromError:error]
+        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
+                                descriptionFromError:error]
             applicationConfig:newAppConfig];
         return;
     }
@@ -122,6 +128,13 @@
 
 #pragma mark Private API
 
+/**
+ *  Load configuration files from the file system.
+ *
+ *  @param error object to fill with error data if something will go wrong
+ *
+ *  @return <code>YES</code> if configs are loaded; <code>NO</code> - if some of the configs not found on file system
+ */
 - (BOOL)loadLocalConfigs:(NSError **)error {
     *error = nil;
     _oldAppConfig = [_appConfigStorage loadFromFolder:_pluginFiles.wwwFolder];
@@ -141,6 +154,9 @@
     return YES;
 }
 
+/**
+ *  Copy all loaded files from download folder to installation folder from which we will install the update.
+ */
 - (void)moveDownloadedContentToInstallationFolder {
     [self waitForInstallationToComplete];
     
@@ -149,26 +165,60 @@
     [fileManager moveItemAtURL:_pluginFiles.downloadFolder toURL:_pluginFiles.installationFolder error:&error];
 }
 
+/**
+ *  If installation is in progress - we should wait for it to finish before moving newly loaded files to installation folder.
+ */
 - (void)waitForInstallationToComplete {
     while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
     }
 }
 
+/**
+ *  Send notification with error details.
+ *
+ *  @param error  occured error
+ *  @param config application config that was used for download
+ */
 - (void)notifyWithError:(NSError *)error applicationConfig:(HCPApplicationConfig *)config {
-    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateDownloadErrorEvent applicationConfig:config taskId:self.workerId error:error];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateDownloadErrorEvent
+                                                 applicationConfig:config
+                                                            taskId:self.workerId
+                                                             error:error];
+    
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Send notification that there is nothing to update and we are up-to-date
+ *
+ *  @param config application config that was used for download
+ */
 - (void)notifyNothingToUpdate:(HCPApplicationConfig *)config {
-    NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToUpdateEvent applicationConfig:config taskId:self.workerId];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToUpdateEvent
+                                                 applicationConfig:config
+                                                            taskId:self.workerId];
+    
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Send notification that update is loaded and ready for installation.
+ *
+ *  @param config application config that was used for download
+ */
 - (void)notifyUpdateDownloadSuccess:(HCPApplicationConfig *)config {
-    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateIsReadyForInstallationEvent applicationConfig:config taskId:self.workerId];
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateIsReadyForInstallationEvent
+                                                 applicationConfig:config
+                                                            taskId:self.workerId];
+    
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Remove old version of download folder and create the new one.
+ *
+ *  @param downloadFolder url to the download folder
+ */
 - (void)recreateDownloadFolder:(NSURL *)downloadFolder {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
@@ -180,6 +230,11 @@
     [fileManager createDirectoryAtURL:downloadFolder withIntermediateDirectories:YES attributes:nil error:&error];
 }
 
+/**
+ *  Create id of the download worker.
+ *
+ *  @return worker id
+ */
 - (NSString *)generateWorkerId {
     NSTimeInterval millis = [[NSDate date] timeIntervalSince1970];
     

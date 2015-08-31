@@ -1,9 +1,7 @@
 //
 //  NSBundle+Extension.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 10.08.15.
-//
 //
 
 #import "NSBundle+HCPExtension.h"
@@ -13,6 +11,8 @@
 static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 @implementation NSBundle (HCPExtension)
+
+#pragma mark Public AIP
 
 + (NSInteger)applicationBuildVersion {
     NSBundle *mainBundle = [NSBundle mainBundle];
@@ -37,6 +37,8 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
         [NSBundle __installWwwFolderToExternalStorageFolder:externalFolderURL];
     });
 }
+
+#pragma mark Private API
 
 + (void)__installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL {
     NSError *error = nil;
@@ -65,6 +67,11 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [self dispatchSuccessEvent];
 }
 
+/**
+ *  Send event with error information.
+ *
+ *  @param error occured error
+ */
 + (void)dispatchErrorEvent:(NSError *)error {
     NSString *errorMsg = [error.userInfo[NSUnderlyingErrorKey] localizedDescription];
     NSError *pluginError = [NSError errorWithCode:kHCPFailedToInstallAssetsOnExternalStorageErrorCode description:errorMsg];
@@ -76,6 +83,9 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Send success event.
+ */
 + (void)dispatchSuccessEvent {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPBundleAssetsInstalledOnExternalStorageEvent
                                                  applicationConfig:nil

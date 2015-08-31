@@ -1,9 +1,7 @@
 //
 //  HCPInstallationWorker.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 12.08.15.
-//
 //
 
 #import "HCPInstallationWorker.h"
@@ -66,21 +64,38 @@
 
 #pragma mark Private API
 
+/**
+ *  Send update installation failure event with error details.
+ *
+ *  @param error occured error
+ */
 - (void)dispatchEventWithError:(NSError *)error {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateInstallationErrorEvent
                                                  applicationConfig:_newConfig
                                                             taskId:self.workerId error:error];
+    
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Send event that update was successfully installed
+ */
 - (void)dispatchSuccessEvent {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateIsInstalledEvent
                                                  applicationConfig:_newConfig
                                                             taskId:self.workerId];
     
+    
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
+/**
+ *  Initialize all required variables before executing installation logic.
+ *
+ *  @param error filled with information about any occured error; <code>nil</code> if initialization finished with success
+ *
+ *  @return <code>YES</code> if everything is ready for update; <code>NO</code> otherwise
+ */
 - (BOOL)initBeforeRun:(NSError **)error {
     *error = nil;
     
@@ -88,6 +103,7 @@
     _manifestStorage = [[HCPContentManifestStorage alloc] initWithFileStructure:_fileStructure];
     _configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_fileStructure];
     
+    // load from file system current version of application config
     _oldConfig = [_configStorage loadFromFolder:_fileStructure.wwwFolder];
     if (_oldConfig == nil) {
         *error = [NSError errorWithCode:kHCPLocalVersionOfApplicationConfigNotFoundErrorCode
@@ -95,6 +111,7 @@
         return NO;
     }
     
+    // load from file system new version of the application config
     _newConfig = [_configStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newConfig == nil) {
         *error = [NSError errorWithCode:kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode
@@ -102,6 +119,7 @@
         return NO;
     }
     
+    // load from file system old version of the manifest
     _oldManifest = [_manifestStorage loadFromFolder:_fileStructure.wwwFolder];
     if (_oldManifest == nil) {
         *error = [NSError errorWithCode:kHCPLocalVersionOfManifestNotFoundErrorCode
@@ -109,6 +127,7 @@
         return NO;
     }
     
+    // load from file system new version of the manifest
     _newManifest = [_manifestStorage loadFromFolder:_fileStructure.installationFolder];
     if (_newManifest == nil) {
         *error = [NSError errorWithCode:kHCPLoadedVersionOfManifestNotFoundErrorCode
@@ -116,11 +135,20 @@
         return NO;
     }
     
+    // calculate difference between the old and the new manifests
     _manifestDiff = [_oldManifest calculateDifference:_newManifest];
     
     return YES;
 }
 
+/**
+ *  Validate the update.
+ *  We will check if all the required files are loaded and if they are not corrupted.
+ *
+ *  @param error filled with information about any occured error; <code>nil</code> if update is valid
+ *
+ *  @return <code>YES</code> if update is valid and can be installed; <code>NO</code> - update is corrupted
+ */
 - (BOOL)isUpdateValid:(NSError **)error {
     *error = nil;
     NSString *errorMsg = nil;
@@ -147,6 +175,14 @@
     return (*error == nil);
 }
 
+/**
+ *  Create backup of the current www folder.
+ *  If something will go wrong during the update we will rollback to it.
+ *
+ *  @param error filled with any occured error; <code>nil</code> if backup created
+ *
+ *  @return <code>YES</code> if backup created; <code>NO</code> on error
+ */
 - (BOOL)backupFiles:(NSError **)error {
     *error = nil;
     
@@ -166,6 +202,13 @@
     return YES;
 }
 
+/**
+ *  Delete from the project unused files.
+ *
+ *  @param error filled with error information if any occured; <code>nil</code> on success
+ *
+ *  @return <code>YES</code> if unused files were deleted; <code>NO</code> on failure;
+ */
 - (BOOL)deleteUnusedFiles:(NSError **)error {
     *error = nil;
     NSArray *deletedFiles = _manifestDiff.deletedFiles;
@@ -184,6 +227,13 @@
     return YES;
 }
 
+/**
+ *  Copy loaded from server files into the www folder on the external storage.
+ *
+ *  @param error filled with error information if any occured; <code>nil</code> when files are installed
+ *
+ *  @return <code>YES</code> if files are copied successfully; <code>NO</code> on failure
+ */
 - (BOOL)moveDownloadedFilesToWwwFolder:(NSError **)error {
     *error = nil;
     NSFileManager *fileManager = [NSFileManager defaultManager];
@@ -208,11 +258,17 @@
     return (*error == nil);
 }
 
+/**
+ *  Save loaded configs to the www folder. They are now our current configs.
+ */
 - (void)saveNewConfigsToWwwFolder {
     [_manifestStorage store:_newManifest inFolder:_fileStructure.wwwFolder];
     [_configStorage store:_newConfig inFolder:_fileStructure.wwwFolder];
 }
 
+/**
+ *  Remove all temporary files and folders.
+ */
 - (void)cleanUp {
     NSError *error = nil;
     [_fileManager removeItemAtURL:_fileStructure.installationFolder error:&error];
@@ -221,6 +277,9 @@
     }
 }
 
+/**
+ *  Restore content from the backup.
+ */
 - (void)rollback {
     if (![_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
         return;

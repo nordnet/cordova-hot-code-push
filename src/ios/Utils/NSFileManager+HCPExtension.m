@@ -1,9 +1,7 @@
 //
 //  NSFileManager+HCPExtension.m
-//  TestIosCHCP
 //
 //  Created by Nikolay Demyankov on 20.08.15.
-//
 //
 
 #import "NSFileManager+HCPExtension.h"

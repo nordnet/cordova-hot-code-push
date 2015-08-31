@@ -41,7 +41,7 @@
       if (configData == null) {
         return;
       }
-      
+
       var chcpConfig = {};
       if (configData.widget.hasOwnProperty('chcp') && configData.widget.chcp.lenght > 0) {
         chcpConfig = configData.widget.chcp[0];
@@ -57,27 +57,27 @@
   }
 
   function injectConfigUrl(xml, options) {
-    if (!options.hasOwnProperty('config_url')) {
+    if (!options.hasOwnProperty('config-file')) {
       return;
     }
 
     xml['config-file'] = [
       {
         '$': {
-          'url': options.config_url
+          'url': options['config-file']
         }
       }
     ];
   }
 
   function injectLocalDevOptions(xml, options) {
-    if (!options.hasOwnProperty('local_dev_mode')) {
+    if (!options.hasOwnProperty('local-development')) {
       return;
     }
 
     var localDevBlock = {};
     localDevBlock['$'] = {
-      enabled: options.local_dev_mode.enabled
+      enabled: options.['local-development'].enabled
     };
 
     xml['local-development'] = [localDevBlock];

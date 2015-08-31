@@ -1,25 +1,28 @@
-// chcpbuild.options
-// File contains list of build options in key-value manner like so:
-// {
-//   "build_type": {
-//     "preference_1": "value_1",
-//     ...
-//   }
-// }
-// Example:
-// {
-//   "production": {
-//     "config_url": "https://some_production/server/chcp.json"
-//   },
-//   "dev": {
-//     "config_url": "https://some_dev/server/chcp.json"
-//   },
-//   "qa": {
-//     "config_url": "https://some_qa/server/chcp.json"
-//   }
-// }
-// Usage:
-// cordova build -- dev
+/**
+  This hook is executed every time we build the project.
+  It will populate config.xml with plugin specific options and for iOS - it will activate Swift support.
+  If you want to specify for which server to build the project - you can create chcpbuild.options and put your servers like so:
+    {
+      "production": {
+        "config-file": "https://some/production/server/chcp.json"
+      },
+      "dev": {
+        "config-file": "https://some/dev/server/chcp.json"
+        "local-development": {
+          "enabled": "true"
+        }
+      },
+      "qa": {
+        "config-file": "https://some/qa/server/chcp.json"
+      }
+    }
+
+  File contains list of build options in JSON format.
+  After it is set you can run build command like that:
+    cordova build -- dev
+
+
+*/
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
     chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');

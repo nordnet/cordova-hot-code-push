@@ -12,8 +12,8 @@
     var localDevModeOptions = prepareLocalDevModeOptions(chcpEnvConfig);
 
     return {
-      config_url: chcpEnvConfig.config_url,
-      local_dev_mode: localDevModeOptions
+      config-file: chcpEnvConfig.config_url,
+      local-development: localDevModeOptions
     };
   }
 

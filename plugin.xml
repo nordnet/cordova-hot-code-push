@@ -94,9 +94,9 @@
         target-dir="Events/" />
 
       <!-- sources for JS folder -->
-      <source-file src="src/ios/JS/CDVPluginResult+HCPEvent.m"
+      <source-file src="src/ios/JS/CDVPluginResult+HCPEvents.m"
         target-dir="JS/" />
-      <header-file src="src/ios/JS/CDVPluginResult+HCPEvent.h"
+      <header-file src="src/ios/JS/CDVPluginResult+HCPEvents.h"
         target-dir="JS/" />
 
       <!-- sources for Model folder -->

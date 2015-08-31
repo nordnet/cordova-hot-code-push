@@ -77,7 +77,7 @@
 
     var localDevBlock = {};
     localDevBlock['$'] = {
-      enabled: options.['local-development'].enabled
+      enabled: options['local-development'].enabled
     };
 
     xml['local-development'] = [localDevBlock];

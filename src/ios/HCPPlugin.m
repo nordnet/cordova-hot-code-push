@@ -40,6 +40,8 @@
 
 @end
 
+#pragma mark Local constants declaration
+
 static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 @implementation HCPPlugin
@@ -61,7 +63,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self resetIndexPageToExternalStorage];
     [self loadApplicationConfig];
     
-    [self performUpdateProcedureOnStart];
+    // install update if any exists
+    if (_pluginConfig.isUpdatesAutoInstallationAllowed) {
+        [self _installUpdate:nil];
+    }
 }
 
 - (void)onAppTerminate {
@@ -70,29 +75,26 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 - (void)onResume:(NSNotification *)notification {
-    NSLog(@"onResume is called");
     if (_pluginConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
         [self _installUpdate:nil];
     }
 }
 
-- (void)onPause:(NSNotification *)notification {
-    NSLog(@"onPause is called");
-}
-
 #pragma mark Private API
 
-- (void)performUpdateProcedureOnStart {
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed) {
-        [self _installUpdate:nil];
-    }
-}
-
+/**
+ *  Load application config from file system
+ */
 - (void)loadApplicationConfig {
     id<HCPConfigFileStorage> configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_filesStructure];
     _appConfig = [configStorage loadFromFolder:_filesStructure.wwwFolder];
 }
 
+/**
+ *  Check if www folder already exists on the external storage.
+ *
+ *  @return <code>YES</code> - www folder doesn't exist, we need to install it; <code>NO</code> - folder already installed
+ */
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginConfig.appBuildVersion;
@@ -101,26 +103,38 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return isApplicationUpdated || !isWWwFolderExists;
 }
 
+/**
+ *  Perform initialization of the plugin variables.
+ */
 - (void)doLocalInit {
     _fetchTasks = [[NSMutableArray alloc] init];
     _filesStructure = [[HCPFilesStructureImpl alloc] init];
     
+    // init plugin config
     _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
     _pluginConfig = [HCPPluginConfig loadFromUserDefaults];
     if (_pluginConfig == nil) {
         _pluginConfig = [HCPPluginConfig defaultConfig];
         [_pluginConfig saveToUserDefaults];
     }
-    
     _pluginConfig.configUrl = _pluginXmllConfig.configUrl;
     
+    // init updates loader
     _updatesLoader = [HCPUpdateLoader sharedInstance];
     [_updatesLoader setup:_filesStructure];
     
+    // init updates installer
     _updateInstaller = [HCPUpdateInstaller sharedInstance];
     [_updateInstaller setup:_filesStructure];
 }
 
+/**
+ *  Load update from the server.
+ *
+ *  @param callbackId id of the caller on JavaScript side; it will be used to send back the result of the download process
+ *
+ *  @return <code>YES</code> if download process started; <code>NO</code> otherwise
+ */
 - (BOOL)_fetchUpdate:(NSString *)callbackId {
     if (!_isPluginReadyForWork) {
         return NO;
@@ -132,6 +146,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return taskId != nil;
 }
 
+/**
+ *  Store download callback for later use. 
+ *  Callback is associated with the worker.
+ *
+ *  @param callbackId d of the caller on JavaScript side; it will be used to send back the result of the download process
+ *  @param taskId     worker id, associated with this callback
+ */
 - (void)storeCallback:(NSString *)callbackId forFetchTask:(NSString *)taskId {
     if (callbackId == nil || taskId == nil) {
         return;
@@ -145,6 +166,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
 }
 
+/**
+ *  Get callback, associated with the given worker.
+ *
+ *  @param taskId worker id
+ *
+ *  @return callback id
+ */
 - (NSString *)pollCallbackForTask:(NSString *)taskId {
     NSString *callbackId = nil;
     NSInteger index = -1;
@@ -166,6 +194,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return callbackId;
 }
 
+/**
+ *  Install update.
+ *
+ *  @param callbackID callbackId id of the caller on JavaScript side; it will be used to send back the result of the installation process
+ *
+ *  @return <code>YES</code> if installation has started; <code>NO</code> otherwise
+ */
 - (BOOL)_installUpdate:(NSString *)callbackID {
     if (!_isPluginReadyForWork) {
         return NO;
@@ -173,7 +208,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
     NSError *error = nil;
     if (![_updateInstaller launchUpdateInstallation:&error]) {
-        //TODO: send nothing to update message
+        //TODO: send "nothing to update" message
         return NO;
     }
 
@@ -184,10 +219,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return YES;
 }
 
+/**
+ *  Load given url into the WebView
+ *
+ *  @param url url to load
+ */
 - (void)loadURL:(NSURL *)url {
     [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
+/**
+ *  Redirect user to the index page that is located on the external storage.
+ */
 - (void)resetIndexPageToExternalStorage {
     NSString *currentUrl = self.webView.request.URL.path;
     if ([currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
@@ -212,6 +255,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
 }
 
+/**
+ *  If needed - add path to www folder on the external storage to the provided path.
+ *
+ *  @param pagePath path to which we want add www folder
+ *
+ *  @return resulting path
+ */
 - (NSURL *)appendWwwFolderPathToPath:(NSString *)pagePath {
     if ([pagePath containsString:_filesStructure.wwwFolder.absoluteString]) {
         return [NSURL URLWithString:pagePath];
@@ -220,6 +270,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return [_filesStructure.wwwFolder URLByAppendingPathComponent:pagePath];
 }
 
+/**
+ *  Getter for the starting page relative path.
+ *  Retrieved either from hosting view controller or config.xml.
+ *
+ *  @return index page of the application.
+ */
 - (NSString *)getStartingPagePath {
     NSString *startPage = nil;
     if ([self.viewController isKindOfClass:[CDVViewController class]]) {
@@ -231,6 +287,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return startPage;
 }
 
+/**
+ *  Get index page from config.xml
+ *
+ *  @return index page of the application
+ */
 - (NSString *)getStartingPageFromConfig {
     CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
     
@@ -248,6 +309,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     return DEFAULT_STARTING_PAGE;
 }
 
+/**
+ *  Notify JavaScript module about occured event. 
+ *  For that we will use callback, received on plugin initialization stage.
+ *
+ *  @param result message to send to web side
+ */
 - (void)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
     if (_defaultCallbackID == nil) {
         return;
@@ -259,24 +326,28 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 #pragma mark Events
 
+/**
+ *  Subscribe to different events: lifecycle, plugin specific.
+ */
 - (void)subscribeToEvents {
-    [self subscriveToLifecycleEvents];
-    [self subscribeToCordovaEvents];
-    [self subscriveToPluginInternalEvents];
+    [self subscribeToLifecycleEvents];
+    [self subscribeToPluginInternalEvents];
 }
 
-- (void)subscribeToCordovaEvents {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter addObserver:self selector:@selector(didLoadWebPage:) name:CDVPageDidLoadNotification object:nil];
+/**
+ *  Subscribe to lifecycle events.
+ */
+- (void)subscribeToLifecycleEvents {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(onResume:)
+                                                 name:UIApplicationWillEnterForegroundNotification
+                                               object:nil];
 }
 
-- (void)subscriveToLifecycleEvents {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter addObserver:self selector:@selector(onPause:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-    [notificationCenter addObserver:self selector:@selector(onResume:) name:UIApplicationWillEnterForegroundNotification object:nil];
-}
-
-- (void)subscriveToPluginInternalEvents {
+/**
+ *  Subscrive to plugin workflow events.
+ */
+- (void)subscribeToPluginInternalEvents {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     // bundle installation events
@@ -314,17 +385,21 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                              object:nil];
 }
 
+/**
+ *  Remove subscription. 
+ *  Should be called only when the application is terminated.
+ */
 - (void)unsubscribeFromEvents {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-#pragma mark Cordova events
-
-- (void)didLoadWebPage:(NSNotification *)notification {
-}
-
 #pragma mark Bundle installation events
 
+/**
+ *  Method is called when we successfully installed www folder from bundle onto the external storage
+ *
+ *  @param notification captured notification with event details
+ */
 - (void)onAssetsInstalledOnExternalStorageEvent:(NSNotification *)notification {
     // update stored config with new application build version
     _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
@@ -343,6 +418,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
 }
 
+/**
+ *  Method is called when error occured during the installation for the www folder from bundle on the external storage
+ *
+ *  @param notification captured notification with event details
+ */
 - (void)onAssetsInstallationErrorEvent:(NSNotification *)notification {
     _isPluginReadyForWork = NO;
     
@@ -352,41 +432,64 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 #pragma mark Update download events
 
+/**
+ *  Method is called when error occured during the update download process.
+ *
+ *  @param notification captured notification with event details
+ */
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
     NSLog(@"Error during update: %@", error.userInfo[NSLocalizedDescriptionKey]);
     
+    // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (callbackID) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
     }
     
+    // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
 }
 
+/**
+ *  Method is called when there is nothing new to download from the server.
+ *
+ *  @param notification captured notification with event details.
+ */
 - (void)onNothingToUpdateEvent:(NSNotification *)notification {
     NSLog(@"Nothing to update");
     
+    // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (callbackID) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
     }
     
+    // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
 }
 
+/**
+ *  Method is called when update is loaded and ready for installation.
+ *
+ *  @param notification captured notification with event details
+ */
 - (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
     NSLog(@"Update is ready for installation");
     
+    // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (callbackID) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
     }
+    
+    // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
+    // if it is allowed - launch the installation
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
     if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
@@ -395,27 +498,42 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 #pragma mark Update installation events
 
+/**
+ *  Method is called when error occured during the installation process.
+ *
+ *  @param notification captured notification with the event details
+ */
 - (void)onUpdateInstallationErrorEvent:(NSNotification *)notification {
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
+    // send notification to the caller from the JavaScript side if there was any
     if (_installationCallback) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
         _installationCallback = nil;
     }
     
+    // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
 }
 
+/**
+ *  Method is called when update has been installed.
+ *
+ *  @param notification captured notification with the event details
+ */
 - (void)onUpdateInstalledEvent:(NSNotification *)notification {
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
+    // send notification to the caller from the JavaScript side of there was any
     if (_installationCallback) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
         _installationCallback = nil;
     }
     
+    // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
+    // reload application to the index page
     NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     [self loadURL:startingPageURL];
 }

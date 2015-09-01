@@ -1,3 +1,7 @@
+/**
+Module helps to generate building options for plugin.
+Those options then injected into platform-specific config.xml.
+*/
 (function() {
 
   module.exports = {
@@ -9,23 +13,35 @@
   };
 
   var fs = require('fs'),
-      path = require('path'),
-      chcpLocalDevConfig = require('./chcpLocalDevConfig.js'),
-      cordovaContext,
-      chcpEnvFilePath,
-      chcpBuildOptionsFilePath;
+    path = require('path'),
+    chcpLocalDevConfig = require('./chcpLocalDevConfig.js'),
+    cordovaContext,
+    chcpEnvFilePath,
+    chcpBuildOptionsFilePath;
 
   // region Public API
 
+  /**
+   * Initialize module.
+   * Must be called before calling other methods.
+   *
+   * @param {Object} context - cordova context instance
+   */
   function init(context) {
     cordovaContext = context;
-    chcpEnvFilePath = path.join(cordovaContext.opts.projectRoot,'.chcpenv'),
-    chcpBuildOptionsFilePath = path.join(cordovaContext.opts.projectRoot,'chcpbuild.options');
+    chcpEnvFilePath = path.join(cordovaContext.opts.projectRoot, '.chcpenv');
+    chcpBuildOptionsFilePath = path.join(cordovaContext.opts.projectRoot, 'chcpbuild.options');
   }
 
+  /**
+   * Check if we are building for release.
+   * We determine this by searching for --release options in console arguments.
+   *
+   * @return {boolean} true if we are building for release; false - otherwise
+   */
   function isBuildingForRelease() {
     var isRelease = false;
-    cordovaContext.opts.options.some(function(value){
+    cordovaContext.opts.options.some(function(value) {
       if (value === '--release') {
         isRelease = true;
         return true;
@@ -37,21 +53,36 @@
     return isRelease;
   };
 
-  // options from chcpbuild.options
+  /**
+   * Read options, listed in chcpbuild.options file.
+   *
+   * @return {Object} options from chcpbuild.options file
+   */
   function getBuildOptionsFromConfig() {
     return readBuildConfig();
   };
 
   // options for localdev
+  /**
+   * Construct local development options based on the .chcpenv file.
+   *
+   * @return {Object} local development options
+   */
   function getLocalDevBuildOptions() {
     var environmentConfig = readEnvironmentConfig();
 
     return chcpLocalDevConfig.load(environmentConfig);
   };
 
+  /**
+   * Generate build options depending on the options, provided in console.
+   *
+   * @return {Object} build options; null - if none are found
+   */
   function buildConfigurationBasedOnConsoleOptions() {
     var buildOption = null;
 
+    // load options from the chcpbuild.options file
     var chcpBuildOptions = getBuildOptionsFromConfig();
     if (chcpBuildOptions == null) {
       return null;
@@ -83,8 +114,7 @@
     try {
       var data = fs.readFileSync(filePath);
       objData = JSON.parse(data, 'utf-8');
-    } catch (err) {
-    }
+    } catch (err) {}
 
     return objData;
   }

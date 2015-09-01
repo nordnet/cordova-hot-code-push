@@ -6,10 +6,10 @@ It can be found in https://github.com/nordnet/cordova-hot-code-push-cli.git
 */
 
 var exec = require('child_process').exec,
-    isWindows = /^win/.test(process.platform),
-    chcpCliGitRepository = 'https://github.com/nordnet/cordova-hot-code-push-cli.git',
-    chcpCliPackageName = 'chcp-cli',
-    modules = ['prompt', 'xml2js'];
+  isWindows = /^win/.test(process.platform),
+  chcpCliGitRepository = 'https://github.com/nordnet/cordova-hot-code-push-cli.git',
+  chcpCliPackageName = 'chcp-cli',
+  modules = ['prompt', 'xml2js'];
 
 // region CLI specific
 
@@ -78,7 +78,7 @@ function promptCliInstallation() {
   var schema = {
     properties: {
       install: {
-        description:'(y/n):',
+        description: '(y/n):',
         pattern: /^[yn]{1}$/,
         message: '(y/n)',
         required: true

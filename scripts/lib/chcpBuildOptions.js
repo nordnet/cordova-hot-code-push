@@ -58,7 +58,7 @@
     }
 
     console.log('Supported configurations are:');
-    console.log(chcpBuildOptions);
+    console.log(JSON.stringify(chcpBuildOptions, null, 2));
 
     // get build option depending on the args from console
     var consoleOpts = cordovaContext.opts.options;

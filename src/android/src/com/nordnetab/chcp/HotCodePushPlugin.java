@@ -379,14 +379,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        boolean didLaunchInstall = UpdatesInstaller.install(fileStructure);
-        if (!didLaunchInstall) {
-            return;
-        }
-
         if (jsCallback != null) {
             installJsCallback = jsCallback;
         }
+
+        UpdatesInstaller.install(fileStructure);
     }
 
     // endregion

@@ -8,6 +8,7 @@
 #import "NSError+HCPExtension.h"
 #import "HCPInstallationWorker.h"
 #import "HCPUpdateLoader.h"
+#import "HCPEvents.h"
 
 @interface HCPUpdateInstaller() {
     id<HCPFilesStructure> _filesStructure;
@@ -46,6 +47,7 @@
 
     // check if there is anything to install
     if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
+        [self dispatchNothingToInstallEvent];
         *error = [NSError errorWithCode:0 description:@"Nothing to install"];
         return NO;
     }
@@ -57,6 +59,14 @@
 }
 
 #pragma mark Private API
+
+- (void)dispatchNothingToInstallEvent {
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
+                                                 applicationConfig:nil
+                                                            taskId:nil];
+    
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+}
 
 - (void)execute:(id<HCPWorker>)worker {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

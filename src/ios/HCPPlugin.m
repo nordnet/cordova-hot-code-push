@@ -202,21 +202,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @return <code>YES</code> if installation has started; <code>NO</code> otherwise
  */
 - (BOOL)_installUpdate:(NSString *)callbackID {
-    if (!_isPluginReadyForWork) {
+    if (!_isPluginReadyForWork || [[HCPUpdateInstaller sharedInstance] isInstallationInProgress]) {
         return NO;
     }
-
-    NSError *error = nil;
-    if (![_updateInstaller launchUpdateInstallation:&error]) {
-        //TODO: send "nothing to update" message
-        return NO;
-    }
-
+    
     if (callbackID) {
         _installationCallback = callbackID;
     }
+
+    // ignored for now
+    NSError *error = nil;
     
-    return YES;
+    return [_updateInstaller launchUpdateInstallation:&error];
 }
 
 /**
@@ -383,6 +380,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                            selector:@selector(onUpdateInstalledEvent:)
                                name:kHCPUpdateIsInstalledEvent
                              object:nil];
+    [notificationCenter addObserver:self
+                           selector:@selector(onNothingToInstallEvent:)
+                               name:kHCPNothingToInstallEvent
+                             object:nil];
 }
 
 /**
@@ -497,6 +498,24 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 #pragma mark Update installation events
+
+/**
+ *  Method is called when user requested to install the update, but there is nothing to install.
+ *
+ *  @param notification captured notification with the event details
+ */
+- (void)onNothingToInstallEvent:(NSNotification *)notification {
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
+    
+    // send notification to the caller from the JavaScript side if there was any
+    if (_installationCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
+        _installationCallback = nil;
+    }
+    
+    // send notification to the default callback
+    [self invokeDefaultCallbackWithMessage:pluginResult];
+}
 
 /**
  *  Method is called when error occured during the installation process.

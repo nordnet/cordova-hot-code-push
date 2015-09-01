@@ -72,7 +72,8 @@
 - (void)dispatchEventWithError:(NSError *)error {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateInstallationErrorEvent
                                                  applicationConfig:_newConfig
-                                                            taskId:self.workerId error:error];
+                                                            taskId:self.workerId
+                                                             error:error];
     
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }

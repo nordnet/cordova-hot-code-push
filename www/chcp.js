@@ -1,8 +1,10 @@
-
-
 var exec = require('cordova/exec'),
   channel = require('cordova/channel'),
+
+  // Reference name for the plugin
   PLUGIN_NAME = 'HotCodePush',
+
+  // Plugin methods on the native side that can be called from JavaScript
   pluginNativeMethod = {
     INITIALIZE: 'jsInitPlugin',
     FETCH_UPDATE: 'jsFetchUpdate',
@@ -10,6 +12,10 @@ var exec = require('cordova/exec'),
     CONFIGURE: 'jsConfigure',
     REQUEST_APP_UPDATE: 'jsRequestAppUpdate'
   },
+
+  // List of events, received from native side.
+  // Normally you just don't subscribe for unwanted events,
+  // but if you want to ignore them on module level - set flag to false.
   pluginEvents = {
     'chcp_assetsInstallationError': true,
     'chcp_assetsInstalledOnExternalStorage': true,
@@ -21,12 +27,21 @@ var exec = require('cordova/exec'),
     'chcp_nothingToInstall': true
   };
 
+// Called when Cordova is ready for work.
+// Here we will send default callback to the native side through which it will send to us different events.
 channel.onCordovaReady.subscribe(function() {
   ensureCustomEventExists();
   exec(nativeCallback, null, PLUGIN_NAME, pluginNativeMethod.INITIALIZE, []);
 });
 
+/**
+ * Method is called when native side sends us different events.
+ * Those events can be about update download/installation process.
+ *
+ * @param {String} msg - JSON formatted string with call arguments
+ */
 function nativeCallback(msg) {
+  // parse call arguments
   var resultObj = processMessageFromNative(msg);
   if (resultObj.action == null) {
     console.log('Action is not provided, skipping');
@@ -34,16 +49,28 @@ function nativeCallback(msg) {
   }
 
   var eventIsEnabled = pluginEvents[resultObj.action];
+
+  // if event is not supported - ignore it
   if (eventIsEnabled == undefined || eventIsEnabled == null) {
     console.warn('Unsupported action: ' + resultObj.action);
     return;
   }
 
+  // if event is enabled - broadcast it
   if (eventIsEnabled) {
-    processEventFromNative(resultObj);
+    broadcastEventFromNative(resultObj);
   }
 }
 
+/**
+ * Parse arguments that were sent from the native side.
+ * Arguments are a JSON string of type:
+ * { action: "action identifier", error: {...error data...}, data: {...some additional data..} }
+ * Some parameters may not exist, but the resulting object will have them all.
+ *
+ * @param {String} msg - arguments as JSON string
+ * @return {Object} parsed string
+ */
 function processMessageFromNative(msg) {
   var errorContent = null;
   var dataContent = null;
@@ -72,9 +99,8 @@ function processMessageFromNative(msg) {
 // region Update/Install events
 
 /*
- * Polyfill for adding CustomEvent
- * see : https://developer.mozilla.org/fr/docs/Web/API/CustomEvent
- * It doesn't exist on older versions of Android.
+ * Polyfill for adding CustomEvent which may not exist on older versions of Android.
+ * See https://developer.mozilla.org/fr/docs/Web/API/CustomEvent for more details.
  */
 function ensureCustomEventExists() {
   // Create only if it doesn't exist
@@ -97,7 +123,12 @@ function ensureCustomEventExists() {
   window.CustomEvent = CustomEvent;
 }
 
-function processEventFromNative(nativeMessage) {
+/**
+ * Broadcast event that was received from the native side.
+ *
+ * @param {Object} arguments, received from the native side
+ */
+function broadcastEventFromNative(nativeMessage) {
   var params = {};
   if (nativeMessage.error != null) {
     params.error = nativeMessage.error;
@@ -111,16 +142,20 @@ function processEventFromNative(nativeMessage) {
 
 // endregion
 
-/*
-pluginOptions = {
-  config_url: 'some_url',
-  allow_auto_install: true,
-  allow_auto_download: true
-}
-*/
-
+/**
+ * Public module of the plugin.
+ * May be used by developers to send commands to the plugin.
+ */
 var chcp = {
 
+  /**
+   * Set plugin options.
+   * Options are send to the native side.
+   * As soon as they are processed - callback is called.
+   *
+   * @param {Object} options - options to set
+   * @param {Callback(error)} callback - callback to call when options are set
+   */
   configure: function(options, callback) {
     if (options === undefined || options == null) {
       return;
@@ -136,6 +171,14 @@ var chcp = {
     exec(innerCallback, null, PLUGIN_NAME, pluginNativeMethod.CONFIGURE, [options]);
   },
 
+  /**
+   * Show dialog with the request to update application through the Store (App Store or Google Play).
+   * For that purpose you can use any other cordova library, this is just a small helper method.
+   *
+   * @param {String} message - message to show in the dialog
+   * @param {Callback()} onStoreOpenCallback - called when user redirects to the Store
+   * @param {Callback()} onUserDismissedDialogCallback - called when user declines to go to the Store
+   */
   requestApplicationUpdate: function(message, onStoreOpenCallback, onUserDismissedDialogCallback) {
     if (message == undefined || message.length == 0) {
       return;
@@ -156,6 +199,12 @@ var chcp = {
     exec(onSuccessInnerCallback, onFailureInnerCallback, PLUGIN_NAME, pluginNativeMethod.REQUEST_APP_UPDATE, [message]);
   },
 
+  /**
+   * Check if any new content is available on the server and download it.
+   * Usually this is done automatically by the plugin, but can be triggered at any time from the web page.
+   *
+   * @param {Callback(error, data)} callback - called when native side finished update process
+   */
   fetchUpdate: function(callback) {
     var innerCallback = function(msg) {
       var resultObj = processMessageFromNative(msg);
@@ -167,6 +216,11 @@ var chcp = {
     exec(innerCallback, null, PLUGIN_NAME, pluginNativeMethod.FETCH_UPDATE, []);
   },
 
+  /**
+   * Install update if there is anything to install.
+   *
+   * @param (Callback(error)) callback - called when native side finishes installation process
+   */
   installUpdate: function(callback) {
     var innerCallback = function(msg) {
       var resultObj = processMessageFromNative(msg);

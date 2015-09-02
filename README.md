@@ -6,9 +6,8 @@ This plugin provides functionality to perform automatic updates of the web based
 - iOS 7.0 or above
 
 ## Documentation
-- [Quick start guide](#quick-start-guide)
 - [Installation](#installation)
-- [Description](#description)
+- [Quick start guide](#quick-start-guide)
 - [Cordova config preferences](#cordova-config-preferences)
 - [Configuration files](#configuration-files)
   - [Application config](#application-config)
@@ -19,6 +18,23 @@ This plugin provides functionality to perform automatic updates of the web based
   - [Usage](#javascript-module-usage)
   - [Events](#javascript-module-events)
 - [Examples](#examples)̨
+
+### Installation
+This requires cordova 5.0+ (current stable 0.1)
+```sh
+    cordova plugin add cordova-hot-code-push-plugin
+```
+
+It is also possible to install via repo url directly (__unstable__)
+```sh
+    cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
+```
+
+At the end of the installation plugin will ask you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
+- easily generate necessary configuration files;
+- launch local server to listen for any changes in the web project and deploy new version immediately on the app.
+
+Of course, you can use this plugin without the CLI client, but it will make your life easier. Either way, you can always install it later manually.
 
 ### Quick start guide
 
@@ -95,28 +111,7 @@ Wait until application is launched for both platforms.
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
-### Installation
-This requires cordova 5.0+ (current stable 0.1)
-```sh
-    cordova plugin add cordova-hot-code-push-plugin
-```
-
-It is also possible to install via repo url directly (__unstable__)
-```sh
-    cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
-```
-
-At the end of the installation plugin will ask you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
-- easily generate necessary configuration files;
-- launch local server to listen for any changes in the web project and deploy new version immediately on the app.
-
-Of course, you can use this plugin without the CLI client, but it will make your life easier. Either way, you can always install it later manually.
-
-### Description
-
 ### Cordova config preferences
-
-
 
 ### Configuration files
 

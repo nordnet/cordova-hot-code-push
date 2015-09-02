@@ -113,6 +113,31 @@ From this point you can do local development, where all the changes are uploaded
 
 ### Cordova config preferences
 
+As you probably know, Cordova uses `config.xml` file to set different project preferences: name, description, starting page and so on. Using this config file you can also set options for the plugin.
+
+Those preferences are specified inside the `<chcp>` block. For example:
+
+```xml
+<chcp>
+    <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
+    <local-development enabled="true"/>
+</chcp>
+```
+
+##### config-file
+Defines URL from which application config should be loaded. URL is declared in the `url` property.
+
+In the case of the local development this value is automatically set to the applications config path on the local server.
+
+##### local-development
+Defines if local development mode is activated. If `enabled` is set to `true` - plugin will try to connect to local server via socket and listen for any changes that you make in the `www` folder. For production releases this must be set to `false`.
+
+When you execute
+```sh
+cordova run
+```
+it is automatically set to `true` since we are running in debug mode.
+
 ### Configuration files
 
 Plugin uses two main configuration files for his work:

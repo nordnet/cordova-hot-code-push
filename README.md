@@ -22,7 +22,7 @@ This plugin provides functionality to perform automatic updates of the web based
 
 ### Quick start guide
 
-1. Create new Cordova project using command line interface and add iOS/Android platforms:
+1) Create new Cordova project using command line interface and add iOS/Android platforms:
 ```sh
 cordova create TestProject com.example.testproject TestProject
 cd ./TestProject
@@ -31,7 +31,7 @@ cordova platform add ios
 ```
 Or use the existing one.
 
-2. Add plugin:
+2) Add plugin:
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
 ```
@@ -44,7 +44,7 @@ Would you like to install CLI client for the plugin?(y/n):
 ```
 Say `y` and let it be installed.
 
-3. Run initialization command for deployment:
+3) Run initialization command for deployment:
 ```sh
 cordova-hcp init
 ```
@@ -60,7 +60,7 @@ Please provide: Enter full URL to directory where chcp build result will be uplo
 ```
 As a result `cordova-hcp.json` file will be created in you projects root directory.
 
-4. Start local server by executing:
+4) Start local server by executing:
 ```sh
 cordova-hcp server
 ```
@@ -84,14 +84,14 @@ Connect your app using QR code at: https://5027caf9.ngrok.com/connect
 Connect route for scanner application
 ```
 
-5. Open new console window, go to the project root and launch the app:
+5) Open new console window, go to the project root and launch the app:
 ```sh
 cordova run
 ```
 
 Wait until application is launched for both platforms.
 
-6. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+6) Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 

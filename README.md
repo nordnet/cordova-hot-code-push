@@ -150,14 +150,19 @@ There is also a [build options](#build-options) file which allow you to specify 
 
 #### Application config
 
-Application config holds information about current release of the web project. Simplest example is:
+Application config holds information about the current release of the web project.
+
+Simplest example is:
 ```json
 {
   "content_url": "https://5027caf9.ngrok.com",
   "release": "2015.09.01-13.30.35"
 }
 ```
-Application config should be placed in your `www` folder as `chcp.json` file. It is packed with the application and describes version of the project that is installed on the device from the store.
+
+It should be placed in your `www` folder as `chcp.json` file. It is packed with the application and describes version of the project that is installed on the device from the store.
+
+In the case of the local development this file is created automatically by the `cordova-hcp` utility.
 
 ##### content_url
 URL on the server, where all your project files are located. Plugin will use it as a base url to download content manifest and all updated files.
@@ -176,20 +181,40 @@ Minimum required version of the native application. This should be a build versi
 
 For example, if you add new plugin to the project - most likely it will require native version to update. In order to prevent user from downloading web content that he can't use right now - you increase the `min_native_interface` value.
 
+Lets say, that inside our app we have the following application config:
+```json
+{
+  "content_url": "https://5027caf9.ngrok.com",
+  "release": "2015.09.01-13.30.35",
+  "min_native_interface": 10
+}
+```
+And the build version of our app is `13`.
 
+At some point we release a new version and publish it on the server with the config:
+```json
+{
+  "content_url": "https://5027caf9.ngrok.com",
+  "release": "2015.09.05-12.20.15",
+  "min_native_interface": 15
+}
+```
+
+As a result, when plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then current build version of the app - it's not gonna load new release; instead it will send notification that application update is required.
 
 ##### update
-When to perform update.
+Defines when to perform the update. Supported values are:
+- `start` - install update when application is launched. Used by default.
+- `resume` - install the update when application is resumed from background state.
+- `now` - install update as soon as it has been downloaded.
+
+You can disable automatic installation through the JavaScript. How to do that - read in [JavaScript module](#javascript-module) section.
 
 ##### android_identifier
+Package name of the Android version of the application. If defined - used to redirect user to the applications page on the Google Play Store.
 
 ##### ios_identifier
-
-
-
-
-
-
+Identification number of the application, for example: `id345038631`. If defined - used to redirect user to the applications page on the App Store.
 
 #### Content manifest
 

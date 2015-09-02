@@ -17,7 +17,6 @@ This plugin provides functionality to perform automatic updates of the web based
 - [JavaScript module](#javascript-module)
   - [Usage](#javascript-module-usage)
   - [Events](#javascript-module-events)
-- [Examples](#examples)̨
 
 ### Installation
 This requires cordova 5.0+ (current stable 0.1)
@@ -185,6 +184,7 @@ Lets say, that inside our app we have the following application config:
   "min_native_interface": 10
 }
 ```
+
 And the build version of our app is `13`.
 
 At some point we release a new version and publish it on the server with the config:
@@ -215,7 +215,7 @@ Identification number of the application, for example: `id345038631`. If defined
 #### Content manifest
 
 Content manifest describes the state of the files inside your web project.
-```
+```json
 [
   {
     "file": "index.html",
@@ -235,6 +235,7 @@ Content manifest describes the state of the files inside your web project.
   }
 ]
 ```
+
 Based on it plugin detects which files were removed from the project, which has changed or added. As a result:
 - at the update phase it will load from the server new/updated files;
 - at the installation phase it will remove deleted files.
@@ -263,6 +264,67 @@ MD5 hash of the file. Used to detect if file has been changed since last release
 **Be advised:** always update your `chcp.manifest` file after every change in the files of the web project. Otherwise plugin is not gonna detect any changes and won't update the app.
 
 #### Build options
+
+As described in [Cordova config preferences](#cordova-config-preferences) section - you can change plugin options in the Cordova's `config.xml` file.
+
+But what it you want to change it on the build phase using command line? For that purpose you can use `chcpbuild.options` file.
+
+It must be placed in the root directory of your Cordova project. In it you specify (in JSON) all the preferences you want to add/change in the resulting `config.xml` file. The original `config.xml` (in the projects root directory) is not touсhed, we modify the platform-specific one on `after_prepare` phase.
+
+Lets say, that your Cordova project is located in the `/Cordova/TestProject` folder. Base `config.xml` file (`/Cordova/TestProject/config.xml`) has the following preferences:
+
+```xml
+<chcp>
+  <config-file url="https://company_server.com/mobile/www/chcp.json" />
+</chcp>
+```
+
+Now we create `chcpbuild.options` file inside `/Cordova/Testproject/` and put in it the following content:
+```json
+{
+  "dev": {
+    "config-file": "https://5027caf9.ngrok.com/chcp.json",
+    "local-development": {
+      "enabled": "false"
+    }
+  },
+  "production": {
+    "config-file": "https://company_server.com/mobile/www/chcp.json",
+  },
+  "QA": {
+    "config-file": "https://test.company_server.com/mobile/www/chcp.json"
+  }
+}
+```
+
+In order to build the app, configured to work with development server we can run command:
+```sh
+cordova build -- dev
+```
+As a result, platform-specific `config.xml` file (for example, `/Cordova/TestProject/platforms/android/res/xml/config.xml`) will have:
+```xml
+<chcp>
+  <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
+  <local-development enabled="false"/>
+</chcp>
+```
+
+As soon as application is ready for testing - we can build it, configured to work with test server:
+```sh
+cordova build -- QA
+```
+As a result, plugin-specific `config.xml` file will have:
+```xml
+<chcp>
+  <config-file url="https://test.company_server.com/mobile/www/chcp.json"/>
+</chcp>
+```
+
+As soon as we want to publish our app on the store (Google Play, App Store) we build, as usual, with command:
+```sh
+cordova build --release
+```
+In that case we are not touching `config.xml` in any way.
 
 ### Cordova Hot Code Push CLI client
 

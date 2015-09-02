@@ -461,7 +461,66 @@ From now on we will know, when update is loaded and ready for installation. By u
 
 #### Fetch update
 
+In order to force update check you can call from your web page:
+```js
+chcp.fetchUpdate(updateCallback);
 
+function updateCallback(error, data) {
+  // do some work
+}
+```
+
+Callback function gets called with two parameters:
+- `error` - error if any happened during the update check; `null` if everything went fine;
+- `data` - additional data, sent from the native side. For now it can be ignored.
+
+Let's assume that in `index.html` page we have some button, by clicking on which we want to fetch the update. In order to do that we need to:
+
+1. Subscribe on `click` event.
+2. Call `chcp.fetchUpdate()` when button is clicked.
+3. Handle update result.
+
+So, lets modify our `index.js` file:
+```js
+var app = {
+
+  // Application Constructor
+  initialize: function() {
+    this.bindEvents();
+  },
+
+  // Bind any events that are required.
+  // Usually you should subscribe on 'deviceready' event to know, when you can start calling cordova modules
+  bindEvents: function() {
+    document.addEventListener('deviceready', this.onDeviceReady, false);
+  },
+
+  // deviceready Event Handler
+  onDeviceReady: function() {
+    // Add click event listener for our update button.
+    // We do this here, because at this point Cordova modules are initialized.
+    // Before that chcp is undefined.
+    document.getElementById("myFetchBtn").addEventListener("click", app.checkForUpdate);
+  },
+
+  checkForUpdate: function() {
+    chcp.fetchUpdate(this.fetchUpdateCallback);
+  },
+
+  fetchUpdateCallback: function(error, data) {
+    if (error) {
+      console.log('Failed to load the update with error code: ' + error.code);
+      console.log(error.description);
+    } else {
+      console.log('Update is loaded');
+    }
+  }
+};
+
+app.initialize();
+```
+
+**Be advised:** even if you call `fetchUpdate` method with a callback function - update related events are still broadcasted.
 
 #### Install update
 

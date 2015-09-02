@@ -165,16 +165,12 @@ It should be placed in your `www` folder as `chcp.json` file. It is packed with 
 In the case of the local development this file is created automatically by the `cordova-hcp` utility.
 
 ##### content_url
-URL on the server, where all your project files are located. Plugin will use it as a base url to download content manifest and all updated files.
-
-**Option is mandatory**
+URL on the server, where all your project files are located. Plugin will use it as a base url to download content manifest and all updated files. **This is a required option**.
 
 ##### release
-Any string that describes your web project version. Based on it plugin will detect if new content is available for download.
+Any string that describes your web project version. Based on it plugin will detect if new content is available for download. **This is a required option**.
 
 **Be advised:** plugin will compare release values as strings for equality, and if they are not equal - it will decide that new release is available.
-
-**Option is mandatory**
 
 ##### min_native_interface
 Minimum required version of the native application. This should be a build version of the app. Can be used to add dependency between the web and the native versions of the application.

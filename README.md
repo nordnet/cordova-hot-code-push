@@ -341,10 +341,23 @@ It's repository and documentation can be found [here](https://github.com/nordnet
 
 ### JavaScript module
 
+By default, all update checking->downloading->installation is performed automatically by the plugins native side. No additional code on the web side is required. However, those processes can be controlled through the corresponding JavaScript module.
+
+It allows you to:
+- subscribe for update related events;
+- check and download new releases from the server;
+- install loaded updates;
+- change plugin preferences;
+- request user to download new version of the app from the store.
+
+#### Listen for update events
 
 
-#### Usage
 
+#### Fetch update
 
+#### Install update
 
-#### Events
+#### Change plugin preferences on runtime
+
+#### Request application update through the store

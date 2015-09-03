@@ -9,9 +9,9 @@
 
 #pragma mark JSON keys for plugin options
 
-static NSString *const ALLOW_UPDATES_AUTO_DOWNLOAD = @"allow_auto_download";
-static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"allow_auto_install";
-static NSString *const CONFIG_URL = @"config_url";
+static NSString *const ALLOW_UPDATES_AUTO_DOWNLOAD = @"auto-download";
+static NSString *const ALLOW_UPDATE_AUTO_INSTALL = @"auto-install";
+static NSString *const CONFIG_URL = @"config-file";
 static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 
 @implementation HCPPluginConfig

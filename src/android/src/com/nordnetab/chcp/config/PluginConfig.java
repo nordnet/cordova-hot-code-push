@@ -28,9 +28,9 @@ import java.io.IOException;
 public class PluginConfig {
 
     private static class JsonKeys {
-        public static final String ALLOW_UPDATES_AUTO_DOWNLOAD = "allow_auto_download";
-        public static final String ALLOW_UPDATE_AUTO_INSTALL = "allow_auto_install";
-        public static final String CONFIG_URL = "config_url";
+        public static final String ALLOW_UPDATES_AUTO_DOWNLOAD = "auto-download";
+        public static final String ALLOW_UPDATE_AUTO_INSTALL = "auto-install";
+        public static final String CONFIG_URL = "config-file";
         public static final String APPLICATION_BUILD_VERSION = "app_build_version";
     }
 

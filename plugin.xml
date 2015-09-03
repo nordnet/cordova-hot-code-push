@@ -72,15 +72,20 @@
       <header-file src="src/ios/Config/HCPLocalDevOptions.h"
         target-dir="Config/" />
 
-      <source-file src="src/ios/Config/HCPPluginConfig.m"
+      <source-file src="src/ios/Config/HCPPluginInternalPreferences.m"
         target-dir="Config/" />
-      <header-file src="src/ios/Config/HCPPluginConfig.h"
+      <header-file src="src/ios/Config/HCPPluginInternalPreferences.h"
         target-dir="Config/" />
 
       <source-file src="src/ios/Config/HCPXmlConfig.m"
         target-dir="Config/" />
       <header-file src="src/ios/Config/HCPXmlConfig.h"
         target-dir="Config/" />
+
+        <source-file src="src/ios/Config/HCPXmlTags.m"
+          target-dir="Config/" />
+        <header-file src="src/ios/Config/HCPXmlTags.h"
+          target-dir="Config/" />
 
       <source-file src="src/ios/Config/HCPXmlConfigParser.m"
         target-dir="Config/" />
@@ -161,9 +166,9 @@
       <header-file src="src/ios/Storage/HCPContentManifestStorage.h"
         target-dir="Storage/" />
 
-      <source-file src="src/ios/Storage/HCPPluginConfig+UserDefaults.m"
+      <source-file src="src/ios/Storage/HCPPluginInternalPreferences+UserDefaults.m"
         target-dir="Storage/" />
-      <header-file src="src/ios/Storage/HCPPluginConfig+UserDefaults.h"
+      <header-file src="src/ios/Storage/HCPPluginInternalPreferences+UserDefaults.h"
         target-dir="Storage/" />
 
       <!-- sources for Updater folder -->

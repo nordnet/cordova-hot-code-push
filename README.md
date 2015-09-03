@@ -737,3 +737,19 @@ app.initialize();
 ```
 
 #### Error codes
+
+During the update download/installation process some errors can occur. To identify them you can use error codes that are listed below.
+
+- `-1` - failed to download new application config from the server. Either file doesn't exist or some internet connection problems.
+- `-2` - application's build version is too low for this update. New web release requires newer version of the app. User must update it through the store.
+- `-3` - failed to download new content manifest file from the server. Check that `chcp.manifest` file is placed in the root of your `content_url`, specified in the application config.
+- `-4` - failed to download updated/new files from the server. Check your `chcp.manifest` file: all listed files must be placed in the `content_url` from the application config. Also, check their hashes: they must match to the hashes in the `chcp.manifest`.
+- `-5` - failed to move downloaded files to the installation folder. Can occur when there is no free space on the device.
+- `-6` - update package is broken. Before installing anything plugin validates downloaded files once more by checking their hashes with the one that specified in the loaded `chcp.manifest` file. If they doesn't match or we are missing some file - this error is thrown.
+- `-7` - could not create backup before the installation. Can occur if device is out of free space. We need a backup in the case if something will go wrong during the installation so we could rollback.
+- `-8` - failed to copy new files to content directory. Can occur during the installation if there is not enough free space on device storage.
+- `-9` - failed to load current application config from the local storage. Can occur if user manually deleted plugin working directories from the external storage. If so - folders will be restored on the next launch.
+- `-10` - failed to load current manifest file from the local storage. Can occur if user manually deleted plugin working directories from the external storage. If so - folders will be restored on the next launch.
+- `-11` - failed to load new version of the application config from download folder (local storage). Can occur on installation process if user deletes plugin working directories from the external storage. If so - folders will be restored on the next launch.
+- `-12` - failed to load new version of the content manifest from download folder (local storage). Can occur on installation process if user deletes plugin working directories from the external storage. If so - folders will be restored on the next launch.
+- `-13` - failed to copy web project files from application bundle into external storage. Can occur if there is not enough free space on the users device. Action is performed on the first launch of the application. If it fails - plugin can't do it's job.

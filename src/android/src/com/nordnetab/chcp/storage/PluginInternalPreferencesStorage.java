@@ -3,18 +3,18 @@ package com.nordnetab.chcp.storage;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.nordnetab.chcp.config.PluginConfig;
+import com.nordnetab.chcp.config.PluginInternalPreferences;
 
 /**
  * Created by Nikolay Demyankov on 28.07.15.
  * <p/>
- * Utility class to store plugin config in shared preferences
+ * Utility class to store plugin internal preferences in shared preferences
  *
- * @see PluginConfig
+ * @see PluginInternalPreferences
  * @see IObjectPreferenceStorage
  * @see SharedPreferences
  */
-public class PluginConfigStorage implements IObjectPreferenceStorage<PluginConfig> {
+public class PluginInternalPreferencesStorage implements IObjectPreferenceStorage<PluginInternalPreferences> {
 
     private static final String PREF_FILE_NAME = "chcp_plugin_config_pref";
     private static final String PREF_KEY = "config_json";
@@ -26,12 +26,12 @@ public class PluginConfigStorage implements IObjectPreferenceStorage<PluginConfi
      *
      * @param context application context
      */
-    public PluginConfigStorage(Context context) {
+    public PluginInternalPreferencesStorage(Context context) {
         preferences = context.getSharedPreferences(PREF_FILE_NAME, 0);
     }
 
     @Override
-    public boolean storeInPreference(PluginConfig config) {
+    public boolean storeInPreference(PluginInternalPreferences config) {
         if (config == null) {
             return false;
         }
@@ -42,12 +42,12 @@ public class PluginConfigStorage implements IObjectPreferenceStorage<PluginConfi
     }
 
     @Override
-    public PluginConfig loadFromPreference() {
+    public PluginInternalPreferences loadFromPreference() {
         final String configJson = preferences.getString(PREF_KEY, null);
         if (configJson == null) {
             return null;
         }
 
-        return PluginConfig.fromJson(configJson);
+        return PluginInternalPreferences.fromJson(configJson);
     }
 }

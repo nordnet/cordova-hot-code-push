@@ -13,7 +13,7 @@ import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
-import com.nordnetab.chcp.config.PluginConfig;
+import com.nordnetab.chcp.config.PluginInternalPreferences;
 import com.nordnetab.chcp.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.events.AssetsInstalledEvent;
 import com.nordnetab.chcp.events.NothingToInstallEvent;
@@ -30,7 +30,7 @@ import com.nordnetab.chcp.model.UpdateTime;
 import com.nordnetab.chcp.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.storage.IObjectFileStorage;
 import com.nordnetab.chcp.storage.IObjectPreferenceStorage;
-import com.nordnetab.chcp.storage.PluginConfigStorage;
+import com.nordnetab.chcp.storage.PluginInternalPreferencesStorage;
 import com.nordnetab.chcp.updater.UpdatesInstaller;
 import com.nordnetab.chcp.updater.UpdatesLoader;
 import com.nordnetab.chcp.utils.AssetsHelper;
@@ -67,8 +67,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private String startingPage;
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
-    private PluginConfig pluginConfig;
-    private IObjectPreferenceStorage<PluginConfig> pluginConfigStorage;
+    private PluginInternalPreferences pluginInternalPrefs;
+    private IObjectPreferenceStorage<PluginInternalPreferences> pluginInternalPrefsStorage;
     private ChcpXmlConfig chcpXmlConfig;
     private IPluginFilesStructure fileStructure;
 
@@ -117,7 +117,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         fileStructure = new PluginFilesStructureImpl(cordova.getActivity());
 
         parseCordovaConfigXml();
-        loadPluginConfig();
+        loadPluginInternalPreferences();
 
         appConfigStorage = new ApplicationConfigStorage(fileStructure);
     }
@@ -143,7 +143,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         redirectToLocalStorage();
 
         // install update if there is anything to install
-        if (pluginConfig.isAutoInstallIsAllowed()) {
+        if (chcpXmlConfig.isAutoInstallIsAllowed()) {
             installUpdate(null);
         }
     }
@@ -156,7 +156,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        if (pluginConfig.isAutoInstallIsAllowed()) {
+        if (chcpXmlConfig.isAutoInstallIsAllowed()) {
             ApplicationConfig appConfig = appConfigStorage.loadFromFolder(fileStructure.installationFolder());
             if (appConfig != null && appConfig.getContentConfig().getUpdateTime() == UpdateTime.ON_RESUME) {
                 installUpdate(null);
@@ -190,28 +190,23 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     /**
-     * Load plugin config from preferences.
+     * Load plugin internal preferences.
      *
-     * @see PluginConfig
-     * @see PluginConfigStorage
+     * @see PluginInternalPreferences
+     * @see PluginInternalPreferencesStorage
      */
-    private void loadPluginConfig() {
-        if (pluginConfig != null) {
+    private void loadPluginInternalPreferences() {
+        if (pluginInternalPrefs != null) {
             return;
         }
 
-        pluginConfigStorage = new PluginConfigStorage(cordova.getActivity());
-        PluginConfig config = pluginConfigStorage.loadFromPreference();
+        pluginInternalPrefsStorage = new PluginInternalPreferencesStorage(cordova.getActivity());
+        PluginInternalPreferences config = pluginInternalPrefsStorage.loadFromPreference();
         if (config == null) {
-            config = PluginConfig.createDefaultConfig(cordova.getActivity(), preferences);
-            pluginConfigStorage.storeInPreference(config);
+            config = PluginInternalPreferences.createDefault(cordova.getActivity());
+            pluginInternalPrefsStorage.storeInPreference(config);
         }
-        pluginConfig = config;
-
-        // Always set config url from cordova.xml.
-        // Maybe later we can change this so it would do that only if application
-        // was updated through Google Play.
-        pluginConfig.setConfigUrl(chcpXmlConfig.getConfigUrl());
+        pluginInternalPrefs = config;
     }
 
     // endregion
@@ -284,7 +279,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         });
 
         // fetch update when we are initialized
-        if (pluginConfig.isAutoDownloadIsAllowed()) {
+        if (chcpXmlConfig.isAutoDownloadIsAllowed()) {
             fetchUpdate(null);
         }
     }
@@ -298,8 +293,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
         try {
             JSONObject jsonObject = (JSONObject) arguments.get(0);
-            pluginConfig.mergeOptionsFromJs(jsonObject);
-            pluginConfigStorage.storeInPreference(pluginConfig);
+            chcpXmlConfig.mergeOptionsFromJs(jsonObject);
+            // TODO: store them somewhere?
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -362,7 +357,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), pluginConfig.getConfigUrl(), fileStructure);
+        String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), chcpXmlConfig.getConfigUrl(), fileStructure);
         if (jsCallback != null) {
             putFetchTaskJsCallback(taskId, jsCallback);
         }
@@ -405,7 +400,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @return <code>true</code> if application was update; <code>false</code> - otherwise
      */
     private boolean isApplicationHasBeenUpdated() {
-        return pluginConfig.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
+        return pluginInternalPrefs.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
     }
 
     /**
@@ -470,8 +465,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @SuppressWarnings("unused")
     public void onEvent(AssetsInstalledEvent event) {
         // update stored application version
-        pluginConfig.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
-        pluginConfigStorage.storeInPreference(pluginConfig);
+        pluginInternalPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
+        pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
 
         isPluginReadyForWork = true;
 
@@ -568,7 +563,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         sendMessageToDefaultCallback(jsResult);
 
         // perform installation if allowed
-        if (pluginConfig.isAutoInstallIsAllowed()
+        if (chcpXmlConfig.isAutoInstallIsAllowed()
                 && (event.applicationConfig().getContentConfig().getUpdateTime() == UpdateTime.NOW)) {
             installUpdate(null);
         }
@@ -719,7 +714,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      */
     private void connectToLocalDevSocket() {
         try {
-            URL serverURL = new URL(pluginConfig.getConfigUrl());
+            URL serverURL = new URL(chcpXmlConfig.getConfigUrl());
             String socketUrl = serverURL.getProtocol() + "://" + serverURL.getAuthority();
 
             devSocket = IO.socket(socketUrl);

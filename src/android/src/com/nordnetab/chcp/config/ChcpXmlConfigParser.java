@@ -15,20 +15,6 @@ import org.xmlpull.v1.XmlPullParser;
  */
 class ChcpXmlConfigParser extends ConfigXmlParser {
 
-    // plugin specific xml keys and attributes in config.xml
-    private static class Keys {
-
-        public static final String MAIN_TAG = "chcp";
-
-        // keys for application config file url
-        public static final String CONFIG_FILE_TAG = "config-file";
-        public static final String CONFIG_FILE_URL_ATTRIBUTE = "url";
-
-        // keys for local development
-        public static final String LOCAL_DEVELOPMENT_TAG = "local-development";
-        public static final String LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = "enabled";
-    }
-
     private ChcpXmlConfig chcpConfig;
 
     private boolean isInsideChcpBlock;
@@ -54,31 +40,59 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
     @Override
     public void handleStartTag(XmlPullParser xml) {
         String name = xml.getName();
-        if (name.equals(Keys.MAIN_TAG)) {
+        if (name.equals(XmlTags.MAIN_TAG)) {
             isInsideChcpBlock = true;
             return;
         }
 
+        // proceed only if we are parsing our plugin preferences
         if (!isInsideChcpBlock) {
             return;
         }
 
-        if (name.equals(Keys.LOCAL_DEVELOPMENT_TAG)) {
-            boolean isDevModeEnabled = xml.getAttributeValue(null, Keys.LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE).equals("true");
-            chcpConfig.getDevelopmentOptions().setEnabled(isDevModeEnabled);
-
+        // parse local development options
+        if (name.equals(XmlTags.LOCAL_DEVELOPMENT_TAG)) {
+            processLocalDevelopmentBlock(xml);
             return;
         }
 
-        if (name.equals(Keys.CONFIG_FILE_TAG)) {
+        // parse configuration file preference
+        if (name.equals(XmlTags.CONFIG_FILE_TAG)) {
             processConfigFileBlock(xml);
+            return;
+        }
+
+        // parse auto download preference
+        if (name.equals(XmlTags.AUTO_DOWNLOAD_TAG)) {
+            processAutoDownloadBlock(xml);
+            return;
+        }
+
+        // parse auto installation preference
+        if (name.equals(XmlTags.AUTO_INSTALLATION_TAG)) {
+            processAutoInstallationBlock(xml);
         }
     }
 
+    private void processLocalDevelopmentBlock(XmlPullParser xml) {
+        boolean isDevModeEnabled = xml.getAttributeValue(null, XmlTags.LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.getDevelopmentOptions().setEnabled(isDevModeEnabled);
+    }
+
     private void processConfigFileBlock(XmlPullParser xml) {
-        String configUrl = xml.getAttributeValue(null, Keys.CONFIG_FILE_URL_ATTRIBUTE);
+        String configUrl = xml.getAttributeValue(null, XmlTags.CONFIG_FILE_URL_ATTRIBUTE);
 
         chcpConfig.setConfigUrl(configUrl);
+    }
+
+    private void processAutoDownloadBlock(XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_DOWNLOAD_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.allowUpdatesAutoDownload(isEnabled);
+    }
+
+    private void processAutoInstallationBlock(XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_INSTALLATION_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.allowUpdatesAutoInstall(isEnabled);
     }
 
     @Override
@@ -88,7 +102,7 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         }
 
         String name = xml.getName();
-        if (name.equals(Keys.MAIN_TAG)) {
+        if (name.equals(XmlTags.MAIN_TAG)) {
             didParseChcpBlock = true;
             isInsideChcpBlock = false;
         }

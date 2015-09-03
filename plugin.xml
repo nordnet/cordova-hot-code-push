@@ -279,14 +279,16 @@
         target-dir="src/com/nordnetab/chcp/config" />
       <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
         target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/PluginConfig.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/config/PluginInternalPreferences.java"
         target-dir="src/com/nordnetab/chcp/config" />
       <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfig.java"
         target-dir="src/com/nordnetab/chcp/config" />
       <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfigParser.java"
         target-dir="src/com/nordnetab/chcp/config" />
       <source-file src="src/android/src/com/nordnetab/chcp/config/DevelopmentOptions.java"
-          target-dir="src/com/nordnetab/chcp/config" />
+        target-dir="src/com/nordnetab/chcp/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/config/XmlTags.java"
+        target-dir="src/com/nordnetab/chcp/config" />
 
       <!-- sources for package: com.nordnetab.chcp.events -->
       <source-file src="src/android/src/com/nordnetab/chcp/events/AssetsInstallationErrorEvent.java"
@@ -310,7 +312,7 @@
       <source-file src="src/android/src/com/nordnetab/chcp/events/UpdateIsReadyToInstallEvent.java"
         target-dir="src/com/nordnetab/chcp/events" />
       <source-file src="src/android/src/com/nordnetab/chcp/events/WorkerEvent.java"
-          target-dir="src/com/nordnetab/chcp/events" />
+        target-dir="src/com/nordnetab/chcp/events" />
 
       <!-- sources for package: com.nordnetab.chcp.network -->
       <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
@@ -331,7 +333,7 @@
         target-dir="src/com/nordnetab/chcp/storage" />
       <source-file src="src/android/src/com/nordnetab/chcp/storage/FileStorageAbs.java"
         target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginConfigStorage.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginInternalPreferencesStorage.java"
         target-dir="src/com/nordnetab/chcp/storage" />
       <source-file src="src/android/src/com/nordnetab/chcp/storage/IObjectFileStorage.java"
         target-dir="src/com/nordnetab/chcp/storage" />

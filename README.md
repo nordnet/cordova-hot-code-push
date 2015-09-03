@@ -152,6 +152,28 @@ cordova run
 ```
 it is automatically set to `true` since we are running in debug mode.
 
+#####  auto-download
+Defines if plugin is allowed to download updates. Originally update fetching is performed automatically, but you can disable it and do that manually through the JavaScript module.
+
+To disable updates auto downloads add to `config.xml`:
+```xml
+<chcp>
+  <auto-download enabled="false" />
+</chcp>
+```
+By default preference is set to `true`.
+
+##### auto-install
+Defines if plugin is allowed to install updates. Originally update installation is performed automatically, but you can disable it and do that manually through the JavaScript module.
+
+To disable updates auto installation add to `config.xml`:
+```xml
+<chcp>
+  <auto-install enabled="true" />
+</chcp>
+```
+By default preference is set to `true`.
+
 ### Configuration files
 
 Plugin uses two main configuration files for his work:

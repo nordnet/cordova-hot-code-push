@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.events;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
+import com.nordnetab.chcp.model.ChcpError;
 
 /**
  * Created by Nikolay Demyankov on 25.08.15.
@@ -18,7 +19,7 @@ public class NothingToUpdateEvent extends WorkerEvent {
      * @param config application config that was used for update download
      */
     public NothingToUpdateEvent(String taskId, ApplicationConfig config) {
-        super(EVENT_NAME, null, taskId, config);
+        super(EVENT_NAME, ChcpError.NOTHING_TO_UPDATE, taskId, config);
     }
 
 }

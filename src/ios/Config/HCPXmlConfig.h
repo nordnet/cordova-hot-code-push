@@ -16,7 +16,21 @@
  *  URL to application config, that is stored on the server.
  *  This is a path to chcp.json file.
  */
-@property (nonatomic, strong, readonly) NSURL *configUrl;
+@property (nonatomic, strong) NSURL *configUrl;
+
+/**
+ *  Flag that indicates if updates auto download is allowed. By default - <code>YES</code>.
+ *
+ *  @return <code>YES</code> if auto download is allowed; <code>NO</code> if auto download is disabled
+ */
+@property (nonatomic, getter=isUpdatesAutoDowloadAllowed) BOOL allowUpdatesAutoDownload;
+
+/**
+ *  Flag that indicates if updates auto installation is allowed. By default - <code>YES</code>.
+ *
+ *  @return <code>YES</code> if auto installation is allowed; <code>NO</code> if auto installation is disabled
+ */
+@property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
 
 /**
  *  Local development options.
@@ -26,14 +40,12 @@
 @property (nonatomic, strong, readonly) HCPLocalDevOptions *devOptions;
 
 /**
- *  Object initializer
+ *  Apply and save options that has been send from the web page.
+ *  Using this we can change plugin config from JavaScript.
  *
- *  @param configUrl  url to the config file on the server
- *  @param devOptions development options
- *
- *  @return object instance
+ *  @param jsOptions options that are sent from web side.
  */
-- (instancetype)initWithConfigUrl:(NSURL *)configUrl developerOptions:(HCPLocalDevOptions *)devOptions;
+- (void)mergeOptionsFromJS:(NSDictionary *)jsOptions;
 
 /**
  *  Load object from config.xml

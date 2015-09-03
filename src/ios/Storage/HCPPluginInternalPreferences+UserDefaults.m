@@ -4,11 +4,11 @@
 //  Created by Nikolay Demyankov on 13.08.15.
 //
 
-#import "HCPPluginConfig+UserDefaults.h"
+#import "HCPPluginInternalPreferences+UserDefaults.h"
 
 static NSString *const PLUGIN_CONFIG_USER_DEFAULTS_KEY = @"plugin_config";
 
-@implementation HCPPluginConfig (UserDefaults)
+@implementation HCPPluginInternalPreferences (UserDefaults)
 
 - (void)saveToUserDefaults {
     id json = [self toJson];
@@ -18,11 +18,11 @@ static NSString *const PLUGIN_CONFIG_USER_DEFAULTS_KEY = @"plugin_config";
     [userDefaults synchronize];
 }
 
-+ (HCPPluginConfig *)loadFromUserDefaults {
++ (HCPPluginInternalPreferences *)loadFromUserDefaults {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     id json = [userDefaults objectForKey:PLUGIN_CONFIG_USER_DEFAULTS_KEY];
     if (json) {
-        return [HCPPluginConfig instanceFromJsonObject:json];
+        return [HCPPluginInternalPreferences instanceFromJsonObject:json];
     }
     
     return nil;

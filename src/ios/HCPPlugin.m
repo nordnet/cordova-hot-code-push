@@ -14,7 +14,7 @@
 #import "HCPFilesStructureImpl.h"
 #import "HCPUpdateLoader.h"
 #import "HCPEvents.h"
-#import "HCPPluginConfig+UserDefaults.h"
+#import "HCPPluginInternalPreferences+UserDefaults.h"
 #import "HCPUpdateInstaller.h"
 #import "NSJSONSerialization+HCPExtension.h"
 #import "CDVPluginResult+HCPEvents.h"
@@ -28,7 +28,7 @@
     HCPUpdateLoader *_updatesLoader;
     NSString *_defaultCallbackID;
     BOOL _isPluginReadyForWork;
-    HCPPluginConfig *_pluginConfig;
+    HCPPluginInternalPreferences *_pluginInternalPrefs;
     HCPUpdateInstaller *_updateInstaller;
     NSMutableArray *_fetchTasks;
     NSString *_installationCallback;
@@ -64,7 +64,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self loadApplicationConfig];
     
     // install update if any exists
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed) {
+    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed) {
         [self _installUpdate:nil];
     }
 }
@@ -75,7 +75,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 - (void)onResume:(NSNotification *)notification {
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
+    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
         [self _installUpdate:nil];
     }
 }
@@ -97,7 +97,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginConfig.appBuildVersion;
+    BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginInternalPrefs.appBuildVersion;
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     
     return isApplicationUpdated || !isWWwFolderExists;
@@ -110,14 +110,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     _fetchTasks = [[NSMutableArray alloc] init];
     _filesStructure = [[HCPFilesStructureImpl alloc] init];
     
-    // init plugin config
+    // init plugin config from xml
     _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
-    _pluginConfig = [HCPPluginConfig loadFromUserDefaults];
-    if (_pluginConfig == nil) {
-        _pluginConfig = [HCPPluginConfig defaultConfig];
-        [_pluginConfig saveToUserDefaults];
+    
+    // load plugin internal preferences
+    _pluginInternalPrefs = [HCPPluginInternalPreferences loadFromUserDefaults];
+    if (_pluginInternalPrefs == nil) {
+        _pluginInternalPrefs = [HCPPluginInternalPreferences defaultConfig];
+        [_pluginInternalPrefs saveToUserDefaults];
     }
-    _pluginConfig.configUrl = _pluginXmllConfig.configUrl;
     
     // init updates loader
     _updatesLoader = [HCPUpdateLoader sharedInstance];
@@ -140,7 +141,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return NO;
     }
     
-    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginConfig.configUrl];
+    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl];
     [self storeCallback:callbackId forFetchTask:taskId];
     
     return taskId != nil;
@@ -403,8 +404,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)onAssetsInstalledOnExternalStorageEvent:(NSNotification *)notification {
     // update stored config with new application build version
-    _pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
-    [_pluginConfig saveToUserDefaults];
+    _pluginInternalPrefs.appBuildVersion = [NSBundle applicationBuildVersion];
+    [_pluginInternalPrefs saveToUserDefaults];
     
     // allow work
     _isPluginReadyForWork = YES;
@@ -414,7 +415,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // fetch update
     [self loadApplicationConfig];
-    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+    if (_pluginXmllConfig.isUpdatesAutoDowloadAllowed) {
         [self _fetchUpdate:nil];
     }
 }
@@ -492,7 +493,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // if it is allowed - launch the installation
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
-    if (_pluginConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
     }
 }
@@ -562,7 +563,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
     
-    if (_pluginConfig.isUpdatesAutoDowloadAllowed) {
+    if (_pluginXmllConfig.isUpdatesAutoDowloadAllowed) {
         [self _fetchUpdate:nil];
     }
 }
@@ -579,8 +580,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return;
     }
     
-    [_pluginConfig mergeOptionsFromJS:options];
-    [_pluginConfig saveToUserDefaults];
+    [_pluginXmllConfig mergeOptionsFromJS:options];
+    // TODO: store them somewhere?
     
     [self.commandDelegate sendPluginResult:nil callbackId:command.callbackId];
 }
@@ -629,18 +630,21 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return;
     }
     
-    NSString *devServerURL = [_pluginConfig.configUrl URLByDeletingLastPathComponent].absoluteString;
+    NSString *devServerURL = [_pluginXmllConfig.configUrl URLByDeletingLastPathComponent].absoluteString;
     devServerURL = [devServerURL substringToIndex:devServerURL.length-1];
     
-    _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL options:nil];
-    [_socketIOClient on:@"connect" callback:^(NSArray* data, void (^ack)(NSArray*)) {
-        NSLog(@"socket connected");
-    }];
-    [_socketIOClient on:@"release" callback:^(NSArray* data, void (^ack)(NSArray*)) {
-        [self _fetchUpdate:nil];
-    }];
-    [_socketIOClient connect];
-
+    @try {
+        _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL options:nil];
+        [_socketIOClient on:@"connect" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+            NSLog(@"socket connected");
+        }];
+        [_socketIOClient on:@"release" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+            [self _fetchUpdate:nil];
+        }];
+        [_socketIOClient connect];
+    } @catch (NSException *e) {
+        NSLog(@"Exception: %@", e);
+    }
 }
 
 - (void)disconnectFromDevServer {

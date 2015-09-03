@@ -6,44 +6,21 @@
 
 #import "HCPXmlConfigParser.h"
 #import "HCPLocalDevOptions.h"
+#import "NSBundle+HCPExtension.h"
+#import "HCPXmlTags.h"
 
 @interface HCPXmlConfigParser() <NSXMLParserDelegate> {
     BOOL _didParseCHCPBlock;
     BOOL _isInCHCPBlock;
     
-    NSURL *_configUrl;
-    HCPLocalDevOptions *_devOptions;
+    HCPXmlConfig *_xmlConfig;
 }
 
-@property (nonatomic, retain) NSURL *configXmlFileURL;
-
 @end
-
-#pragma mark Plugin specific preference keys in config.xml
-
-static NSString *const MAIN_TAG = @"chcp";
-
-// Keys for processing application config location on the server
-static NSString *const CONFIG_FILE_TAG = @"config-file";
-static NSString *const CONFIG_FILE_URL_ATTRIBUTE = @"url";
-
-// Keys for processing local development options
-static NSString *const LOCAL_DEVELOPMENT_TAG = @"local-development";
-static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
 
 @implementation HCPXmlConfigParser
 
 #pragma mark Public API
-
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        NSString *filePath = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
-        self.configXmlFileURL = [NSURL fileURLWithPath:filePath];
-    }
-    
-    return self;
-}
 
 + (HCPXmlConfig *)parse {
     HCPXmlConfigParser *parser = [[HCPXmlConfigParser alloc] init];
@@ -52,16 +29,18 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
 }
 
 - (HCPXmlConfig *)parseConfig {
-    NSXMLParser *configParser = [[NSXMLParser alloc] initWithContentsOfURL:self.configXmlFileURL];
+    NSURL *cordovaConfigURL = [NSURL fileURLWithPath:[NSBundle pathToCordovaConfigXml]];
+    NSXMLParser *configParser = [[NSXMLParser alloc] initWithContentsOfURL:cordovaConfigURL];
     if (configParser == nil) {
         NSLog(@"Failed to initialize XML parser.");
         return nil;
     }
     
+    _xmlConfig = [[HCPXmlConfig alloc] init];
     [configParser setDelegate:self];
     [configParser parse];
     
-    return [[HCPXmlConfig alloc] initWithConfigUrl:_configUrl developerOptions:_devOptions];
+    return _xmlConfig;
 }
 
 #pragma mark NSXMLParserDelegate implementation
@@ -71,7 +50,7 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
         return;
     }
     
-    if ([elementName isEqualToString:MAIN_TAG]) {
+    if ([elementName isEqualToString:kHCPMainXmlTag]) {
         _isInCHCPBlock = YES;
         return;
     }
@@ -80,10 +59,14 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
         return;
     }
     
-    if ([elementName isEqualToString:CONFIG_FILE_TAG]) {
+    if ([elementName isEqualToString:kHCPConfigFileXmlTag]) {
         [self parseConfigUrl:attributeDict];
-    } else if ([elementName isEqualToString:LOCAL_DEVELOPMENT_TAG]) {
-        [self parseLocelDevelopmentOptions:attributeDict];
+    } else if ([elementName isEqualToString:kHCPLocalDevelopmentXmlTag]) {
+        [self parseLocalDevelopmentOptions:attributeDict];
+    } else if ([elementName isEqualToString:kHCPAutoDownloadXmlTag]) {
+        [self parseAutoDownloadOptions:attributeDict];
+    } else if ([elementName isEqualToString:kHCPAutoInstallXmlTag]) {
+        [self parseAutoInstallOptions:attributeDict];
     }
 }
 
@@ -92,7 +75,7 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
         return;
     }
     
-    if ([elementName isEqualToString:MAIN_TAG]) {
+    if ([elementName isEqualToString:kHCPMainXmlTag]) {
         _didParseCHCPBlock = YES;
         return;
     }
@@ -101,12 +84,19 @@ static NSString *const LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = @"enabled";
 #pragma mark Private API
 
 - (void)parseConfigUrl:(NSDictionary *)attributeDict {
-    _configUrl = [NSURL URLWithString:attributeDict[CONFIG_FILE_URL_ATTRIBUTE]];
+    _xmlConfig.configUrl = [NSURL URLWithString:attributeDict[kHCPConfigFileUrlXmlAttribute]];
 }
 
-- (void)parseLocelDevelopmentOptions:(NSDictionary *)attributeDict {
-    _devOptions = [[HCPLocalDevOptions alloc] init];
-    _devOptions.enabled = [(NSNumber *)attributeDict[LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE] boolValue];
+- (void)parseLocalDevelopmentOptions:(NSDictionary *)attributeDict {
+    _xmlConfig.devOptions.enabled = [(NSNumber *)attributeDict[kHCPLocalDevelopmentEnabledXmlAttribute] boolValue];
+}
+
+- (void)parseAutoDownloadOptions:(NSDictionary *)attributeDict {
+   _xmlConfig.allowUpdatesAutoDownload = [(NSNumber *)attributeDict[kHCPAutoDownloadEnabledXmlAttribute] boolValue];
+}
+
+- (void)parseAutoInstallOptions:(NSDictionary *)attributeDict {
+    _xmlConfig.allowUpdatesAutoInstallation = [(NSNumber *)attributeDict[kHCPAutoInstallEnabledXmlAttribute] boolValue];
 }
 
 @end

@@ -6,7 +6,7 @@
 //
 //
 
-#import "HCPPluginConfig.h"
+#import "HCPPluginInternalPreferences.h"
 
 /**
  *  Category for HCPPluginConfig class.
@@ -14,7 +14,7 @@
  *
  *  @see HCPPluginConfig
  */
-@interface HCPPluginConfig (UserDefaults)
+@interface HCPPluginInternalPreferences (UserDefaults)
 
 /**
  *  Save object to user defaults.
@@ -26,6 +26,6 @@
  *
  *  @return restored from user defaults instance of the object.
  */
-+ (HCPPluginConfig *)loadFromUserDefaults;
++ (HCPPluginInternalPreferences *)loadFromUserDefaults;
 
 @end

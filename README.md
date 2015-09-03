@@ -15,8 +15,12 @@ This plugin provides functionality to perform automatic updates of the web based
   - [Build options](#build-options)
 - [Cordova Hot Code Push CLI client](#cordova-hot-code-push-cli-client)
 - [JavaScript module](#javascript-module)
-  - [Usage](#javascript-module-usage)
-  - [Events](#javascript-module-events)
+  - [Listen for update events](#listen-for-update-events)
+  - [Fetch update](#fetch-update)
+  - [Install update](#install-update)
+  - [Change plugin preferences on runtime](#change-plugin-preferences-on-runtime)
+  - [Request application update through the store] (#request-application-update-through-the-store)
+- [Error codes](#error-codes)
 
 ### Installation
 This requires cordova 5.0+ (current stable 0.1)

@@ -777,6 +777,10 @@ app.initialize();
 
 During the update download/installation process some errors can occur. To identify them you can use error codes that are listed below.
 
+If error code is less then `0` - then this is a critical one. If greater then `0` - think of this as a warning/informational thing.
+
+- `1` - installation request was sent to plugin, but there is nothing to install.
+- `2` - nothing new is available for download.
 - `-1` - failed to download new application config from the server. Either file doesn't exist or some internet connection problems.
 - `-2` - application's build version is too low for this update. New web release requires newer version of the app. User must update it through the store.
 - `-3` - failed to download new content manifest file from the server. Check that `chcp.manifest` file is placed in the root of your `content_url`, specified in the application config.

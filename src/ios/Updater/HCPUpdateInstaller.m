@@ -47,8 +47,9 @@
 
     // check if there is anything to install
     if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
-        [self dispatchNothingToInstallEvent];
-        *error = [NSError errorWithCode:0 description:@"Nothing to install"];
+        *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
+        [self dispatchNothingToInstallEvent:*error];
+
         return NO;
     }
         
@@ -60,10 +61,11 @@
 
 #pragma mark Private API
 
-- (void)dispatchNothingToInstallEvent {
+- (void)dispatchNothingToInstallEvent:(NSError *)error {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
                                                  applicationConfig:nil
-                                                            taskId:nil];
+                                                            taskId:nil
+                                                             error:error];
     
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }

@@ -85,6 +85,16 @@ extern NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode;
 extern NSInteger const kHCPFailedToInstallAssetsOnExternalStorageErrorCode;
 
 /**
+ *  Code error occures when we tried to install the update, but there is nothing to install.
+ */
+extern NSInteger const kHCPNothingToInstallErrorCode;
+
+/**
+ *  Code error occures when we tried to download new release, but there is nothing to download.
+ */
+extern NSInteger const kHCPNothingToUpdateErrorCode;
+
+/**
  *  Category for NSError.
  *  Extended with plugin specific errors.
  */

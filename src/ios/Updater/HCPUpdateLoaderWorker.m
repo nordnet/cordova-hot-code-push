@@ -194,9 +194,11 @@
  *  @param config application config that was used for download
  */
 - (void)notifyNothingToUpdate:(HCPApplicationConfig *)config {
+    NSError *error = [NSError errorWithCode:kHCPNothingToUpdateErrorCode description:@"Nothing to update"];
     NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToUpdateEvent
                                                  applicationConfig:config
-                                                            taskId:self.workerId];
+                                                            taskId:self.workerId
+                                                             error:error];
     
     [[NSNotificationCenter defaultCenter] postNotification:notification];
 }

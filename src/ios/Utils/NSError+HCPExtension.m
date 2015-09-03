@@ -21,6 +21,8 @@ NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode = -10;
 NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode = -11;
 NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode = -12;
 NSInteger const kHCPFailedToInstallAssetsOnExternalStorageErrorCode = -13;
+NSInteger const kHCPNothingToInstallErrorCode = 1;
+NSInteger const kHCPNothingToUpdateErrorCode = 2;
 
 @implementation NSError (HCPExtension)
 

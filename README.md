@@ -169,7 +169,7 @@ Defines if plugin is allowed to install updates. Originally update installation 
 To disable updates auto installation add to `config.xml`:
 ```xml
 <chcp>
-  <auto-install enabled="true" />
+  <auto-install enabled="false" />
 </chcp>
 ```
 By default preference is set to `true`.

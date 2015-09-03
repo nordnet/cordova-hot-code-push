@@ -590,6 +590,98 @@ app.initialize();
 
 #### Change plugin preferences on runtime
 
+Normally all plugin preferences are set through the Cordova's `config.xml`. But you can change some of them through the JavaScript module.
+
+In order to do that you can call:
+```js
+chcp.configure(options, callback);
+
+function callback(error) {
+  // do some work
+}
+```
+
+Supported options:
+- `config-file` - url to the application config. If set - this value will be used to check for updates instead of the one in `config.xml`.
+- `auto-download` - by setting to `false` you can disable automatic update checks and downloads.
+- `auto-install` - by setting to `false` you can disable automatic installations.
+
+Those options must be set on `deviceready` event. You should do that on every page load, because if application gets updated through the store - those options will be overridden with the corresponding values from the `config.xml`.
+
+`auto-download` and `auto-install` can be used when you want to perform update download and installation manually. Let us extend previous example with `configure` method:
+
+```js
+var app = {
+
+  // Application Constructor
+  initialize: function() {
+    this.bindEvents();
+  },
+
+  // Bind any events that are required.
+  // Usually you should subscribe on 'deviceready' event to know, when you can start calling cordova modules
+  bindEvents: function() {
+    document.addEventListener('deviceready', this.onDeviceReady, false);
+  },
+
+  // deviceready Event Handler
+  onDeviceReady: function() {
+    // change plugin options
+    app.configurePlugin();
+
+    // Add click event listener for our update button.
+    // We do this here, because at this point Cordova modules are initialized.
+    // Before that chcp is undefined.
+    document.getElementById('myFetchBtn').addEventListener('click', app.checkForUpdate);
+  },
+
+  configurePlugin: function() {
+    var options = {
+      'auto-download': false,
+      'auto-install': false
+    };
+
+    chcp.configure(options, configureCallback);
+  },
+
+  configureCallback: function(error) {
+    if (error) {
+      console.log('Error during the configuration process');
+      console.log(error.description);
+    } else {
+      console.log('Plugin configured successfully');
+      // from this moment only we control when to download and install new releases
+    }
+  },
+
+  checkForUpdate: function() {
+    chcp.fetchUpdate(this.fetchUpdateCallback);
+  },
+
+  fetchUpdateCallback: function(error, data) {
+    if (error) {
+      console.log('Failed to load the update with error code: ' + error.code);
+      console.log(error.description);
+      return;
+    }
+    console.log('Update is loaded, running the installation');
+
+    chcp.installUpdate(this.installationCallback);
+  },
+
+  installationCallback: function(error) {
+    if (error) {
+      console.log('Failed to install the update with error code: ' + error.code);
+      console.log(error.description);
+    } else {
+      console.log('Update installed!');
+    }
+  }
+};
+
+app.initialize();
+```
+
 #### Request application update through the store
 
 #### Error codes

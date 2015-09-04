@@ -36,6 +36,7 @@
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
     SocketIOClient *_socketIOClient;
+    BOOL _shouldFlushCache;
 }
 
 @end
@@ -223,7 +224,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @param url url to load
  */
 - (void)loadURL:(NSURL *)url {
-    [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [self.webView loadRequest:[NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData timeoutInterval:60.0]];
+    }];
 }
 
 /**
@@ -329,7 +332,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)subscribeToEvents {
     [self subscribeToLifecycleEvents];
+    [self subscribeToCordovaEvents];
     [self subscribeToPluginInternalEvents];
+}
+
+/**
+ *  Subscribe to Cordova events.
+ */
+- (void)subscribeToCordovaEvents {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(webViewDidLoadPage:)
+                                                 name:CDVPageDidLoadNotification
+                                               object:nil];
 }
 
 /**
@@ -394,6 +408,28 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)unsubscribeFromEvents {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
+
+#pragma mark Cordova events
+
+/**
+ *  Method is called when WebView finished loading the page
+ *
+ *  @param notification captured notification
+ */
+- (void)webViewDidLoadPage:(NSNotification *)notification {
+    if (!_shouldFlushCache) {
+        return;
+    }
+    
+    // In order to force js/css/images update we need to call "reload" method.
+    // Don't know why, but only after that resource files get updated.
+    // There is no such problem with html files.
+    _shouldFlushCache = NO;
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [self.webView reload];
+    }];
+}
+
 
 #pragma mark Bundle installation events
 
@@ -555,6 +591,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // reload application to the index page
     NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
+    _shouldFlushCache = YES;
     [self loadURL:startingPageURL];
 }
 

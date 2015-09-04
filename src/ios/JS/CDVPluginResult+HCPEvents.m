@@ -55,8 +55,13 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
  *  @return JSON dictionary with error information
  */
 + (NSDictionary *)constructErrorBlock:(NSError *)error {
+    NSString *errorDesc = error.userInfo[NSLocalizedDescriptionKey];
+    if (errorDesc == nil) {
+        errorDesc = @"";
+    }
+    
     return @{ERROR_USER_INFO_CODE: @(error.code),
-             ERROR_USER_INFO_DESCRIPTION: error.userInfo[NSLocalizedDescriptionKey]};
+             ERROR_USER_INFO_DESCRIPTION: errorDesc};
 }
 
 /**

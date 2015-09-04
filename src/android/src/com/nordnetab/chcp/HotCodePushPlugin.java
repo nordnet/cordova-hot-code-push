@@ -651,7 +651,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final String startingPage = getStartingPage();
+                webView.clearHistory();
+                webView.clearCache();
+                final String startingPage = getStartingPage() + "?" + System.currentTimeMillis();
                 final String externalStartingPage = FILE_PREFIX + Paths.get(fileStructure.wwwFolder(), startingPage);
                 webView.loadUrlIntoView(externalStartingPage, false);
             }

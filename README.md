@@ -74,23 +74,7 @@ Would you like to install CLI client for the plugin?(y/n):
 ```
 Say `y` and let it be installed.
 
-3) Run initialization command for deployment:
-```sh
-cordova-hcp init
-```
-Fill in all the required fields, other fields leave empty. For now even for required fields you can enter any random value. For example:
-```
-Please provide: Enter project name (required):  TestProject
-Please provide: Amazon S3 Bucket name (required for cordova-hcp deploy):
-Please provide: Amazon S3 region (required for chcp deploy):  (us-east-1)
-Please provide: IOS app identifier:
-Please provide: Android app identifier:
-Please provide: Update method (required): (resume)
-Please provide: Enter full URL to directory where chcp build result will be uploaded: https://random/url
-```
-As a result `cordova-hcp.json` file will be created in you projects root directory.
-
-4) Start local server by executing:
+3) Start local server by executing:
 ```sh
 cordova-hcp server
 ```
@@ -100,28 +84,20 @@ As a result you will see something like this:
 Running server
 Checking:  /Cordova/TestProject/www
 local_url http://localhost:31284
-Config { name: 'TestProject',
-  ios_identifier: '',
-  android_identifier: '',
-  update: 'resume',
-  content_url: 'https://5027caf9.ngrok.com',
-  release: '2015.09.02-10.17.48' }
 Warning: .chcpignore does not exist.
 Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
 cordova-hcp local server available at: http://localhost:31284
 cordova-hcp public server available at: https://5027caf9.ngrok.com
-Connect your app using QR code at: https://5027caf9.ngrok.com/connect
-Connect route for scanner application
 ```
 
-5) Open new console window, go to the project root and launch the app:
+4) Open new console window, go to the project root and launch the app:
 ```sh
 cordova run
 ```
 
 Wait until application is launched for both platforms.
 
-6) Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+5) Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 

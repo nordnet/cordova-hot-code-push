@@ -1,5 +1,5 @@
 {
-  "name": "HotCodePushPlugin",
+  "name": "cordova-hot-code-push-plugin",
   "version": "1.0.0",
   "description": "Cordova plugin to perform code updates on the fly",
   "cordova": {
@@ -15,8 +15,11 @@
   },
   "keywords": [
     "cordova",
+    "nordnet",
+    "mobile",
     "code",
     "update",
+    "push",
     "ecosystem:cordova",
     "cordova-android",
     "cordova-ios"
@@ -35,7 +38,7 @@
     "prompt": "latest",
     "xml2js": "latest"
   },
-  "author": "Nordnet Bank AB",
+  "author": "Nikolay Demyankov for Nordnet Bank AB",
   "license": "MIT license",
   "bugs": {
     "url": "https://github.com/nordnet/cordova-hot-code-push/issues"

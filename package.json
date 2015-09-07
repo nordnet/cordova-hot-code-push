@@ -5,7 +5,8 @@
   "cordova": {
     "id": "cordova-hot-code-push-plugin",
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "repository": {
@@ -17,7 +18,8 @@
     "code",
     "update",
     "ecosystem:cordova",
-    "cordova-android"
+    "cordova-android",
+    "cordova-ios"
   ],
   "engines": [
     {

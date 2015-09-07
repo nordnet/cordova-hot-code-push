@@ -30,7 +30,7 @@ As a result, your application receives updates of the web content as soon as pos
   - [Fetch update](#fetch-update)
   - [Install update](#install-update)
   - [Change plugin preferences on runtime](#change-plugin-preferences-on-runtime)
-  - [Request application update through the store] (#request-application-update-through-the-store)
+  - [Request application update through the store](#request-application-update-through-the-store)
 - [Error codes](#error-codes)
 
 ### Installation
@@ -52,52 +52,52 @@ Of course, you can use this plugin without the CLI client, but it will make your
 
 ### Quick start guide
 
-1) Create new Cordova project using command line interface and add iOS/Android platforms:
-```sh
-cordova create TestProject com.example.testproject TestProject
-cd ./TestProject
-cordova platform add android
-cordova platform add ios
-```
-Or use the existing one.
+1. Create new Cordova project using command line interface and add iOS/Android platforms:
+  ```sh
+  cordova create TestProject com.example.testproject TestProject
+  cd ./TestProject
+  cordova platform add android
+  cordova platform add ios
+  ```
+  Or use the existing one.
 
-2) Add plugin:
-```sh
-cordova plugin add cordova-hot-code-push-plugin
-```
+2. Add plugin:
+  ```sh
+  cordova plugin add cordova-hot-code-push-plugin
+  ```
 
-At the end of the installation you will be prompted to install Cordova Hot Code Push CLI client.
-```
-To make the development process more easy for you - we developed CLI client for our plugin.
-For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli
-Would you like to install CLI client for the plugin?(y/n):
-```
-Say `y` and let it be installed.
+  At the end of the installation you will be prompted to install Cordova Hot Code Push CLI client.
+  ```
+  To make the development process more easy for you - we developed CLI client for our plugin.
+  For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli
+  Would you like to install CLI client for the plugin?(y/n):
+  ```
+  Say `y` and let it be installed.
 
-3) Start local server by executing:
-```sh
-cordova-hcp server
-```
+3. Start local server by executing:
+  ```sh
+  cordova-hcp server
+  ```
 
-As a result you will see something like this:
-```
-Running server
-Checking:  /Cordova/TestProject/www
-local_url http://localhost:31284
-Warning: .chcpignore does not exist.
-Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
-cordova-hcp local server available at: http://localhost:31284
-cordova-hcp public server available at: https://5027caf9.ngrok.com
-```
+  As a result you will see something like this:
+  ```
+  Running server
+  Checking:  /Cordova/TestProject/www
+  local_url http://localhost:31284
+  Warning: .chcpignore does not exist.
+  Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
+  cordova-hcp local server available at: http://localhost:31284
+  cordova-hcp public server available at: https://5027caf9.ngrok.com
+  ```
 
-4) Open new console window, go to the project root and launch the app:
-```sh
-cordova run
-```
+4. Open new console window, go to the project root and launch the app:
+  ```sh
+  cordova run
+  ```
 
-Wait until application is launched for both platforms.
+  Wait until application is launched for both platforms.
 
-5) Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+5. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 

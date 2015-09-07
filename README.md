@@ -209,7 +209,7 @@ At some point we release a new version and publish it on the server with the con
 }
 ```
 
-As a result, when plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then current build version of the app - it's not gonna load new release; instead it will send notification that application update is required.
+When plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then the current build version of the app - it's not gonna load new release. Instead, it will send `chcp_updateLoadFailed` notification with error, stating that application update is required. In details this is described in [Request application update through the store] (#request-application-update-through-the-store) section below.
 
 ##### update
 Defines when to perform the update. Supported values are:

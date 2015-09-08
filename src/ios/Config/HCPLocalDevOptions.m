@@ -15,7 +15,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        self.enabled = YES;
+        self.enabled = NO;
     }
     
     return self;

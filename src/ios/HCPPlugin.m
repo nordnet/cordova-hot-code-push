@@ -667,8 +667,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return;
     }
     
+    // reading url of the local server
     NSString *devServerURL = [_pluginXmllConfig.configUrl URLByDeletingLastPathComponent].absoluteString;
     devServerURL = [devServerURL substringToIndex:devServerURL.length-1];
+    if (devServerURL.length == 0) {
+        NSLog(@"Could not connect to local server: config-file preference is not set.");
+        return;
+    }
     
     @try {
         _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL options:nil];

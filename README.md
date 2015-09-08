@@ -35,7 +35,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Error codes](#error-codes)
 
 ### Installation
-This requires cordova 5.0+ (current stable 1.0.0)
+This requires cordova 5.0+ (current stable 1.0.1)
 ```sh
     cordova plugin add cordova-hot-code-push-plugin
 ```
@@ -54,7 +54,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
 ### Quick start guide for Cordova project
 
 1. Create new Cordova project using command line interface and add iOS/Android platforms:
-  
+
   ```sh
   cordova create TestProject com.example.testproject TestProject
   cd ./TestProject

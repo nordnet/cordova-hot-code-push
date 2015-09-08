@@ -132,6 +132,7 @@ function injectSwiftHeader() {
     swiftImportHeader = generateSwiftHeaderFromProjectName(projectModuleName),
     prefixFileContent;
 
+  // read prefix file
   try {
     prefixFileContent = fs.readFileSync(prefixFilePath, {
       encoding: 'utf8'
@@ -146,15 +147,37 @@ function injectSwiftHeader() {
     return;
   }
 
-  prefixFileContent += '\n#ifdef __OBJC__\n' +
-    '    #import "' + swiftImportHeader + '"\n' +
-    '#endif\n';
+  // set header
+  prefixFileContent = setSwiftHeader(prefixFileContent, swiftImportHeader);
 
+  // save changes
   fs.writeFileSync(prefixFilePath, prefixFileContent, {
     encoding: 'utf8'
   });
 
   console.log('IOS project ' + swiftImportHeader + ' now contains import for Swift ');
+}
+
+/**
+ * Set proper header for Swift support.
+ *
+ * @param {String} prefixFileContent - Prefix.pch file content
+ * @param {String} swiftImportHeader - header to set
+ * @return {String} Prefix.pch file content with correct Swift header import
+ */
+function setSwiftHeader(prefixFileContent, swiftImportHeader) {
+  // remove old import if there is any;
+  // can occur if we change product name
+  var found = prefixFileContent.match(/(\"[a-z0-9_]+-Swift.h\")/i);
+  if (found && found.length > 0) {
+    prefixFileContent = prefixFileContent.replace(found[0], '"' + swiftImportHeader + '"');
+  } else {
+    prefixFileContent += '\n#ifdef __OBJC__\n' +
+      '    #import "' + swiftImportHeader + '"\n' +
+      '#endif\n';
+  }
+
+  return prefixFileContent;
 }
 
 /**

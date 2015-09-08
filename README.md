@@ -18,7 +18,8 @@ As a result, your application receives updates of the web content as soon as pos
 
 ## Documentation
 - [Installation](#installation)
-- [Quick start guide](#quick-start-guide)
+- [Quick start guide for Cordova project](#quick-start-guide-for-cordova-project)
+- [Quick start guide for Ionic project](#quick-start-guide-for-ionic-project)
 - [Cordova config preferences](#cordova-config-preferences)
 - [Configuration files](#configuration-files)
   - [Application config](#application-config)
@@ -50,9 +51,10 @@ At the end of the installation plugin will ask you to install [Cordova Hot Code 
 
 Of course, you can use this plugin without the CLI client, but it will make your life easier. Either way, you can always install it later manually.
 
-### Quick start guide
+### Quick start guide for Cordova project
 
 1. Create new Cordova project using command line interface and add iOS/Android platforms:
+  
   ```sh
   cordova create TestProject com.example.testproject TestProject
   cd ./TestProject
@@ -62,6 +64,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
   Or use the existing one.
 
 2. Add plugin:
+
   ```sh
   cordova plugin add cordova-hot-code-push-plugin
   ```
@@ -75,6 +78,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
   Say `y` and let it be installed.
 
 3. Start local server by executing:
+
   ```sh
   cordova-hcp server
   ```
@@ -91,8 +95,69 @@ Of course, you can use this plugin without the CLI client, but it will make your
   ```
 
 4. Open new console window, go to the project root and launch the app:
+
   ```sh
   cordova run
+  ```
+
+  Wait until application is launched for both platforms.
+
+5. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+
+From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
+
+### Quick start guide for Ionic project
+
+1. Create new Ionic project using command line interface and add iOS/Android platforms:
+
+  ```sh
+  ionic start TestProject blank
+  cd ./TestProject
+  ionic platform add android
+  ionic platform add ios
+  ```
+  Or use the existing one.
+2. Build project for the first time before adding plugin to it.
+
+  ```sh
+  ionic build
+  ```
+  This is required mainly for iOS, because in some cases Ionic creates iOS project with the wrong name (`HelloCordova`) instead the one that is specified in the `config.xml`. But after the `build` it becomes the correct one.
+3. Add plugin:
+
+  ```sh
+  ionic plugin add cordova-hot-code-push-plugin
+  ```
+
+  At the end of the installation you will be prompted to install Cordova Hot Code Push CLI client.
+  ```
+  To make the development process more easy for you - we developed CLI client for our plugin.
+  For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli
+  Would you like to install CLI client for the plugin?(y/n):
+  ```
+  Say `y` and let it be installed.
+
+4. Start local server by executing:
+
+  ```sh
+  cordova-hcp server
+  ```
+
+  As a result you will see something like this:
+  ```
+  Running server
+  Checking:  /Cordova/TestProject/www
+  local_url http://localhost:31284
+  Warning: .chcpignore does not exist.
+  Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
+  cordova-hcp local server available at: http://localhost:31284
+  cordova-hcp public server available at: https://5027caf9.ngrok.com
+  ```
+
+5. Open new console window, go to the project root and launch the app:
+
+  ```sh
+  ionic run
   ```
 
   Wait until application is launched for both platforms.

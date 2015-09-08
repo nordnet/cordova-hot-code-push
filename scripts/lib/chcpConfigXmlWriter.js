@@ -40,8 +40,8 @@ We will use it to inject plugin-specific options.
     platforms = cordovaContext.opts.platforms;
 
     configXmlPlatformStoragePlaces = {
-      ios: path.join(projectRoot, 'platforms/ios/', path.basename(projectRoot), 'config.xml'),
-      android: path.join(projectRoot, 'platforms/android/res/xml/config.xml')
+      ios: path.join(projectRoot, 'platforms', 'ios', path.basename(projectRoot), 'config.xml'),
+      android: path.join(projectRoot, 'platforms', 'android', 'res', 'xml', 'config.xml')
     }
   }
 

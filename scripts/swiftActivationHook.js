@@ -11,6 +11,7 @@ var path = require('path'),
   context,
   projectRoot,
   projectName,
+  projectModuleName,
   iosPlatformPath;
 
 module.exports = function(ctx) {
@@ -99,11 +100,26 @@ function injectOptionsInProjectConfig(xcodeProject) {
     buildSettings = configurations[config].buildSettings;
     buildSettings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_DEPLOYMENT_TARGET;
     buildSettings['EMBEDDED_CONTENT_CONTAINS_SWIFT'] = "YES";
-    buildSettings['LD_RUNPATH_SEARCH_PATHS'] = '"@executable_path/Frameworks"'
+    buildSettings['LD_RUNPATH_SEARCH_PATHS'] = '"@executable_path/Frameworks"';
+
+    // if project module name is not defined - set it with value from build settings
+    if ((!projectModuleName || projectModuleName.length == 0) && buildSettings['PRODUCT_NAME']) {
+      setProjectModuleName(buildSettings['PRODUCT_NAME']);
+    }
   }
   console.log('IOS project now has deployment target set as:[' + IOS_DEPLOYMENT_TARGET + '] ...');
   console.log('IOS project option EMBEDDED_CONTENT_CONTAINS_SWIFT set as:[YES] ...');
   console.log('IOS project Runpath Search Paths set to: @executable_path/Frameworks ...');
+}
+
+/**
+ * Set project module name from the build settings.
+ * Will be used to generate name of the Swift header.
+ *
+ * @param {String} nameFromBuildSettings - name of the product from build settings
+ */
+function setProjectModuleName(nameFromBuildSettings) {
+  projectModuleName = nameFromBuildSettings.trim().replace(/"/g, '');
 }
 
 /**
@@ -113,7 +129,7 @@ function injectOptionsInProjectConfig(xcodeProject) {
 function injectSwiftHeader() {
   // path to Prefix file and the name of included header
   var prefixFilePath = path.join(iosPlatformPath, projectName, projectName + '-Prefix.pch'),
-    swiftImportHeader = projectName + '-Swift.h',
+    swiftImportHeader = generateSwiftHeaderFromProjectName(projectModuleName),
     prefixFileContent;
 
   try {
@@ -139,6 +155,19 @@ function injectSwiftHeader() {
   });
 
   console.log('IOS project ' + swiftImportHeader + ' now contains import for Swift ');
+}
+
+/**
+ * Generate name of the header file for Swift support.
+ * Details on Swift header name could be found here: https://developer.apple.com/library/ios/documentation/Swift/Conceptual/BuildingCocoaApps/MixandMatch.html
+ *
+ * @param {String} projectModuleName - projects module name from build configuration
+ * @return {String} Swift header name
+ */
+function generateSwiftHeaderFromProjectName(projectModuleName) {
+  var normalizedName = projectModuleName.replace(/([^a-z0-9]+)/gi, '_');
+
+  return normalizedName + '-Swift.h'
 }
 
 /**

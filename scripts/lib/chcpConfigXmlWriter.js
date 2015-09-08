@@ -59,27 +59,45 @@ We will use it to inject plugin-specific options.
     return cfg.name();
   }
 
+  /**
+   * Get path to config.xml inside iOS project.
+   *
+   * @return {String} absolute path to config.xml file
+   */
   function pathToIosConfigXml() {
     var projectName = getProjectName(cordovaContext, projectRoot);
 
     return path.join(projectRoot, 'platforms', 'ios', projectName, 'config.xml');
   }
 
+  /**
+   * Get path to config.xml inside Android project.
+   *
+   * @return {String} absolute path to config.xml file
+   */
   function pathToAndroidConfigXml() {
     return path.join(projectRoot, 'platforms', 'android', 'res', 'xml', 'config.xml');
   }
 
+  /**
+   * Get path to platform-specific config.xml file.
+   *
+   * @param {String} platform - for what platform we need config.xml
+   * @return {String} absolute path to config.xml
+   */
   function getPlatformSpecificConfigXml(platform) {
     var configFilePath = null;
     switch (platform) {
-      case 'ios': {
-        configFilePath = pathToIosConfigXml();
-        break;
-      }
-      case 'android': {
-        configFilePath = pathToAndroidConfigXml();
-        break;
-      }
+      case 'ios':
+        {
+          configFilePath = pathToIosConfigXml();
+          break;
+        }
+      case 'android':
+        {
+          configFilePath = pathToAndroidConfigXml();
+          break;
+        }
     }
 
     return configFilePath;

@@ -253,6 +253,12 @@
         target-dir="SocketIOClientSwift/" />
       <source-file src="src/ios/SocketIOClientSwift/WebSocket.swift"
         target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketAckEmitter.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketIOClientStatus.swift"
+        target-dir="SocketIOClientSwift/" />
+      <source-file src="src/ios/SocketIOClientSwift/SocketStringReader.swift"
+        target-dir="SocketIOClientSwift/" />
 
     </platform>
 

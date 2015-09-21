@@ -663,7 +663,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 #pragma mark Socket IO
 
 - (void)connectToDevServer {
-    if (!_pluginXmllConfig.devOptions.isEnabled || [_socketIOClient connected]) {
+    if (!_pluginXmllConfig.devOptions.isEnabled || (_socketIOClient.status == SocketIOClientStatusConnected) ) {
         return;
     }
     
@@ -676,11 +676,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     @try {
-        _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL options:nil];
-        [_socketIOClient on:@"connect" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+        _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL opts:nil];
+        [_socketIOClient on:@"connect" callback:^(NSArray * _Nonnull data, SocketAckEmitter * _Nullable emitter) {
             NSLog(@"socket connected");
         }];
-        [_socketIOClient on:@"release" callback:^(NSArray* data, void (^ack)(NSArray*)) {
+        
+        [_socketIOClient on:@"release" callback:^(NSArray * _Nonnull data, SocketAckEmitter * _Nullable emitter) {
             [self _fetchUpdate:nil];
         }];
         [_socketIOClient connect];
@@ -690,11 +691,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 - (void)disconnectFromDevServer {
-    if (!_pluginXmllConfig.devOptions.isEnabled || ![_socketIOClient connected]) {
+    if (!_pluginXmllConfig.devOptions.isEnabled || (_socketIOClient.status != SocketIOClientStatusConnected)) {
         return;
     }
     
-    [_socketIOClient closeWithFast:NO];
+    [_socketIOClient close];
+    [_socketIOClient removeAllHandlers];
 }
 
 @end

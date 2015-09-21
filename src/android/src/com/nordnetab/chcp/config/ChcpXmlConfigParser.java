@@ -39,7 +39,11 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
 
     @Override
     public void handleStartTag(XmlPullParser xml) {
-        String name = xml.getName();
+        if (didParseChcpBlock) {
+          return;
+        }
+
+        final String name = xml.getName();
         if (name.equals(XmlTags.MAIN_TAG)) {
             isInsideChcpBlock = true;
             return;

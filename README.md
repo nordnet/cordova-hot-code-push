@@ -13,8 +13,8 @@ As a result, your application receives updates of the web content as soon as pos
 **Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for. If your application should be a calculator, but after the update becomes audio player - you will be banned.
 
 ## Supported Platforms
-- Android 4.0.0 or above
-- iOS 7.0 or above
+- Android 4.0.0 or above.
+- iOS 7.0 or above. Requires Xcode 7 and Swift 2.
 
 ## Documentation
 - [Installation](#installation)
@@ -35,7 +35,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Error codes](#error-codes)
 
 ### Installation
-This requires cordova 5.0+ (current stable 1.0.1)
+This requires cordova 5.0+ (current stable 1.0.2)
 ```sh
     cordova plugin add cordova-hot-code-push-plugin
 ```

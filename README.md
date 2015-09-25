@@ -217,11 +217,11 @@ By default preference is set to `true`.
 
 ### Configuration files
 
-Plugin uses two main configuration files for his work:
+The plugin uses two main configuration files:
 - [Application config](#application-config) - holds release related information: release version, required build version for the native side and so on.
 - [Content manifest](#content-manifest) - holds information about project files: their names and hashes.
 
-Those two are essential for plugin to work because their describe if any new release available for download and what has changed compared to the version, packed in the application.
+These two are essential for the plugin to work. They describe if any new release is available for download and what has changed compared to the version already packed in the application.
 
 There is also a [build options](#build-options) file which allow you to specify the plugin options in the command line when you build with `cordova build` command.
 
@@ -237,7 +237,7 @@ Simplest example is:
 }
 ```
 
-It should be placed in your `www` folder as `chcp.json` file. It is packed with the application and describes version of the project that is installed on the device from the store.
+It should be placed in your `www` folder as `chcp.json` file. It is packed with the application and describes the version of the project that is installed on the device from the store.
 
 In the case of the local development this file is created automatically by the `cordova-hcp` utility.
 

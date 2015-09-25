@@ -70,7 +70,7 @@ function installChcpCLI() {
  */
 function promptCliInstallation() {
   console.log('');
-  console.log('To make the development process more easy for you - we developed CLI client for our plugin.');
+  console.log('To make the development process easier for you - we developed a CLI client for our plugin.');
   console.log('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
 
   var prompt = require('prompt');
@@ -85,7 +85,7 @@ function promptCliInstallation() {
       }
     }
   };
-  prompt.message = 'Would you like to install CLI client for the plugin?';
+  prompt.message = 'Would you like to install CLI client for the plugin? ';
   prompt.delimiter = '';
   prompt.start();
 

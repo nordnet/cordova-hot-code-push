@@ -250,7 +250,20 @@ Any string that describes your web project version. Based on it plugin will dete
 **Be advised:** plugin will compare release values as strings for equality, and if they are not equal - it will decide that new release is available.
 
 ##### min_native_interface
-Minimum required version of the native application. This should be a build version of the app. Can be used to add dependency between the web and the native versions of the application.
+Minimum required version of the native application. This should be a build/code version of the app, not a version, that is displayed to the users on the App Store / Google Play. It should be a number.
+
+In a `config.xml` you usually specify versions like so:
+```xml
+<widget id="io.cordova.hellocordova"
+      version="1.0.1"
+      android-versionCode="7"
+      ios-CFBundleVersion="3">
+```
+- `version` - version of the app, that is visible on the store.
+- `android-versionCode` - code version of the Android application. This value should be used for `min_native_interface`.
+- `ios-CFBundleVersion` - code version of the iOS application. This value should be used for `min_native_interface`.
+
+Preference creates dependency between the web and the native versions of the application.
 
 For example, if you add new plugin to the project - most likely it will require native version to update. In order to prevent user from downloading web content that he can't use right now - you increase the `min_native_interface` value.
 
@@ -275,6 +288,8 @@ At some point we release a new version and publish it on the server with the con
 ```
 
 When plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then the current build version of the app - it's not gonna load new release. Instead, it will send `chcp_updateLoadFailed` notification with error, stating that application update is required. In details this is described in [Request application update through the store](#request-application-update-through-the-store) section below.
+
+**Note:** right now you can't specify different values for `min_native_interface` for different platforms. But this can be added later, if needed.
 
 ##### update
 Defines when to perform the update. Supported values are:

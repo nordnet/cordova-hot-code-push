@@ -2,107 +2,40 @@
 Hook is executed when plugin is added to the project.
 It will check all necessary module dependencies and install the missing ones locally.
 Also, it will suggest to user to install CLI client for that plugin.
-It can be found in https://github.com/nordnet/cordova-hot-code-push-cli.git
+It can be found in https://github.com/nordnet/cordova-hot-code-push-cli
 */
 
 var exec = require('child_process').exec,
-  isWindows = /^win/.test(process.platform),
-  chcpCliGitRepository = 'cordova-hot-code-push-cli',
+  path = require('path'),
+  modules = ['read-package-json'],
   chcpCliPackageName = 'cordova-hot-code-push-cli',
-  modules = ['prompt', 'xml2js'];
-
-// region CLI specific
-
-/**
- * Install cordova-hcp utility if needed.
- */
-function runCliInstall() {
-  checkIfChcpInstalled(function(err) {
-    if (err) {
-      promptCliInstallation();
-    } else {
-      logEnd();
-    }
-  });
-}
-
-/**
- * Check if cordova-hcp utility is installed.
- * If not - we will prompt user to install it.
- *
- * @param {Callback(error)} callback
- */
-function checkIfChcpInstalled(callback) {
-  var cmd = 'npm -g list ' + chcpCliPackageName;
-  exec(cmd, function(err, stdout, stderr) {
-    callback(err);
-  });
-}
-
-/**
- * Install CLI client for the plugin.
- */
-function installChcpCLI() {
-  console.log('Installing CHCP CLI client...');
-
-  // installation command depends on the platform
-  var cmd;
-  if (isWindows) {
-    cmd = 'npm -g install ' + chcpCliGitRepository;
-  } else {
-    cmd = 'sudo npm -g install ' + chcpCliGitRepository;
-  }
-
-  exec(cmd, function(err, stdout, stderr) {
-    if (err) {
-      console.log('Failed to install.');
-      console.log(stderr);
-      logEnd();
-    } else {
-      console.log('CLI for plugin is installed. You are good to go. For more information use "cordova-hcp --help"');
-      logEnd();
-    }
-  });
-}
-
-/**
- * Ask user if he want to install CLI client for this plugin.
- */
-function promptCliInstallation() {
-  console.log('');
-  console.log('To make the development process easier for you - we developed a CLI client for our plugin.');
-  console.log('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
-
-  var prompt = require('prompt');
-
-  var schema = {
-    properties: {
-      install: {
-        description: '(y/n):',
-        pattern: /^[yn]{1}$/,
-        message: '(y/n)',
-        required: true
-      }
-    }
-  };
-  prompt.message = 'Would you like to install CLI client for the plugin? ';
-  prompt.delimiter = '';
-  prompt.start();
-
-  prompt.get(schema, function(err, result) {
-    if (result.install === 'y') {
-      installChcpCLI();
-    } else {
-      console.log('Next time, then. You can do it yourself any time you want by running: ');
-      console.log('npm -g install ' + chcpCliGitRepository);
-      logEnd();
-    }
-  });
-}
-
-// endregion
+  packageJsonFilePath;
 
 // region NPM specific
+
+/**
+ * Discovers module dependencies in plugin's package.json and installs them.
+ */
+function getPackagesFromJson() {
+  var readJson = require('read-package-json');
+  readJson(packageJsonFilePath, console.error, false, function(err, data) {
+    if (err) {
+      console.error('Can\'t read package.json file: ' + err);
+      return;
+    }
+
+    var dependencies = data['dependencies'];
+    if (dependencies) {
+      for (var module in dependencies) {
+        modules.push(module);
+      }
+      installRequiredNodeModules(function() {
+        console.log('All dependency modules are installed.');
+        checkCliDependency();
+      });
+    }
+  });
+}
 
 /**
  * Check if node package is installed.
@@ -143,13 +76,11 @@ function installNodeModule(moduleName, callback) {
 }
 
 /**
- * Install all required node packages. For now we have to do it manually.
- * Once we make plugin as a node package - we can specify dependencies in package.json.
+ * Install all required node packages.
  */
-function installRequiredNodeModules() {
+function installRequiredNodeModules(callback) {
   if (modules.length == 0) {
-    console.log('All dependency modules are installed.');
-    runCliInstall();
+    callback();
     return;
   }
 
@@ -159,11 +90,51 @@ function installRequiredNodeModules() {
       console.log('Failed to install module ' + moduleName);
       console.log(err);
       return;
-    } else {
-      console.log('Package ' + moduleName + ' is installed');
-      installRequiredNodeModules();
     }
+
+    console.log('Module ' + moduleName + ' is installed');
+    installRequiredNodeModules(callback);
   });
+}
+
+// endregion
+
+// region CLI specific
+
+/**
+ * Check if cordova-hcp utility is installed. If not - suggest user to install it.
+ */
+function checkCliDependency() {
+  checkIfChcpInstalled(function(err) {
+    if (err) {
+      suggestCliInstallation();
+    }
+
+    logEnd();
+  });
+}
+
+/**
+ * Check if cordova-hcp utility is installed.
+ *
+ * @param {Callback(error)} callback
+ */
+function checkIfChcpInstalled(callback) {
+  var cmd = 'npm -g list ' + chcpCliPackageName;
+  exec(cmd, function(err, stdout, stderr) {
+    callback(err);
+  });
+}
+
+/**
+ * Show message, that developer should install CLI client for the plugin, so it would be easier to use.
+ */
+function suggestCliInstallation() {
+  console.log('');
+  console.log('To make the development process easier for you - we developed a CLI client for our plugin.');
+  console.log('To install it, please, use command:');
+  console.log('npm install -g ' + chcpCliPackageName);
+  console.log('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
 }
 
 // endregion
@@ -176,7 +147,18 @@ function logEnd() {
   console.log("=================================================");
 }
 
+/**
+ * Perform initialization before any execution.
+ *
+ * @param {Object} ctx - cordova context object
+ */
+function init(ctx) {
+  packageJsonFilePath = path.join(ctx.opts.projectRoot, 'plugins', ctx.opts.plugin.id, 'package.json');
+}
+
 module.exports = function(ctx) {
   logStart();
-  installRequiredNodeModules();
+
+  init(ctx);
+  installRequiredNodeModules(getPackagesFromJson);
 };

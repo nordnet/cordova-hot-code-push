@@ -46,7 +46,15 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
 #pragma mark HCPJsonConvertable implementation
 
 - (id)toJson {
-    NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] initWithDictionary:[self.contentConfig toJson]];
+    NSMutableDictionary *jsonObject;
+    NSDictionary *contentConfigJsonObject = [self.contentConfig toJson];
+    
+    if (contentConfigJsonObject) {
+        jsonObject = [[NSMutableDictionary alloc] initWithDictionary:contentConfigJsonObject];
+    } else {
+        jsonObject = [[NSMutableDictionary alloc] init];
+    }
+    
     if (self.storeIdentifier) {
         jsonObject[STORE_PACKAGE_IDENTIFIER_JSON_KEY] = self.storeIdentifier;
     }

@@ -16,7 +16,7 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 + (NSInteger)applicationBuildVersion {
     NSBundle *mainBundle = [NSBundle mainBundle];
-    id appBuildVersion = [mainBundle objectForInfoDictionaryKey: (NSString *)kCFBundleVersionKey];
+    id appBuildVersion = [mainBundle objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
     if (appBuildVersion == nil) {
         return 0;
     }

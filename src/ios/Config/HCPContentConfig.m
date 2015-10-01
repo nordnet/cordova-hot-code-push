@@ -86,11 +86,26 @@ static NSString *const UPDATE_TIME_ON_RESUME = @"resume";
 
 #pragma mark HCPJsonConvertable implementation
 
-- (id)toJson {    
-    return @{RELEASE_VERSION_JSON_KEY: _releaseVersion,
-             MINIMUM_NATIVE_VERSION_JSON_KEY: [NSNumber numberWithInteger:_minimumNativeVersion],
-             UPDATE_TIME_JSON_KEY: [self updateTimeEnumToString:_updateTime],
-             CONTENT_URL_JSON_KEY: _contentURL.absoluteString};
+- (id)toJson {
+    NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
+    if (_releaseVersion) {
+        jsonObject[RELEASE_VERSION_JSON_KEY] = _releaseVersion;
+    }
+    
+    if (_minimumNativeVersion > 0) {
+        jsonObject[MINIMUM_NATIVE_VERSION_JSON_KEY] = [NSNumber numberWithInteger:_minimumNativeVersion];
+    }
+    
+    NSString *updateTimeStr = [self updateTimeEnumToString:_updateTime];
+    if (updateTimeStr) {
+        jsonObject[UPDATE_TIME_JSON_KEY] = updateTimeStr;
+    }
+    
+    if (_contentURL) {
+        jsonObject[CONTENT_URL_JSON_KEY] = _contentURL.absoluteString;
+    }
+    
+    return jsonObject;
 }
 
 + (instancetype)instanceFromJsonObject:(id)json {

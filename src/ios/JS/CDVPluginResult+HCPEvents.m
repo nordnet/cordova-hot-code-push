@@ -72,7 +72,14 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
  *  @return JSON dictionary with user data
  */
 + (NSDictionary *)constructDataBlock:(HCPApplicationConfig *)appConfig {
-    return @{DATA_USER_INFO_CONFIG: [appConfig toJson]};
+    NSMutableDictionary *dataBlockDict = [[NSMutableDictionary alloc] initWithDictionary:@{DATA_USER_INFO_CONFIG: @{}}];
+    
+    id appConfigJsonObject = [appConfig toJson];
+    if (appConfigJsonObject) {
+        return dataBlockDict[DATA_USER_INFO_CONFIG] = appConfigJsonObject;
+    }
+    
+    return dataBlockDict;
 }
 
 @end

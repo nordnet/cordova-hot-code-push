@@ -3,64 +3,16 @@ Module helps to generate building options for plugin.
 Those options then injected into platform-specific config.xml.
 */
 (function() {
+  var fs = require('fs'),
+    path = require('path'),
+    chcpLocalDevConfig = require('./chcpLocalDevConfig.js');
 
   module.exports = {
-    init: init,
-    buildConfigurationBasedOnConsoleOptions: buildConfigurationBasedOnConsoleOptions,
-    isBuildingForRelease: isBuildingForRelease,
-    getBuildOptionsFromConfig: getBuildOptionsFromConfig,
+    getBuildConfigurationByName: getBuildConfigurationByName,
     getLocalDevBuildOptions: getLocalDevBuildOptions
   };
 
-  var fs = require('fs'),
-    path = require('path'),
-    chcpLocalDevConfig = require('./chcpLocalDevConfig.js'),
-    cordovaContext,
-    chcpEnvFilePath,
-    chcpBuildOptionsFilePath;
-
   // region Public API
-
-  /**
-   * Initialize module.
-   * Must be called before calling other methods.
-   *
-   * @param {Object} context - cordova context instance
-   */
-  function init(context) {
-    cordovaContext = context;
-    chcpEnvFilePath = path.join(cordovaContext.opts.projectRoot, '.chcpenv');
-    chcpBuildOptionsFilePath = path.join(cordovaContext.opts.projectRoot, 'chcpbuild.options');
-  }
-
-  /**
-   * Check if we are building for release.
-   * We determine this by searching for --release options in console arguments.
-   *
-   * @return {boolean} true if we are building for release; false - otherwise
-   */
-  function isBuildingForRelease() {
-    var isRelease = false;
-    cordovaContext.opts.options.some(function(value) {
-      if (value === '--release') {
-        isRelease = true;
-        return true;
-      } else {
-        return false;
-      }
-    });
-
-    return isRelease;
-  };
-
-  /**
-   * Read options, listed in chcpbuild.options file.
-   *
-   * @return {Object} options from chcpbuild.options file
-   */
-  function getBuildOptionsFromConfig() {
-    return readBuildConfig();
-  };
 
   // options for localdev
   /**
@@ -68,8 +20,8 @@ Those options then injected into platform-specific config.xml.
    *
    * @return {Object} local development options
    */
-  function getLocalDevBuildOptions() {
-    var environmentConfig = readEnvironmentConfig();
+  function getLocalDevBuildOptions(ctx) {
+    var environmentConfig = readEnvironmentConfig(ctx);
 
     return chcpLocalDevConfig.load(environmentConfig);
   };
@@ -77,54 +29,49 @@ Those options then injected into platform-specific config.xml.
   /**
    * Generate build options depending on the options, provided in console.
    *
+   * @param {String} buildName - build identifier
    * @return {Object} build options; null - if none are found
    */
-  function buildConfigurationBasedOnConsoleOptions() {
-    var buildOption = null;
-
+  function getBuildConfigurationByName(ctx, buildName) {
     // load options from the chcpbuild.options file
-    var chcpBuildOptions = getBuildOptionsFromConfig();
+    var chcpBuildOptions = getBuildOptionsFromConfig(ctx);
     if (chcpBuildOptions == null) {
       return null;
     }
 
-    console.log('Supported configurations are:');
-    console.log(JSON.stringify(chcpBuildOptions, null, 2));
-
-    // get build option depending on the args from console
-    var consoleOpts = cordovaContext.opts.options;
-    consoleOpts.some(function(value) {
-      if (chcpBuildOptions.hasOwnProperty(value)) {
-        buildOption = chcpBuildOptions[value];
-        return true;
-      } else {
-        return false;
-      }
-    });
-
-    return buildOption;
+    return chcpBuildOptions[buildName];
   }
 
   // endregion
 
   // region Private API
 
+  /**
+   * Read options, listed in chcpbuild.options file.
+   *
+   * @return {Object} options from chcpbuild.options file
+   */
+  function getBuildOptionsFromConfig(ctx) {
+    var chcpBuildOptionsFilePath = path.join(ctx.opts.projectRoot, 'chcpbuild.options');
+
+    return readObjectFromFile(chcpBuildOptionsFilePath);
+  };
+
   function readObjectFromFile(filePath) {
     var objData = null;
     try {
-      var data = fs.readFileSync(filePath);
+      var data = fs.readFileSync(filePath, 'utf-8');
       objData = JSON.parse(data, 'utf-8');
-    } catch (err) {}
+    } catch (err) {
+    }
 
     return objData;
   }
 
-  function readEnvironmentConfig() {
-    return readObjectFromFile(chcpEnvFilePath);
-  };
+  function readEnvironmentConfig(ctx) {
+    var chcpEnvFilePath = path.join(ctx.opts.projectRoot, '.chcpenv');
 
-  function readBuildConfig() {
-    return readObjectFromFile(chcpBuildOptionsFilePath);
+    return readObjectFromFile(chcpEnvFilePath);
   };
 
   // endregion

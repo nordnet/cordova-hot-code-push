@@ -4,9 +4,8 @@ We will use it to inject plugin-specific options.
 */
 (function() {
 
-  var fs = require('fs'),
-    path = require('path'),
-    xml2js = require('xml2js'),
+  var path = require('path'),
+    xmlHelper = require('./xmlHelper.js'),
     cordovaContext,
     projectRoot,
     platforms;
@@ -116,7 +115,7 @@ We will use it to inject plugin-specific options.
       }
 
       // read data from config.xml
-      var configData = readConfigXml(configXmlFilePath);
+      var configData = xmlHelper.readXmlAsJson(configXmlFilePath);
       if (configData == null) {
         console.warn('Configuration file ' + configXmlFilePath + ' not found');
         return;
@@ -136,7 +135,7 @@ We will use it to inject plugin-specific options.
 
       // write them back to config.xml
       configData.widget.chcp[0] = chcpConfig;
-      writeConfigXml(configXmlFilePath, configData);
+      xmlHelper.writeJsonAsXml(configData, configXmlFilePath);
     });
   }
 
@@ -176,43 +175,6 @@ We will use it to inject plugin-specific options.
 
     xml['local-development'] = [localDevBlock];
   }
-
-  /**
-   * Write xml data into the given file.
-   *
-   * @param {String} filePath - path to the file where to write provided data
-   * @param {Object} xmlData - xml data to write
-   */
-  function writeConfigXml(filePath, xmlData) {
-    var xmlBuilder = new xml2js.Builder();
-    var changedXmlData = xmlBuilder.buildObject(xmlData);
-    fs.writeFileSync(filePath, changedXmlData);
-  }
-
-  /**
-   * Read xml data from the specified file.
-   *
-   * @param {String} filePath - path to the xml file
-   * @return {Object} xml data from the file
-   */
-  function readConfigXml(filePath) {
-    var xmlData = null;
-    var parsedData = null;
-
-    try {
-      xmlData = fs.readFileSync(filePath);
-      var xmlParser = new xml2js.Parser();
-      xmlParser.parseString(xmlData, function(err, data) {
-        if (data) {
-          parsedData = data;
-        }
-      });
-    } catch (err) {
-      console.log(err);
-    }
-
-    return parsedData;
-  };
 
   // endregion
 

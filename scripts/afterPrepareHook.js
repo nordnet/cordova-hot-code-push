@@ -1,6 +1,6 @@
 /**
 This hook is executed every time we build the project.
-It will populate config.xml with plugin specific options and for iOS - it will activate Swift support.
+It will populate config.xml with plugin specific options.
 If you want to specify for which server to build the project - you can create chcpbuild.options and put your servers like so:
   {
     "build_name_1": {
@@ -23,7 +23,10 @@ More information can be found on https://github.com/nordnet/cordova-hot-code-pus
 */
 
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
-  chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
+  chcpConfigXmlReader = require('./lib/chcpConfigXmlReader.js'),
+  chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
+  BUILD_OPTION_PREFIX = 'chcp-',
+  RELEASE_BUILD_FLAG = '--release';
 
 function logStart() {
   console.log('========CHCP plugin after prepare hook========');
@@ -33,41 +36,124 @@ function logEnd() {
   console.log('=====================END======================');
 }
 
+/**
+ * Read arguments from console.
+ * We are reading only plugin-related preferences.
+ *
+ * @param {Object} ctx - cordova context object
+ * @return {Object} parsed arguments; if none were provided - default options are returned
+ */
+function parseOptionsFromConsole(ctx) {
+  var consoleOptions = ctx.opts.options,
+    parsedOptions = {
+      isRelease: false,
+      buildOption: ''
+    };
+
+  // Search for release flag, or plugin-specific build options.
+  for (var idx in consoleOptions) {
+    var opt = consoleOptions[idx];
+    if (opt === RELEASE_BUILD_FLAG) {
+      parsedOptions.isRelease = true;
+      break;
+    } else if (opt.indexOf(BUILD_OPTION_PREFIX) == 0) {
+      parsedOptions.buildOption = opt.replace(BUILD_OPTION_PREFIX, '');
+      break;
+    }
+  }
+
+  return parsedOptions;
+}
+
+/**
+ * Try to inject build options according to the arguments from the console.
+ *
+ * @param {Object} ctx - cordova context object
+ * @param {String} optionName - build option name from console; will be mapped to configuration from chcpbuild.options file
+ * @return {boolean} true - if build option is found and we successfully injected it into config.xml; otherwise - false
+ */
+function prepareWithCustomBuildOption(ctx, optionName) {
+  if (optionName.length == 0) {
+    return false;
+  }
+
+  var buildConfig = chcpBuildOptions.getBuildConfigurationByName(ctx, optionName);
+  if (buildConfig == null) {
+    console.warn('Build configuration for "' + optionName + '" not found in chcp.options. Ignoring it.');
+    return false;
+  }
+
+  console.log('Using config from chcp.options:');
+  console.log(JSON.stringify(buildConfig, null, 2));
+  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
+
+  return true;
+}
+
+/**
+ * Try to prepare application for local development mode.
+ * By default, we will try to enable it when "local-development" preference in config.xml is set to "true".
+ * But it "config-file" preference is missing - we will also try to prepare for local development.
+ *
+ * @param {Object} ctx - cordova context object
+ * @param {Object} xmlOptions - plugin preferences from config.xml
+ * @return {boolean} true - if local development mode is activated; otherwise - false
+ */
+function prepareForLocalDevelopment(ctx, xmlOptions) {
+  var isLocalDevelopmentModeEnabled = xmlOptions['local-development']['enabled'],
+    isConfigFileSet = xmlOptions['config-file'].length > 0;
+
+  if (!isLocalDevelopmentModeEnabled && isConfigFileSet) {
+    return false;
+  }
+
+  var buildConfig = chcpBuildOptions.getLocalDevBuildOptions(ctx);
+  if (buildConfig == null) {
+    console.warn('Can\'t find .chcpenv file to build for local development mode. Maybe you forgot to execute "cordova-hcp server"?');
+    return false;
+  }
+
+  console.log('Building for local development with config-file set to ' + buildConfig['config-file']);
+  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
+
+  return true;
+}
+
 module.exports = function(ctx) {
+  var buildConfig,
+    chcpXmlOptions;
+
   logStart();
 
-  chcpBuildOptions.init(ctx);
+  // if we are running build with --release option - do nothing
+  var consoleOptions = parseOptionsFromConsole(ctx);
+  if (consoleOptions.isRelease) {
+      console.log('Building for release, not changing config.xml');
+      logEnd();
+      return;
+  }
 
-  // find build options based on launch options
-  var buildConfig = chcpBuildOptions.buildConfigurationBasedOnConsoleOptions();
-  if (buildConfig == null && chcpBuildOptions.isBuildingForRelease()) {
-    console.log('Building for release, not changing config.xml');
+  // if any build option is provided in console - try to map it with chcpbuild.options
+  if (prepareWithCustomBuildOption(ctx, consoleOptions.buildOption)) {
     logEnd();
     return;
   }
 
-  // if no option is set - building for local development
-  var isInLocalDevMode = false;
-  if (buildConfig == null) {
-    buildConfig = chcpBuildOptions.getLocalDevBuildOptions();
-    isInLocalDevMode = true;
-  }
+  // read plugin preferences from config.xml
+  chcpXmlOptions = chcpConfigXmlReader.readOptions(ctx);
 
-  if (buildConfig == null) {
-    console.warn('Unknown build configuration.');
-    console.warn('You can ignore this if "config-file" is set in config.xml manually.');
-    console.warn('Otherwise, please provide build configuration in chcpbuild.options. For local development please run:');
-    console.warn('cordova-hcp server');
-    console.warn('This will generate .chcpenv file with local server configuration.');
+  // if config-file is not set, or local-development is set to true and .chcpenv file exists - prepare for local development
+  if (prepareForLocalDevelopment(ctx, chcpXmlOptions)) {
     logEnd();
     return;
   }
 
-  console.log('Using config:');
-  console.log(JSON.stringify(buildConfig, null, 2));
-
-  // save options into config.xml
-  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
+  // if none of the above
+  if (chcpXmlOptions['config-file'].length == 0) {
+    console.warn('config-file preference is not set.');
+  } else {
+    console.log('Building with config-file set to ' + chcpXmlOptions['config-file']);
+  }
 
   logEnd();
 };

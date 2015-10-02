@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.updater;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.nordnetab.chcp.config.ApplicationConfig;
@@ -196,12 +197,16 @@ class UpdateLoaderWorker implements Runnable {
      * @return new content manifest
      */
     private ContentManifest downloadContentManifest(ApplicationConfig config) {
-        String url = URLUtility.construct(config.getContentConfig().getContentUrl(), filesStructure.manifestFileName());
+        final String contentUrl = config.getContentConfig().getContentUrl();
+        if (TextUtils.isEmpty(contentUrl)) {
+            Log.d("CHCP", "Content url is not set in your application config! Can't load updates.");
+            return null;
+        }
 
+        final String url = URLUtility.construct(contentUrl, filesStructure.manifestFileName());
         DownloadResult<ContentManifest> downloadResult = new ContentManifestDownloader(url).download();
         if (downloadResult.error != null) {
             Log.d("CHCP", "Failed to download content manifest");
-
             return null;
         }
 
@@ -227,6 +232,11 @@ class UpdateLoaderWorker implements Runnable {
      */
     private boolean downloadNewAndChagedFiles(ApplicationConfig newAppConfig, ManifestDiff diff) {
         final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
+        if (TextUtils.isEmpty(contentUrl)) {
+            Log.d("CHCP", "Content url is not set in your application config! Can't load updates.");
+            return false;
+        }
+
         List<ManifestFile> downloadFiles = diff.getUpdateFiles();
 
         boolean isFinishedWithSuccess = true;

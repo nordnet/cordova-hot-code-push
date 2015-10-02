@@ -382,7 +382,7 @@ Now we create `chcpbuild.options` file inside `/Cordova/Testproject/` and put in
     }
   },
   "production": {
-    "config-file": "https://company_server.com/mobile/www/chcp.json",
+    "config-file": "https://company_server.com/mobile/www/chcp.json"
   },
   "QA": {
     "config-file": "https://test.company_server.com/mobile/www/chcp.json"
@@ -418,6 +418,8 @@ As soon as we want to publish our app on the store (Google Play, App Store) we b
 cordova build --release
 ```
 In that case we are not touching `config.xml` in any way.
+
+If `chcpbuild.options` are not used - then plugin will use preferences from the project's main `config.xml`.
 
 ### Cordova Hot Code Push CLI client
 

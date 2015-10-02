@@ -20,6 +20,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Installation](#installation)
 - [Quick start guide for Cordova project](#quick-start-guide-for-cordova-project)
 - [Quick start guide for Ionic project](#quick-start-guide-for-ionic-project)
+- [Plugin's update workflow](#plugins-update-workflow)
 - [Cordova config preferences](#cordova-config-preferences)
 - [Configuration files](#configuration-files)
   - [Application config](#application-config)
@@ -165,6 +166,22 @@ From this point you can do local development, where all the changes are uploaded
 5. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
+
+### Plugin's update workflow
+
+Before overloading your head with all the configuration stuff - let us describe to you the update workflow of the plugin. In general, without any technical details.
+
+[IMAGE GOES HERE]
+
+1. User opens your application.
+2. Plugin get's initialized and it launches update loader in the background thread.
+3. Update loader takes `config-file` from the `config.xml` and loads JSON from the specified url. Then it compares `release` version of the loaded config to the currently installed one. If they are different - we go to the next step.
+4. Update loader uses `content_url` from the application config to load manifest file. He uses it to find out, what has changed since the last release.
+5. Update loader downloads all updated/new files from the `content_url`.
+6. If everything went well - it sends notification, that update is ready for installation.
+7. Update installed, and user is redirected to the index page of your application.
+
+And that's it. Of course, there is a little more in it, but you get the general idea on how it works.
 
 ### Cordova config preferences
 

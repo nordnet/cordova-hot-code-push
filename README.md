@@ -20,7 +20,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Installation](#installation)
 - [Quick start guide for Cordova project](#quick-start-guide-for-cordova-project)
 - [Quick start guide for Ionic project](#quick-start-guide-for-ionic-project)
-- [Plugin's update workflow](#plugins-update-workflow)
+- [Update workflow](#update-workflow)
 - [Cordova config preferences](#cordova-config-preferences)
 - [Configuration files](#configuration-files)
   - [Application config](#application-config)
@@ -167,11 +167,11 @@ From this point you can do local development, where all the changes are uploaded
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
-### Plugin's update workflow
+### Update workflow
 
 Before overloading your head with all the configuration stuff - let us describe to you the update workflow of the plugin. In general, without any technical details.
 
-[IMAGE GOES HERE]
+![Update workflow](docs/images/update-workflow.png?raw=true)
 
 1. User opens your application.
 2. Plugin get's initialized and it launches update loader in the background thread.

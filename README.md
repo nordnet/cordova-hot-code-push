@@ -360,7 +360,7 @@ MD5 hash of the file. Used to detect if file has been changed since last release
 
 As described in [Cordova config preferences](#cordova-config-preferences) section - you can change plugin options in the Cordova's `config.xml` file.
 
-But what it you want to change it on the build phase using command line? For that purpose you can use `chcpbuild.options` file.
+But what if you want to change it on the build phase through the command line? For that purpose you can use `chcpbuild.options` file.
 
 It must be placed in the root directory of your Cordova project. In it you specify (in JSON) all the preferences you want to add/change in the resulting `config.xml` file. The original `config.xml` (in the projects root directory) is not touсhed, we modify the platform-specific one on `after_prepare` phase.
 
@@ -390,10 +390,11 @@ Now we create `chcpbuild.options` file inside `/Cordova/Testproject/` and put in
 }
 ```
 
-In order to build the app, configured to work with development server we can run command:
+In order to build the app, configured to work with development server, we can run command:
 ```sh
-cordova build -- dev
+cordova build -- chcp-dev
 ```
+
 As a result, platform-specific `config.xml` file (for example, `/Cordova/TestProject/platforms/android/res/xml/config.xml`) will have:
 ```xml
 <chcp>
@@ -402,22 +403,25 @@ As a result, platform-specific `config.xml` file (for example, `/Cordova/TestPro
 </chcp>
 ```
 
-As soon as application is ready for testing - we can build it, configured to work with test server:
+As you might notice - in console we prefixed build option name with the `chcp-`. This is required, so the plugin would know, that this option is for him. Also, it prevents conflicts between different plugins/hooks you already have.
+
+When application is ready for testing - we can build it, configured to work with test server:
 ```sh
-cordova build -- QA
+cordova build -- chcp-QA
 ```
-As a result, plugin-specific `config.xml` file will have:
+
+And the plugin-specific `config.xml` will become:
 ```xml
 <chcp>
   <config-file url="https://test.company_server.com/mobile/www/chcp.json"/>
 </chcp>
 ```
 
-As soon as we want to publish our app on the store (Google Play, App Store) we build, as usual, with command:
+When we are ready to release new version on the store (Google Play, App Store) - we build, as usual, with command:
 ```sh
 cordova build --release
 ```
-In that case we are not touching `config.xml` in any way.
+In that case `config.xml` is not modified.
 
 If `chcpbuild.options` are not used - then plugin will use preferences from the project's main `config.xml`.
 

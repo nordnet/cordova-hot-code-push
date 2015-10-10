@@ -36,7 +36,6 @@
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
     SocketIOClient *_socketIOClient;
-    BOOL _shouldFlushCache;
 }
 
 @end
@@ -225,7 +224,22 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)loadURL:(NSURL *)url {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        [self.webView loadRequest:[NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData timeoutInterval:60.0]];
+        NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
+        NSString *path = components.path;
+        NSURL *loadURL = [NSURL fileURLWithPath:path];
+        
+        [[NSURLCache sharedURLCache] removeAllCachedResponses];
+        [self.webView loadRequest:[NSURLRequest requestWithURL:loadURL
+                                                   cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData
+                                               timeoutInterval:60.0]];
+        
+        // We need to reload the page because of the webview caching.
+        // For example, if we loaded new css file - it is not gonna update, bacuse old version is cached and the file path is the same.
+        // But if we reload page - everything is fine. This is hacky, but it is the only way to reset the cache.
+        // Delay is set, because if we try to reload immidiatly - nothing good will happen.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self.webView reload];
+        });
     }];
 }
 
@@ -332,18 +346,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)subscribeToEvents {
     [self subscribeToLifecycleEvents];
-    [self subscribeToCordovaEvents];
     [self subscribeToPluginInternalEvents];
-}
-
-/**
- *  Subscribe to Cordova events.
- */
-- (void)subscribeToCordovaEvents {
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(webViewDidLoadPage:)
-                                                 name:CDVPageDidLoadNotification
-                                               object:nil];
 }
 
 /**
@@ -408,28 +411,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)unsubscribeFromEvents {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
-
-#pragma mark Cordova events
-
-/**
- *  Method is called when WebView finished loading the page
- *
- *  @param notification captured notification
- */
-- (void)webViewDidLoadPage:(NSNotification *)notification {
-    if (!_shouldFlushCache) {
-        return;
-    }
-    
-    // In order to force js/css/images update we need to call "reload" method.
-    // Don't know why, but only after that resource files get updated.
-    // There is no such problem with html files.
-    _shouldFlushCache = NO;
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        [self.webView reload];
-    }];
-}
-
 
 #pragma mark Bundle installation events
 
@@ -591,7 +572,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // reload application to the index page
     NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
-    _shouldFlushCache = YES;
     [self loadURL:startingPageURL];
 }
 

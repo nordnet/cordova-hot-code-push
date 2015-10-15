@@ -78,7 +78,8 @@
     *error = nil;
     NSData *downloadedContent = [NSData dataWithContentsOfURL:url];
     if (downloadedContent == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to load file"];
+        NSString *message = [NSString stringWithFormat:@"Failed to load file: %@", url];
+        *error = [NSError errorWithCode:0 description:message];
         return NO;
     }
     

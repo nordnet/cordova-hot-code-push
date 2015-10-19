@@ -42,7 +42,8 @@
     *error = nil;
     NSData *data = [NSData dataWithContentsOfURL:self.url];
     if (data == nil) {
-        *error = [NSError errorWithCode:0 description:@"Failed to download config file from the given url"];
+        NSString *message = [NSString stringWithFormat:@"Failed to download config file from: %@", self.url];
+        *error = [NSError errorWithCode:0 description:message];
         return nil;
     }
     

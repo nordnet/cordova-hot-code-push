@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.0.4 (2015-23-10)
+
+**Bug fixes:**
+
+- iOS. Fixed [issue #2](https://github.com/nordnet/cordova-hot-code-push/issues/2). Ionic application should refresh it's content and ignore UIWebView cache.
+
+**Enchancements:**
+
+- Merged [pull request #27](https://github.com/nordnet/cordova-hot-code-push/pull/27). Error message now has an url of the file that we failed to load from the server. Thanks to [ptarjan](https://github.com/ptarjan).
+- Merged [pull request #29](https://github.com/nordnet/cordova-hot-code-push/pull/29). Error message now has an url of the config file that we failed to load from the server. Thanks to [ptarjan](https://github.com/ptarjan).
+
 ## 1.0.3 (2015-10-02)
 
 **Bug fixes:**

@@ -73,7 +73,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
 3. Install Cordova Hot Code Push CLI client:
 
   ```sh
-  sudo npm install -g cordova-hot-code-push-cli
+  npm install -g cordova-hot-code-push-cli
   ```
 
 4. Start local server by executing:
@@ -133,7 +133,7 @@ From this point you can do local development, where all the changes are uploaded
 4. Install Cordova Hot Code Push CLI client:
 
   ```sh
-  sudo npm install -g cordova-hot-code-push-cli
+  npm install -g cordova-hot-code-push-cli
   ```
 
 5. Start local server by executing:

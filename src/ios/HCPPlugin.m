@@ -54,9 +54,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self doLocalInit];
     [self connectToDevServer];
     
-    // install WWW folder if it is needed
+    // install www folder if it is needed
     if ([self isWWwFolderNeedsToBeInstalled]) {
-        [HCPAssetsFolderHelper installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];
+        [self installWwwFolder];
         return;
     }
     
@@ -82,6 +82,16 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 #pragma mark Private API
+
+- (void)installWwwFolder {
+    // reset www folder installed flag
+    if (_pluginInternalPrefs.isWwwFolderInstalled) {
+        _pluginInternalPrefs.wwwFolderInstalled = NO;
+        [_pluginInternalPrefs saveToUserDefaults];
+    }
+    
+    [HCPAssetsFolderHelper installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];
+}
 
 /**
  *  Load application config from file system

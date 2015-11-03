@@ -423,6 +423,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Install assets folder onto the external storage
      */
     private void installWwwFolder() {
+        // reset www folder installed flag
+        if (pluginInternalPrefs.isWwwFolderInstalled()) {
+            pluginInternalPrefs.setWwwFolderInstalled(false);
+            pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
+        }
+
         AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getAssets(), WWW_FOLDER, fileStructure.wwwFolder());
     }
 

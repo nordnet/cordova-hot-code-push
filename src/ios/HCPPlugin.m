@@ -36,7 +36,6 @@
     HCPXmlConfig *_pluginXmllConfig;
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
-    SocketIOClient *_socketIOClient;
 }
 
 @end
@@ -52,7 +51,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 -(void)pluginInitialize {
     [self subscribeToEvents];
     [self doLocalInit];
-    [self connectToDevServer];
     
     // install www folder if it is needed
     if ([self isWWwFolderNeedsToBeInstalled]) {
@@ -72,7 +70,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)onAppTerminate {
     [self unsubscribeFromEvents];
-    [self disconnectFromDevServer];
 }
 
 - (void)onResume:(NSNotification *)notification {
@@ -651,45 +648,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }];
     
     [_appUpdateRequestDialog show];
-}
-
-#pragma mark Socket IO
-
-- (void)connectToDevServer {
-    if (!_pluginXmllConfig.devOptions.isEnabled || (_socketIOClient.status == SocketIOClientStatusConnected) ) {
-        return;
-    }
-    
-    // reading url of the local server
-    NSString *devServerURL = [_pluginXmllConfig.configUrl URLByDeletingLastPathComponent].absoluteString;
-    devServerURL = [devServerURL substringToIndex:devServerURL.length-1];
-    if (devServerURL.length == 0) {
-        NSLog(@"Could not connect to local server: config-file preference is not set.");
-        return;
-    }
-    
-    @try {
-        _socketIOClient = [[SocketIOClient alloc] initWithSocketURL:devServerURL opts:nil];
-        [_socketIOClient on:@"connect" callback:^(NSArray * _Nonnull data, SocketAckEmitter * _Nullable emitter) {
-            NSLog(@"socket connected");
-        }];
-        
-        [_socketIOClient on:@"release" callback:^(NSArray * _Nonnull data, SocketAckEmitter * _Nullable emitter) {
-            [self _fetchUpdate:nil];
-        }];
-        [_socketIOClient connect];
-    } @catch (NSException *e) {
-        NSLog(@"Exception: %@", e);
-    }
-}
-
-- (void)disconnectFromDevServer {
-    if (!_pluginXmllConfig.devOptions.isEnabled || (_socketIOClient.status != SocketIOClientStatusConnected)) {
-        return;
-    }
-    
-    [_socketIOClient close];
-    [_socketIOClient removeAllHandlers];
 }
 
 @end

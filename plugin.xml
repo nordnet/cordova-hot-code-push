@@ -36,8 +36,6 @@
     <hook type="after_plugin_add" src="scripts/afterPluginAddHook.js" />
 
     <platform name="ios">
-      <!-- swift activation hook -->
-      <hook type="after_prepare" src="scripts/swiftActivationHook.js" />
 
       <!-- Plugin inclusion in Cordova config.xml -->
       <config-file target="config.xml" parent="/*">
@@ -230,40 +228,6 @@
         target-dir="Utils/" />
       <header-file src="src/ios/Utils/HCPAssetsFolderHelper.h"
         target-dir="Utils/" />
-
-      <!-- Socket.IO sources -->
-      <source-file src="src/ios/SocketIOClientSwift/SocketAckManager.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketAnyEvent.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketEngine.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketEngineClient.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketEventHandler.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketFixUTF8.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketIOClient.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketLogger.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketPacket.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketParser.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketTypes.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SwiftRegex.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/WebSocket.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketAckEmitter.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketIOClientStatus.swift"
-        target-dir="SocketIOClientSwift/" />
-      <source-file src="src/ios/SocketIOClientSwift/SocketStringReader.swift"
-        target-dir="SocketIOClientSwift/" />
 
     </platform>
 

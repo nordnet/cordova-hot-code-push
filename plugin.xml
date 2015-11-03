@@ -235,7 +235,7 @@
       <!-- Plugin inclusion in Cordova config.xml -->
       <config-file target="res/xml/config.xml" parent="/*">
         <feature name="HotCodePush">
-          <param name="android-package" value="com.nordnetab.chcp.HotCodePushPlugin" />
+          <param name="android-package" value="com.nordnetab.chcp.main.HotCodePushPlugin" />
           <param name="onload" value="true" />
         </feature>
       </config-file>
@@ -253,120 +253,120 @@
 
       <!-- Java Library Sources -->
       <!-- sources for package: com.nordnetab.chcp.config -->
-      <source-file src="src/android/src/com/nordnetab/chcp/config/ApplicationConfig.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/ContentConfig.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/ContentManifest.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/PluginInternalPreferences.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfig.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/ChcpXmlConfigParser.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/DevelopmentOptions.java"
-        target-dir="src/com/nordnetab/chcp/config" />
-      <source-file src="src/android/src/com/nordnetab/chcp/config/XmlTags.java"
-        target-dir="src/com/nordnetab/chcp/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/ApplicationConfig.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/ContentConfig.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/ContentManifest.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/PluginInternalPreferences.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/ChcpXmlConfig.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/ChcpXmlConfigParser.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/DevelopmentOptions.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
+      <source-file src="src/android/src/com/main/nordnetab/chcp/main/config/XmlTags.java"
+        target-dir="src/com/nordnetab/chcp/main/config" />
 
       <!-- sources for package: com.nordnetab.chcp.events -->
-      <source-file src="src/android/src/com/nordnetab/chcp/events/AssetsInstallationErrorEvent.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstallationErrorEvent.java"
+          target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstalledEvent.java"
           target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/AssetsInstalledEvent.java"
-          target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/IPluginEvent.java"
-          target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/NothingToInstallEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/NothingToUpdateEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/PluginEventImpl.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/UpdateDownloadErrorEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/UpdateInstallationErrorEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/UpdateInstalledEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/UpdateIsReadyToInstallEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
-      <source-file src="src/android/src/com/nordnetab/chcp/events/WorkerEvent.java"
-        target-dir="src/com/nordnetab/chcp/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/IPluginEvent.java"
+          target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/NothingToInstallEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/NothingToUpdateEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/PluginEventImpl.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/UpdateDownloadErrorEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/UpdateInstallationErrorEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/UpdateInstalledEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/UpdateIsReadyToInstallEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/events/WorkerEvent.java"
+        target-dir="src/com/nordnetab/chcp/main/events" />
 
       <!-- sources for package: com.nordnetab.chcp.network -->
-      <source-file src="src/android/src/com/nordnetab/chcp/network/ApplicationConfigDownloader.java"
-        target-dir="src/com/nordnetab/chcp/network" />
-      <source-file src="src/android/src/com/nordnetab/chcp/network/ContentManifestDownloader.java"
-        target-dir="src/com/nordnetab/chcp/network" />
-      <source-file src="src/android/src/com/nordnetab/chcp/network/FileDownloader.java"
-        target-dir="src/com/nordnetab/chcp/network" />
-      <source-file src="src/android/src/com/nordnetab/chcp/network/JsonDownloader.java"
-        target-dir="src/com/nordnetab/chcp/network" />
-      <source-file src="src/android/src/com/nordnetab/chcp/network/DownloadResult.java"
-        target-dir="src/com/nordnetab/chcp/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/network/ApplicationConfigDownloader.java"
+        target-dir="src/com/nordnetab/chcp/main/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/network/ContentManifestDownloader.java"
+        target-dir="src/com/nordnetab/chcp/main/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/network/FileDownloader.java"
+        target-dir="src/com/nordnetab/chcp/main/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/network/JsonDownloader.java"
+        target-dir="src/com/nordnetab/chcp/main/network" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/network/DownloadResult.java"
+        target-dir="src/com/nordnetab/chcp/main/network" />
 
       <!-- sources for package: com.nordnetab.chcp.storage -->
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/ApplicationConfigStorage.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/ContentManifestStorage.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/FileStorageAbs.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/PluginInternalPreferencesStorage.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/IObjectFileStorage.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
-      <source-file src="src/android/src/com/nordnetab/chcp/storage/IObjectPreferenceStorage.java"
-        target-dir="src/com/nordnetab/chcp/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/ApplicationConfigStorage.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/ContentManifestStorage.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/FileStorageAbs.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/PluginInternalPreferencesStorage.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/IObjectFileStorage.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/storage/IObjectPreferenceStorage.java"
+        target-dir="src/com/nordnetab/chcp/main/storage" />
 
       <!-- sources for package: com.nordnetab.chcp.model -->
-      <source-file src="src/android/src/com/nordnetab/chcp/model/ChcpError.java"
-        target-dir="src/com/nordnetab/chcp/model" />
-      <source-file src="src/android/src/com/nordnetab/chcp/model/IPluginFilesStructure.java"
-        target-dir="src/com/nordnetab/chcp/model" />
-      <source-file src="src/android/src/com/nordnetab/chcp/model/ManifestDiff.java"
-        target-dir="src/com/nordnetab/chcp/model" />
-      <source-file src="src/android/src/com/nordnetab/chcp/model/ManifestFile.java"
-        target-dir="src/com/nordnetab/chcp/model" />
-      <source-file src="src/android/src/com/nordnetab/chcp/model/PluginFilesStructureImpl.java"
-        target-dir="src/com/nordnetab/chcp/model" />
-      <source-file src="src/android/src/com/nordnetab/chcp/model/UpdateTime.java"
-          target-dir="src/com/nordnetab/chcp/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/ChcpError.java"
+        target-dir="src/com/nordnetab/chcp/main/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/IPluginFilesStructure.java"
+        target-dir="src/com/nordnetab/chcp/main/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/ManifestDiff.java"
+        target-dir="src/com/nordnetab/chcp/main/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/ManifestFile.java"
+        target-dir="src/com/nordnetab/chcp/main/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/PluginFilesStructureImpl.java"
+        target-dir="src/com/nordnetab/chcp/main/model" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/model/UpdateTime.java"
+          target-dir="src/com/nordnetab/chcp/main/model" />
 
       <!-- sources for package: com.nordnetab.chcp.utils -->
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/AssetsHelper.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/FilesUtility.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/MD5.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/Paths.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/URLUtility.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
-      <source-file src="src/android/src/com/nordnetab/chcp/utils/VersionHelper.java"
-        target-dir="src/com/nordnetab/chcp/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/AssetsHelper.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/FilesUtility.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/MD5.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/Paths.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/URLUtility.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/utils/VersionHelper.java"
+        target-dir="src/com/nordnetab/chcp/main/utils" />
 
       <!-- sources for package: com.nordnetab.chcp.updater -->
-      <source-file src="src/android/src/com/nordnetab/chcp/updater/InstallationWorker.java"
-        target-dir="src/com/nordnetab/chcp/updater" />
-      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdateLoaderWorker.java"
-        target-dir="src/com/nordnetab/chcp/updater" />
-      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesInstaller.java"
-        target-dir="src/com/nordnetab/chcp/updater" />
-      <source-file src="src/android/src/com/nordnetab/chcp/updater/UpdatesLoader.java"
-        target-dir="src/com/nordnetab/chcp/updater" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/updater/InstallationWorker.java"
+        target-dir="src/com/nordnetab/chcp/main/updater" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdateLoaderWorker.java"
+        target-dir="src/com/nordnetab/chcp/main/updater" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesInstaller.java"
+        target-dir="src/com/nordnetab/chcp/main/updater" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesLoader.java"
+        target-dir="src/com/nordnetab/chcp/main/updater" />
 
       <!-- sources for package: com.nordnetab.chcp.js -->
-      <source-file src="src/android/src/com/nordnetab/chcp/js/PluginResultHelper.java"
-        target-dir="src/com/nordnetab/chcp/js" />
-      <source-file src="src/android/src/com/nordnetab/chcp/js/JSAction.java"
-        target-dir="src/com/nordnetab/chcp/js" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/js/PluginResultHelper.java"
+        target-dir="src/com/nordnetab/chcp/main/js" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/js/JSAction.java"
+        target-dir="src/com/nordnetab/chcp/main/js" />
 
       <!-- sources for package: com.nordnetab.chcp -->
-      <source-file src="src/android/src/com/nordnetab/chcp/HotCodePushPlugin.java"
-        target-dir="src/com/nordnetab/chcp" />
+      <source-file src="src/android/src/com/nordnetab/chcp/main/HotCodePushPlugin.java"
+        target-dir="src/com/nordnetab/main/chcp" />
 
     </platform>
 </plugin>

@@ -134,7 +134,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // ensure that www folder installed on external storage;
         // if not - install it
-        isPluginReadyForWork = isWwwFolderExists() && !isApplicationHasBeenUpdated();
+        isPluginReadyForWork = isPluginReadyForWork();
         if (!isPluginReadyForWork) {
             installWwwFolder();
             return;
@@ -386,6 +386,22 @@ public class HotCodePushPlugin extends CordovaPlugin {
     // region Private API
 
     /**
+     * Check if plugin can perform it's duties.
+     * Basically, we will check 2 main things:
+     * 1. if www folder installed
+     * 2. if application has been updated through the Goolge Play from the last launch.
+     *
+     * @return <code>true</code> - plugin is ready; otherwise - <code>false</code>
+     */
+    private boolean isPluginReadyForWork() {
+        boolean isWwwFolderExists = isWwwFolderExists();
+        boolean isWwwFolderInstalled = pluginInternalPrefs.isWwwFolderInstalled();
+        boolean isApplicationHasBeenUpdated = isApplicationHasBeenUpdated();
+
+        return isWwwFolderExists && isWwwFolderInstalled && !isApplicationHasBeenUpdated;
+    }
+
+    /**
      * Check if external version of www folder exists.
      *
      * @return <code>true</code> if it is in place; <code>false</code> - otherwise
@@ -466,6 +482,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onEvent(AssetsInstalledEvent event) {
         // update stored application version
         pluginInternalPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
+        pluginInternalPrefs.setWwwFolderInstalled(true);
         pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
 
         isPluginReadyForWork = true;

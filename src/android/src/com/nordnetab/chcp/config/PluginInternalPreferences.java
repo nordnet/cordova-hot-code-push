@@ -14,19 +14,16 @@ import java.io.IOException;
  * Created by Nikolay Demyankov on 28.07.15.
  * <p/>
  * Model for plugin internal preferences.
- * <p/>
- * For now it stores only current build version of the application,
- * so we could determine if it has been updated through the Google Play.
- * <p/>
- * Later this can be extended with additional internal stuff.
  */
 public class PluginInternalPreferences {
 
     private static class JsonKeys {
         public static final String APPLICATION_BUILD_VERSION = "app_build_version";
+        public static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
     }
 
     private int appBuildVersion;
+    private boolean wwwFolderInstalled;
 
     /**
      * Create instance of the object from JSON string.
@@ -40,6 +37,9 @@ public class PluginInternalPreferences {
             JsonNode jsonNode = new ObjectMapper().readTree(json);
             config.setAppBuildVersion(
                     jsonNode.get(JsonKeys.APPLICATION_BUILD_VERSION).asInt()
+            );
+            config.setWwwFolderInstalled(
+                    jsonNode.get(JsonKeys.WWW_FOLDER_INSTALLED_FLAG).asBoolean()
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,8 +56,8 @@ public class PluginInternalPreferences {
     public static PluginInternalPreferences createDefault(Context context) {
         PluginInternalPreferences config = new PluginInternalPreferences();
 
-        // set version code of the app
         config.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
+        config.setWwwFolderInstalled(false);
 
         return config;
     }
@@ -82,6 +82,24 @@ public class PluginInternalPreferences {
     }
 
     /**
+     * Getter for flag if www folder was installed on the external storage.
+     *
+     * @return <code>true</code> - www folder was installed; otherwise - <code>false</code>
+     */
+    public boolean isWwwFolderInstalled() {
+        return wwwFolderInstalled;
+    }
+
+    /**
+     * Setter for the flag that www folder was installed on the external storage.
+     *
+     * @param isWwwFolderInstalled is www folder is installed
+     */
+    public void setWwwFolderInstalled(boolean isWwwFolderInstalled) {
+        wwwFolderInstalled = isWwwFolderInstalled;
+    }
+
+    /**
      * Convert object into JSON string
      *
      * @return JSON string
@@ -91,6 +109,7 @@ public class PluginInternalPreferences {
         JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode object = nodeFactory.objectNode();
         object.set(JsonKeys.APPLICATION_BUILD_VERSION, nodeFactory.numberNode(appBuildVersion));
+        object.set(JsonKeys.WWW_FOLDER_INSTALLED_FLAG, nodeFactory.booleanNode(wwwFolderInstalled));
 
         return object.toString();
     }

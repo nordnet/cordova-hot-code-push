@@ -23,6 +23,8 @@
  */
 @property (nonatomic) NSInteger appBuildVersion;
 
+@property (nonatomic, getter=isWwwFolderInstalled) BOOL wwwFolderInstalled;
+
 /**
  *  Create default plugin config.
  *

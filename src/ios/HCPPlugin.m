@@ -22,6 +22,7 @@
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfigStorage.h"
 #import "HCPAppUpdateRequestAlertDialog.h"
+#import "HCPAssetsFolderHelper.h"
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -55,7 +56,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // install WWW folder if it is needed
     if ([self isWWwFolderNeedsToBeInstalled]) {
-        [NSBundle installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];
+        [HCPAssetsFolderHelper installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];
         return;
     }
     
@@ -99,8 +100,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     NSFileManager *fileManager = [NSFileManager defaultManager];
     BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] > _pluginInternalPrefs.appBuildVersion;
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
+    BOOL isWWwFolderInstalled = _pluginInternalPrefs.isWwwFolderInstalled;
     
-    return isApplicationUpdated || !isWWwFolderExists;
+    return isApplicationUpdated || !isWWwFolderExists || !isWWwFolderInstalled;
 }
 
 /**
@@ -422,6 +424,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)onAssetsInstalledOnExternalStorageEvent:(NSNotification *)notification {
     // update stored config with new application build version
     _pluginInternalPrefs.appBuildVersion = [NSBundle applicationBuildVersion];
+    _pluginInternalPrefs.wwwFolderInstalled = YES;
     [_pluginInternalPrefs saveToUserDefaults];
     
     // allow work

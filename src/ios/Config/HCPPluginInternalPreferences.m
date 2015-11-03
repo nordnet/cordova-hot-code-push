@@ -10,6 +10,7 @@
 #pragma mark JSON keys for plugin options
 
 static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
+static NSString *const WWW_FOLDER_INSTALLED_FLAG = @"www_folder_installed";
 
 @implementation HCPPluginInternalPreferences
 
@@ -18,6 +19,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 + (HCPPluginInternalPreferences *)defaultConfig {
     HCPPluginInternalPreferences *pluginConfig = [[HCPPluginInternalPreferences alloc] init];
     pluginConfig.appBuildVersion = [NSBundle applicationBuildVersion];
+    pluginConfig.wwwFolderInstalled = NO;
     
     return pluginConfig;
 }
@@ -32,6 +34,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
     
     HCPPluginInternalPreferences *pluginConfig = [[HCPPluginInternalPreferences alloc] init];
     pluginConfig.appBuildVersion = [(NSNumber *)jsonObject[APPLICATION_BUILD_VERSION] integerValue];
+    pluginConfig.wwwFolderInstalled = [(NSNumber *)jsonObject[WWW_FOLDER_INSTALLED_FLAG] boolValue];
     
     return pluginConfig;
 }
@@ -39,6 +42,7 @@ static NSString *const APPLICATION_BUILD_VERSION = @"app_build_version";
 - (id)toJson {
     NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
     [jsonObject setObject:[NSNumber numberWithInteger:self.appBuildVersion] forKey:APPLICATION_BUILD_VERSION];
+    [jsonObject setObject:[NSNumber numberWithBool:self.isWwwFolderInstalled] forKey:WWW_FOLDER_INSTALLED_FLAG];
     
     return jsonObject;
 }

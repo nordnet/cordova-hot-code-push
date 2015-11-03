@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.0.5 (2015-03-11)
+
+**Bug fixes:**
+
+- Fixed [issue #31](https://github.com/nordnet/cordova-hot-code-push/issues/31). Additional checking that `www` folder was installed on the external storage.
+
 ## 1.0.4 (2015-23-10)
 
 **Bug fixes:**

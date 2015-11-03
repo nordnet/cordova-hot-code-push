@@ -14,7 +14,6 @@ import org.json.JSONObject;
 public class ChcpXmlConfig {
 
     private String configUrl;
-    private DevelopmentOptions developmentOptions;
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
 
@@ -22,7 +21,6 @@ public class ChcpXmlConfig {
         configUrl = "";
         allowUpdatesAutoDownload = true;
         allowUpdatesAutoInstall = true;
-        developmentOptions = new DevelopmentOptions();
     }
 
     /**
@@ -42,16 +40,6 @@ public class ChcpXmlConfig {
      */
     public void setConfigUrl(String configUrl) {
         this.configUrl = configUrl;
-    }
-
-    /**
-     * Getter for local development options.
-     *
-     * @return local development options
-     * @see DevelopmentOptions
-     */
-    public DevelopmentOptions getDevelopmentOptions() {
-        return developmentOptions;
     }
 
     /**

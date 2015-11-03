@@ -54,12 +54,6 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
             return;
         }
 
-        // parse local development options
-        if (name.equals(XmlTags.LOCAL_DEVELOPMENT_TAG)) {
-            processLocalDevelopmentBlock(xml);
-            return;
-        }
-
         // parse configuration file preference
         if (name.equals(XmlTags.CONFIG_FILE_TAG)) {
             processConfigFileBlock(xml);
@@ -76,11 +70,6 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         if (name.equals(XmlTags.AUTO_INSTALLATION_TAG)) {
             processAutoInstallationBlock(xml);
         }
-    }
-
-    private void processLocalDevelopmentBlock(XmlPullParser xml) {
-        boolean isDevModeEnabled = xml.getAttributeValue(null, XmlTags.LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE).equals("true");
-        chcpConfig.getDevelopmentOptions().setEnabled(isDevModeEnabled);
     }
 
     private void processConfigFileBlock(XmlPullParser xml) {

@@ -16,10 +16,6 @@ final class XmlTags {
     public static final String CONFIG_FILE_TAG = "config-file";
     public static final String CONFIG_FILE_URL_ATTRIBUTE = "url";
 
-    // keys for local development
-    public static final String LOCAL_DEVELOPMENT_TAG = "local-development";
-    public static final String LOCAL_DEVELOPMENT_ENABLED_ATTRIBUTE = "enabled";
-
     // keys for updates auto download
     public static final String AUTO_DOWNLOAD_TAG = "auto-download";
     public static final String AUTO_DOWNLOAD_ENABLED_ATTRIBUTE = "enabled";

@@ -226,6 +226,11 @@
       <header-file src="src/ios/Utils/HCPAppUpdateRequestAlertDialog.h"
         target-dir="Utils/" />
 
+      <source-file src="src/ios/Utils/HCPAssetsFolderHelper.m"
+        target-dir="Utils/" />
+      <header-file src="src/ios/Utils/HCPAssetsFolderHelper.h"
+        target-dir="Utils/" />
+
       <!-- Socket.IO sources -->
       <source-file src="src/ios/SocketIOClientSwift/SocketAckManager.swift"
         target-dir="SocketIOClientSwift/" />

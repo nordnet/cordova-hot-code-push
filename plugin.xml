@@ -274,7 +274,7 @@
       <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstallationErrorEvent.java"
           target-dir="src/com/nordnetab/chcp/main/events" />
       <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstalledEvent.java"
-          target-dir="src/com/nordnetab/chcp/events" />
+          target-dir="src/com/nordnetab/chcp/main/events" />
       <source-file src="src/android/src/com/nordnetab/chcp/main/events/IPluginEvent.java"
           target-dir="src/com/nordnetab/chcp/main/events" />
       <source-file src="src/android/src/com/nordnetab/chcp/main/events/NothingToInstallEvent.java"
@@ -366,7 +366,7 @@
 
       <!-- sources for package: com.nordnetab.chcp -->
       <source-file src="src/android/src/com/nordnetab/chcp/main/HotCodePushPlugin.java"
-        target-dir="src/com/nordnetab/main/chcp" />
+        target-dir="src/com/nordnetab/chcp/main" />
 
     </platform>
 </plugin>

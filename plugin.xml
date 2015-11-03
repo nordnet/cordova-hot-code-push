@@ -267,7 +267,7 @@
         target-dir="src/com/nordnetab/chcp/main/config" />
       <source-file src="src/android/src/com/nordnetab/chcp/main/config/DevelopmentOptions.java"
         target-dir="src/com/nordnetab/chcp/main/config" />
-      <source-file src="src/android/src/com/main/nordnetab/chcp/main/config/XmlTags.java"
+      <source-file src="src/android/src/com/nordnetab/chcp/main/config/XmlTags.java"
         target-dir="src/com/nordnetab/chcp/main/config" />
 
       <!-- sources for package: com.nordnetab.chcp.events -->

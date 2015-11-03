@@ -9,8 +9,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.PluginInternalPreferences;
@@ -78,7 +76,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private Handler handler;
     private boolean isPluginReadyForWork;
-    private Socket devSocket;
 
     /**
      * Helper class to store JavaScript callbacks
@@ -128,10 +125,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         EventBus.getDefault().register(this);
 
-        if (chcpXmlConfig.getDevelopmentOptions().isEnabled()) {
-            connectToLocalDevSocket();
-        }
-
         // ensure that www folder installed on external storage;
         // if not - install it
         isPluginReadyForWork = isPluginReadyForWork();
@@ -167,7 +160,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @Override
     public void onStop() {
         EventBus.getDefault().unregister(this);
-        disconnectFromLocalDevSocket();
 
         super.onStop();
     }
@@ -727,62 +719,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         sendMessageToDefaultCallback(jsResult);
-    }
-
-    // endregion
-
-    // region Local development socket
-
-    /**
-     * Connect to local server to listen for update in real time.
-     * Called only when local development mode is enabled in config.xml
-     */
-    private void connectToLocalDevSocket() {
-        try {
-            URL serverURL = new URL(chcpXmlConfig.getConfigUrl());
-            String socketUrl = serverURL.getProtocol() + "://" + serverURL.getAuthority();
-
-            devSocket = IO.socket(socketUrl);
-            devSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-
-                @Override
-                public void call(Object... args) {
-                    Log.d("CHCP", "Socket connected");
-                }
-
-            }).on("release", new Emitter.Listener() {
-
-                @Override
-                public void call(Object... args) {
-                    Log.d("CHCP", "New Release is available");
-                    fetchUpdate(null);
-                }
-
-            }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-                @Override
-                public void call(Object... args) {
-                    Log.d("CHCP", "Socket disonnected");
-                }
-
-            });
-            devSocket.connect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Disconnect from local server.
-     */
-    private void disconnectFromLocalDevSocket() {
-        if (devSocket == null) {
-            return;
-        }
-
-        devSocket.close();
-        devSocket.off();
-        devSocket = null;
     }
 
     // endregion

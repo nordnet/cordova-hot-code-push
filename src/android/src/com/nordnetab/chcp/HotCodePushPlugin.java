@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.github.nkzawa.emitter.Emitter;
 import com.nordnetab.chcp.config.ApplicationConfig;
 import com.nordnetab.chcp.config.ChcpXmlConfig;
 import com.nordnetab.chcp.config.PluginInternalPreferences;

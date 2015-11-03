@@ -32,11 +32,4 @@
  */
 + (NSString *)pathToCordovaConfigXml;
 
-/**
- *  Install www folder from bunlde onto the external storage.
- *
- *  @param externalFolderURL URL to the folder where to install web content; usually it is a folder in Application Support directory.
- */
-+ (void)installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL;
-
 @end

@@ -90,35 +90,6 @@ function prepareWithCustomBuildOption(ctx, optionName) {
   return true;
 }
 
-/**
- * Try to prepare application for local development mode.
- * By default, we will try to enable it when "local-development" preference in config.xml is set to "true".
- * But it "config-file" preference is missing - we will also try to prepare for local development.
- *
- * @param {Object} ctx - cordova context object
- * @param {Object} xmlOptions - plugin preferences from config.xml
- * @return {boolean} true - if local development mode is activated; otherwise - false
- */
-function prepareForLocalDevelopment(ctx, xmlOptions) {
-  var isLocalDevelopmentModeEnabled = xmlOptions['local-development']['enabled'],
-    isConfigFileSet = xmlOptions['config-file'].length > 0;
-
-  if (!isLocalDevelopmentModeEnabled && isConfigFileSet) {
-    return false;
-  }
-
-  var buildConfig = chcpBuildOptions.getLocalDevBuildOptions(ctx);
-  if (buildConfig == null) {
-    console.warn('Can\'t find .chcpenv file to build for local development mode. Maybe you forgot to execute "cordova-hcp server"?');
-    return false;
-  }
-
-  console.log('Building for local development with config-file set to ' + buildConfig['config-file']);
-  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
-
-  return true;
-}
-
 module.exports = function(ctx) {
   var buildConfig,
     chcpXmlOptions;
@@ -142,17 +113,11 @@ module.exports = function(ctx) {
   // read plugin preferences from config.xml
   chcpXmlOptions = chcpConfigXmlReader.readOptions(ctx);
 
-  // if config-file is not set, or local-development is set to true and .chcpenv file exists - prepare for local development
-  if (prepareForLocalDevelopment(ctx, chcpXmlOptions)) {
-    logEnd();
-    return;
-  }
-
   // if none of the above
   if (chcpXmlOptions['config-file'].length == 0) {
     console.warn('config-file preference is not set.');
   } else {
-    console.log('Building with config-file set to ' + chcpXmlOptions['config-file']);
+    console.log('config-file set to ' + chcpXmlOptions['config-file']);
   }
 
   logEnd();

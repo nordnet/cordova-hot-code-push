@@ -4,27 +4,13 @@ Those options then injected into platform-specific config.xml.
 */
 (function() {
   var fs = require('fs'),
-    path = require('path'),
-    chcpLocalDevConfig = require('./chcpLocalDevConfig.js');
+    path = require('path');
 
   module.exports = {
-    getBuildConfigurationByName: getBuildConfigurationByName,
-    getLocalDevBuildOptions: getLocalDevBuildOptions
+    getBuildConfigurationByName: getBuildConfigurationByName
   };
 
   // region Public API
-
-  // options for localdev
-  /**
-   * Construct local development options based on the .chcpenv file.
-   *
-   * @return {Object} local development options
-   */
-  function getLocalDevBuildOptions(ctx) {
-    var environmentConfig = readEnvironmentConfig(ctx);
-
-    return chcpLocalDevConfig.load(environmentConfig);
-  };
 
   /**
    * Generate build options depending on the options, provided in console.
@@ -67,13 +53,7 @@ Those options then injected into platform-specific config.xml.
 
     return objData;
   }
-
-  function readEnvironmentConfig(ctx) {
-    var chcpEnvFilePath = path.join(ctx.opts.projectRoot, '.chcpenv');
-
-    return readObjectFromFile(chcpEnvFilePath);
-  };
-
+  
   // endregion
 
 })();

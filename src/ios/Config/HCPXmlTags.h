@@ -12,10 +12,6 @@ extern NSString *const kHCPMainXmlTag;
 extern NSString *const kHCPConfigFileXmlTag;
 extern NSString *const kHCPConfigFileUrlXmlAttribute;
 
-// Keys for processing local development options
-extern NSString *const kHCPLocalDevelopmentXmlTag;
-extern NSString *const kHCPLocalDevelopmentEnabledXmlAttribute;
-
 // Keys for processing auto download options
 extern NSString *const kHCPAutoDownloadXmlTag;
 extern NSString *const kHCPAutoDownloadEnabledXmlAttribute;

@@ -8,10 +8,6 @@
 #import "HCPXmlConfigParser.h"
 #import "HCPXmlTags.h"
 
-@interface HCPXmlConfig()
-@property (nonatomic, strong, readwrite) HCPLocalDevOptions *devOptions;
-@end
-
 @implementation HCPXmlConfig
 
 - (instancetype)init {
@@ -20,7 +16,6 @@
         _allowUpdatesAutoDownload = YES;
         _allowUpdatesAutoInstallation = YES;
         _configUrl = nil;
-        _devOptions = [[HCPLocalDevOptions alloc] init];
     }
     
     return self;

@@ -5,7 +5,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "HCPLocalDevOptions.h"
 
 /**
  *  Model for hot-code-push specific preferences in config.xml.
@@ -31,13 +30,6 @@
  *  @return <code>YES</code> if auto installation is allowed; <code>NO</code> if auto installation is disabled
  */
 @property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
-
-/**
- *  Local development options.
- *
- *  @see HCPLocalDevOptions
- */
-@property (nonatomic, strong, readonly) HCPLocalDevOptions *devOptions;
 
 /**
  *  Apply and save options that has been send from the web page.

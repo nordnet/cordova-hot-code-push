@@ -5,7 +5,6 @@
 //
 
 #import "HCPXmlConfigParser.h"
-#import "HCPLocalDevOptions.h"
 #import "NSBundle+HCPExtension.h"
 #import "HCPXmlTags.h"
 
@@ -61,8 +60,6 @@
     
     if ([elementName isEqualToString:kHCPConfigFileXmlTag]) {
         [self parseConfigUrl:attributeDict];
-    } else if ([elementName isEqualToString:kHCPLocalDevelopmentXmlTag]) {
-        [self parseLocalDevelopmentOptions:attributeDict];
     } else if ([elementName isEqualToString:kHCPAutoDownloadXmlTag]) {
         [self parseAutoDownloadOptions:attributeDict];
     } else if ([elementName isEqualToString:kHCPAutoInstallXmlTag]) {
@@ -85,10 +82,6 @@
 
 - (void)parseConfigUrl:(NSDictionary *)attributeDict {
     _xmlConfig.configUrl = [NSURL URLWithString:attributeDict[kHCPConfigFileUrlXmlAttribute]];
-}
-
-- (void)parseLocalDevelopmentOptions:(NSDictionary *)attributeDict {
-    _xmlConfig.devOptions.enabled = [(NSNumber *)attributeDict[kHCPLocalDevelopmentEnabledXmlAttribute] boolValue];
 }
 
 - (void)parseAutoDownloadOptions:(NSDictionary *)attributeDict {

@@ -14,10 +14,6 @@ NSString *const kHCPMainXmlTag = @"chcp";
 NSString *const kHCPConfigFileXmlTag = @"config-file";
 NSString *const kHCPConfigFileUrlXmlAttribute = @"url";
 
-// Keys for processing local development options
-NSString *const kHCPLocalDevelopmentXmlTag = @"local-development";
-NSString *const kHCPLocalDevelopmentEnabledXmlAttribute = @"enabled";
-
 // Keys for processing auto download options
 NSString *const kHCPAutoDownloadXmlTag = @"auto-download";
 NSString *const kHCPAutoDownloadEnabledXmlAttribute = @"enabled";

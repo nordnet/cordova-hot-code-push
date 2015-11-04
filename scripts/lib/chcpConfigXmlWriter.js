@@ -131,7 +131,6 @@ We will use it to inject plugin-specific options.
 
       // inject new options
       injectConfigUrl(chcpConfig, options);
-      injectLocalDevOptions(chcpConfig, options);
 
       // write them back to config.xml
       configData.widget.chcp[0] = chcpConfig;
@@ -156,26 +155,7 @@ We will use it to inject plugin-specific options.
       }
     }];
   }
-
-  /**
-   * Inject local-development options if any is set in provided options.
-   *
-   * @param {Object} xml - config.xml data
-   * @param {Object} options - plugin options to inject
-   */
-  function injectLocalDevOptions(xml, options) {
-    if (!options.hasOwnProperty('local-development')) {
-      return;
-    }
-
-    var localDevBlock = {};
-    localDevBlock['$'] = {
-      enabled: options['local-development'].enabled
-    };
-
-    xml['local-development'] = [localDevBlock];
-  }
-
+  
   // endregion
 
 })();

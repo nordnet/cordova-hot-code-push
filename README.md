@@ -128,6 +128,7 @@ From this point you can do local development, where all the changes are uploaded
 
   ```sh
   ionic plugin add cordova-hot-code-push-plugin
+  npm install -D xml2js
   ```
 
 4. Install Cordova Hot Code Push CLI client:

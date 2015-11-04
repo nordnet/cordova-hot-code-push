@@ -68,6 +68,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
 
   ```sh
   cordova plugin add cordova-hot-code-push-plugin
+  npm install -D xml2js
   ```
 
 3. Install Cordova Hot Code Push CLI client:

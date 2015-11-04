@@ -33,7 +33,7 @@
 
     <!-- Hooks -->
     <hook type="after_prepare" src="scripts/afterPrepareHook.js" />
-    <hook type="after_plugin_add" src="scripts/afterPluginAddHook.js" />
+    <hook type="after_plugin_install" src="scripts/afterPluginInstallHook.js" />
 
     <platform name="ios">
 

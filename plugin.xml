@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
            id="cordova-hot-code-push-plugin"
-      version="1.0.0">
+      version="1.1.0">
 
     <name>Hot Code Push Plugin</name>
     <description>Cordova plugin to perform code updates on the fly</description>
@@ -63,11 +63,6 @@
       <source-file src="src/ios/Config/HCPContentManifest.m"
         target-dir="Config/" />
       <header-file src="src/ios/Config/HCPContentManifest.h"
-        target-dir="Config/" />
-
-      <source-file src="src/ios/Config/HCPLocalDevOptions.m"
-        target-dir="Config/" />
-      <header-file src="src/ios/Config/HCPLocalDevOptions.h"
         target-dir="Config/" />
 
       <source-file src="src/ios/Config/HCPPluginInternalPreferences.m"

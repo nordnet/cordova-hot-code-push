@@ -7,8 +7,10 @@ It can be found in https://github.com/nordnet/cordova-hot-code-push-cli
 
 var exec = require('child_process').exec,
   path = require('path'),
+  fs = require('fs'),
   modules = ['read-package-json'],
   chcpCliPackageName = 'cordova-hot-code-push-cli',
+  INSTALLATION_FLAG_FILE_NAME = '.installed',
   packageJsonFilePath;
 
 // region NPM specific
@@ -16,11 +18,11 @@ var exec = require('child_process').exec,
 /**
  * Discovers module dependencies in plugin's package.json and installs them.
  */
-function getPackagesFromJson() {
+function installModulesFromPackageJson() {
   var readJson = require('read-package-json');
   readJson(packageJsonFilePath, console.error, false, function(err, data) {
     if (err) {
-      console.error('Can\'t read package.json file: ' + err);
+      printLog('Can\'t read package.json file: ' + err);
       return;
     }
 
@@ -30,7 +32,7 @@ function getPackagesFromJson() {
         modules.push(module);
       }
       installRequiredNodeModules(function() {
-        console.log('All dependency modules are installed.');
+        printLog('All dependency modules are installed.');
         checkCliDependency();
       });
     }
@@ -63,11 +65,11 @@ function isNodeModuleInstalled(moduleName) {
  */
 function installNodeModule(moduleName, callback) {
   if (isNodeModuleInstalled(moduleName)) {
-    console.log('Node module ' + moduleName + ' is found');
+    printLog('Node module ' + moduleName + ' is found');
     callback(null);
     return;
   }
-  console.log('Can\'t find module ' + moduleName + ', running npm install');
+  printLog('Can\'t find module ' + moduleName + ', running npm install');
 
   var cmd = 'npm install -D ' + moduleName;
   exec(cmd, function(err, stdout, stderr) {
@@ -87,12 +89,11 @@ function installRequiredNodeModules(callback) {
   var moduleName = modules.shift();
   installNodeModule(moduleName, function(err) {
     if (err) {
-      console.log('Failed to install module ' + moduleName);
-      console.log(err);
+      printLog('Failed to install module ' + moduleName + ':' + err);
       return;
     }
 
-    console.log('Module ' + moduleName + ' is installed');
+    printLog('Module ' + moduleName + ' is installed');
     installRequiredNodeModules(callback);
   });
 }
@@ -109,8 +110,6 @@ function checkCliDependency() {
     if (err) {
       suggestCliInstallation();
     }
-
-    logEnd();
   });
 }
 
@@ -130,22 +129,29 @@ function checkIfChcpInstalled(callback) {
  * Show message, that developer should install CLI client for the plugin, so it would be easier to use.
  */
 function suggestCliInstallation() {
-  console.log('');
-  console.log('To make the development process easier for you - we developed a CLI client for our plugin.');
-  console.log('To install it, please, use command:');
-  console.log('npm install -g ' + chcpCliPackageName);
-  console.log('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
+  printLog('');
+  printLog('To make the development process easier for you - we developed a CLI client for our plugin.');
+  printLog('To install it, please, use command:');
+  printLog('npm install -g ' + chcpCliPackageName);
+  printLog('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
 }
 
 // endregion
 
+// region Logging
+
 function logStart() {
-  console.log("======== CHCP after plugin add process ========");
+  console.log('CHCP checking dependencies:');
 }
 
-function logEnd() {
-  console.log("=================================================");
+function printLog(msg) {
+  var formattedMsg = '    ' + msg;
+  console.log(formattedMsg);
 }
+
+// endregion
+
+// region Private API
 
 /**
  * Perform initialization before any execution.
@@ -156,9 +162,46 @@ function init(ctx) {
   packageJsonFilePath = path.join(ctx.opts.projectRoot, 'plugins', ctx.opts.plugin.id, 'package.json');
 }
 
+/**
+ * Check if we already executed this hook.
+ *
+ * @param {Object} ctx - cordova context
+ * @return {Boolean} true if already executed; otherwise - false
+ */
+function isInstallationAlreadyPerformed(ctx) {
+  var pathToInstallFlag = path.join(ctx.opts.projectRoot, 'plugins', ctx.opts.plugin.id, INSTALLATION_FLAG_FILE_NAME),
+    isInstalled = false;
+  try {
+    var content = fs.readFileSync(pathToInstallFlag);
+    isInstalled = true;
+  } catch (err) {
+  }
+
+  return isInstalled;
+}
+
+/**
+ * Create empty file - indicator, that we tried to install dependency modules after installation.
+ * We have to do that, or this hook is gonna be called on any plugin installation.
+ */
+function createPluginInstalledFlag(ctx) {
+  var pathToInstallFlag = path.join(ctx.opts.projectRoot, 'plugins', ctx.opts.plugin.id, INSTALLATION_FLAG_FILE_NAME);
+
+  fs.closeSync(fs.openSync(pathToInstallFlag, 'w'));
+}
+
+// endregion
+
 module.exports = function(ctx) {
+  // exit if we already executed this hook once
+  if (isInstallationAlreadyPerformed(ctx)) {
+    return;
+  }
+
   logStart();
 
   init(ctx);
-  installRequiredNodeModules(getPackagesFromJson);
+  installRequiredNodeModules(installModulesFromPackageJson);
+
+  createPluginInstalledFlag(ctx);
 };

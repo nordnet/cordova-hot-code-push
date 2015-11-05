@@ -29,11 +29,12 @@ var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
   RELEASE_BUILD_FLAG = '--release';
 
 function logStart() {
-  console.log('========CHCP plugin after prepare hook========');
+  console.log('CHCP plugin after prepare hook:');
 }
 
-function logEnd() {
-  console.log('=====================END======================');
+function printLog(msg) {
+  var formattedMsg = '    ' + msg;
+  console.log(formattedMsg);
 }
 
 /**
@@ -99,14 +100,12 @@ module.exports = function(ctx) {
   // if we are running build with --release option - do nothing
   var consoleOptions = parseOptionsFromConsole(ctx);
   if (consoleOptions.isRelease) {
-      console.log('Building for release, not changing config.xml');
-      logEnd();
+      printLog('Building for release, not changing config.xml');
       return;
   }
 
   // if any build option is provided in console - try to map it with chcpbuild.options
   if (prepareWithCustomBuildOption(ctx, consoleOptions.buildOption)) {
-    logEnd();
     return;
   }
 
@@ -115,10 +114,8 @@ module.exports = function(ctx) {
 
   // if none of the above
   if (chcpXmlOptions['config-file'].length == 0) {
-    console.warn('config-file preference is not set.');
+    printLog('config-file preference is not set.');
   } else {
-    console.log('config-file set to ' + chcpXmlOptions['config-file']);
+    printLog('config-file set to ' + chcpXmlOptions['config-file']);
   }
-
-  logEnd();
 };

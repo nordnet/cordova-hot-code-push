@@ -46,7 +46,7 @@ function getPackagesFromJson() {
 function isNodeModuleInstalled(moduleName) {
   var installed = true;
   try {
-    require.resolve(moduleName);
+    var module = require(moduleName);
   } catch (err) {
     installed = false;
   }
@@ -69,7 +69,7 @@ function installNodeModule(moduleName, callback) {
   }
   console.log('Can\'t find module ' + moduleName + ', running npm install');
 
-  var cmd = 'npm install ' + moduleName;
+  var cmd = 'npm install -D ' + moduleName;
   exec(cmd, function(err, stdout, stderr) {
     callback(err);
   });

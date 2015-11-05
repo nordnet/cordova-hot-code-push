@@ -5,7 +5,6 @@ Helper class to read plugin-specific options from the config.xml.
 (function() {
   var fs = require('fs'),
     path = require('path'),
-    xml2js = require('xml2js'),
     xmlHelper = require('./xmlHelper.js'),
     cordovaContext,
     projectRoot;

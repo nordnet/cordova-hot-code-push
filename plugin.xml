@@ -6,7 +6,7 @@
 
     <name>Hot Code Push Plugin</name>
     <description>Cordova plugin to perform code updates on the fly</description>
-    <license>Apache 2.0</license>
+    <license>MIT</license>
     <keywords>cordova,code,update</keywords>
 
     <repo>https://github.com/nordnet/cordova-hot-code-push</repo>

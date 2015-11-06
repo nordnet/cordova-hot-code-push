@@ -149,7 +149,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return NO;
     }
     
-    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl];
+    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl headers: self.headers];
     [self storeCallback:callbackId forFetchTask:taskId];
     
     return taskId != nil;
@@ -625,6 +625,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)jsFetchUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
         return;
+    }
+
+    // headers may be passed as first argument, as a dict
+    if (command.arguments.count == 1) {
+        self.headers = command.arguments[0];
     }
     
     [self _fetchUpdate:command.callbackId];

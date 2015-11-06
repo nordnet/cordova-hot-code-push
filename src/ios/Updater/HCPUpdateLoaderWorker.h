@@ -26,4 +26,5 @@
  */
 - (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(id<HCPFilesStructure>)fileStructure;
 
+@property (nonatomic, retain) NSDictionary* headers;
 @end

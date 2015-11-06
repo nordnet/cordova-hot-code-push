@@ -31,10 +31,11 @@
  *  Add update download task to queue. It will be executed as fast as possible.
  *
  *  @param configUrl url to the application config on the server
+ *  @param optional authorization header
  *
  *  @return id of the created worker
  */
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl;
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl headers: (NSDictionary*) headers;
 
 /**
  *  Setup loader. Should be called on application startup before any real work is performed.

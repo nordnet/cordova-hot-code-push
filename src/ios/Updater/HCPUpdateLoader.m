@@ -37,14 +37,15 @@
     _filesStructure = filesStructure;
 }
 
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl headers: (NSDictionary*) headers {
     // TODO: add better communication between installer and loader.
     // For now - skip update load request if installation or download is in progress.
     if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress || _isExecuting) {
         return nil;
     }
-    
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
+    HCPUpdateLoaderWorker* task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
+        
+    task.headers = headers;
     [self executeTask:task];
     
     return task.workerId;

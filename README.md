@@ -6,7 +6,7 @@ When you publish your application on the store - you pack in it all your web con
 1. Publish new version of the app on the store. But it takes time, especially with the App Store.
 2. Sacrifice the offline feature and load all the pages online. But as soon as Internet connection goes down - application won't work.
 
-This plugin is intended to fix all that. When user starts the app for the first time - it copies all the web files onto the external storage. From this moment all pages are loaded from the external folder and not from the packed bundle. On every launch plugin connects to your server and checks if the new version of web project is available for download. If so - it loads it on the device and installs on the next launch.
+This plugin is intended to fix all that. When user starts the app for the first time - it copies all the web files onto the external storage. From this moment all pages are loaded from the external folder and not from the packed bundle. On every launch plugin connects to your server (with optional authentication, see fetchUpdate() below) and checks if the new version of web project is available for download. If so - it loads it on the device and installs on the next launch.
 
 As a result, your application receives updates of the web content as soon as possible, and still can work in offline mode. Also, plugin allows you to specify dependency between the web release and the native version to make sure, that new release will work on the older versions of the application.
 
@@ -307,6 +307,8 @@ To disable updates auto downloads add to `config.xml`:
 ```
 By default preference is set to `true`.
 
+Note that in order to authenticate to the server, this should typically be set to false, and a manual download should be initiated with credentials in the [fetchUpdate()](#fetch-update) call. 
+
 ##### auto-install
 Defines if plugin is allowed to install updates. Originally update installation is performed automatically, but you can disable it and do that manually through the JavaScript module.
 
@@ -539,6 +541,7 @@ By default, all update checking->downloading->installation cycle is performed au
 It allows you to:
 - subscribe for update related events;
 - check and download new releases from the server;
+- override authentication and other request headers to the server;
 - install loaded updates;
 - change plugin preferences;
 - request user to download new version of the app from the store.
@@ -656,12 +659,14 @@ From now on we will know, when update is loaded and ready for installation. By u
 
 In order to force update check you can call from your web page:
 ```js
-chcp.fetchUpdate(updateCallback);
+chcp.fetchUpdate(updateCallback, headers /* optional */);
 
 function updateCallback(error, data) {
   // do some work
 }
 ```
+
+For authorization and other headers see [Change plugin preferences at runtime](#change-plugin-preferences-at-runtime) section.
 
 Callback function gets called with two parameters:
 - `error` - error if any happened during the update check; `null` if everything went fine;
@@ -781,7 +786,7 @@ app.initialize();
 
 **Be advised:** even if you call `installUpdate` method with a callback function - installation related events are still broadcasted.
 
-#### Change plugin preferences on runtime
+#### Change plugin preferences at runtime
 
 Normally all plugin preferences are set through the Cordova's `config.xml`. But you can change some of them through the JavaScript module.
 
@@ -801,7 +806,7 @@ Supported options:
 
 Those options must be set on `deviceready` event. You should do that on every page load, because if application gets updated through the store - those options will be overridden with the corresponding values from the `config.xml`.
 
-`auto-download` and `auto-install` can be used when you want to perform update download and installation manually. Let us extend previous example with `configure` method:
+`auto-download` and `auto-install` can be used when you want to perform update download and installation manually. You will need to do this if you want to provide authentication credentials or other headers. Let us extend previous example with `configure` method:
 
 ```js
 var app = {
@@ -847,8 +852,15 @@ var app = {
     }
   },
 
+  // This function will typically handle authorization with a provider.
+  makeAuthHeaders: function() {
+    var auth = "Basic " + btoa("usename:password");
+    
+    return { Authorization : auth }; 
+  },
+
   checkForUpdate: function() {
-    chcp.fetchUpdate(this.fetchUpdateCallback);
+    chcp.fetchUpdate(this.fetchUpdateCallback, this.makeAuthHeaders());
   },
 
   fetchUpdateCallback: function(error, data) {

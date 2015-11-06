@@ -50,4 +50,6 @@
  */
 - (void)jsRequestAppUpdate:(CDVInvokedUrlCommand *)command;
 
+@property (nonatomic, retain) NSDictionary* headers;
+
 @end

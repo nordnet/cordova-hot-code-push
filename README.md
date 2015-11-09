@@ -14,19 +14,20 @@ As a result, your application receives updates of the web content as soon as pos
 
 ## Supported Platforms
 - Android 4.0.0 or above.
-- iOS 7.0 or above. Requires Xcode 7 and Swift 2.
+- iOS 7.0 or above.
 
 ## Documentation
 - [Installation](#installation)
 - [Quick start guide for Cordova project](#quick-start-guide-for-cordova-project)
 - [Quick start guide for Ionic project](#quick-start-guide-for-ionic-project)
 - [Update workflow](#update-workflow)
+- [Cordova Hot Code Push CLI client](#cordova-hot-code-push-cli-client)
+- [Local Development Add-on](#local-development-add-on)
 - [Cordova config preferences](#cordova-config-preferences)
 - [Configuration files](#configuration-files)
   - [Application config](#application-config)
   - [Content manifest](#content-manifest)
   - [Build options](#build-options)
-- [Cordova Hot Code Push CLI client](#cordova-hot-code-push-cli-client)
 - [JavaScript module](#javascript-module)
   - [Listen for update events](#listen-for-update-events)
   - [Fetch update](#fetch-update)
@@ -70,64 +71,10 @@ Of course, you can use this plugin without the CLI client, but it will make your
   cordova plugin add cordova-hot-code-push-plugin
   ```
 
-3. Install Cordova Hot Code Push CLI client:
+3. Add plugin for local development:
 
   ```sh
-  npm install -g cordova-hot-code-push-cli
-  ```
-
-4. Start local server by executing:
-
-  ```sh
-  cordova-hcp server
-  ```
-
-  As a result you will see something like this:
-  ```
-  Running server
-  Checking:  /Cordova/TestProject/www
-  local_url http://localhost:31284
-  Warning: .chcpignore does not exist.
-  Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
-  cordova-hcp local server available at: http://localhost:31284
-  cordova-hcp public server available at: https://5027caf9.ngrok.com
-  ```
-
-5. Open new console window, go to the project root and launch the app:
-
-  ```sh
-  cordova run
-  ```
-
-  Wait until application is launched for both platforms.
-
-6. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
-
-From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
-
-### Quick start guide for Ionic project
-
-1. Create new Ionic project using command line interface and add iOS/Android platforms:
-
-  ```sh
-  ionic start TestProject blank
-  cd ./TestProject
-  ionic platform add android
-  ionic platform add ios
-  ```
-  Or use the existing one.
-
-2. Build project for the first time before adding plugin to it.
-
-  ```sh
-  ionic build
-  ```
-  This is required mainly for iOS, because in some cases Ionic creates iOS project with the wrong name (`HelloCordova`) instead the one that is specified in the `config.xml`. But after the `build` it becomes the correct one.
-
-3. Add plugin:
-
-  ```sh
-  ionic plugin add cordova-hot-code-push-plugin
+  cordova plugin add cordova-hot-code-push-local-dev-addon
   ```
 
 4. Install Cordova Hot Code Push CLI client:
@@ -156,12 +103,79 @@ From this point you can do local development, where all the changes are uploaded
 6. Open new console window, go to the project root and launch the app:
 
   ```sh
+  cordova run
+  ```
+
+  Wait until application is launched for both platforms.
+
+6. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+
+From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
+
+### Quick start guide for Ionic project
+
+1. Create new Ionic project using command line interface and add iOS/Android platforms:
+
+  ```sh
+  ionic start TestProject blank
+  cd ./TestProject
+  ionic platform add android
+  ionic platform add ios
+  ```
+  Or use the existing one.
+
+2. Build project for the first time before adding plugin to it.
+
+  ```sh
+  ionic build
+  ```
+
+  This is required mainly for iOS, because in some cases Ionic creates iOS project with the wrong name (`HelloCordova`) instead the one that is specified in the `config.xml`. But after the `build` it becomes the correct one.
+
+3. Add plugin:
+
+  ```sh
+  ionic plugin add cordova-hot-code-push-plugin
+  ```
+
+4. Add plugin for local development:
+
+  ```sh
+  ionic plugin add cordova-hot-code-push-local-dev-addon
+  ```
+
+5. Install Cordova Hot Code Push CLI client:
+
+  ```sh
+  npm install -g cordova-hot-code-push-cli
+  ```
+
+6. Start local server by executing:
+
+  ```sh
+  cordova-hcp server
+  ```
+
+  As a result you will see something like this:
+  ```
+  Running server
+  Checking:  /Cordova/TestProject/www
+  local_url http://localhost:31284
+  Warning: .chcpignore does not exist.
+  Build 2015.09.02-10.17.48 created in /Cordova/TestProject/www
+  cordova-hcp local server available at: http://localhost:31284
+  cordova-hcp public server available at: https://5027caf9.ngrok.com
+  ```
+
+7. Open new console window, go to the project root and launch the app:
+
+  ```sh
   ionic run
   ```
 
   Wait until application is launched for both platforms.
 
-7. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+8. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
@@ -181,6 +195,40 @@ Before overloading your head with all the configuration stuff - let us describe 
 
 And that's it. Of course, there is a little more in it, but you get the general idea on how it works.
 
+### Cordova Hot Code Push CLI client
+
+[Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli) is a command line utility that will help you with development and deployment of your web project.
+
+With it you can:
+- generate both `chcp.json` and `chcp.manifest` files, so you wouldn't have to do it manually;
+- run local server in order to detect any changes you make in your web project and instantly upload them on the devices;
+- deploy your web project on the external server.
+
+Of course, you can use Hot Code Push plugin without that utility. But it will make it much easier.
+
+### Local Development add-on
+
+When you develop your app locally - the general process looks like that:
+
+1. Do some changes in the web project.
+2. Execute `cordova run` to build and launch the app.
+3. Wait for a while and see the result.
+
+To see the results for even a smallest change you need to rebuild and restart the app. And that can take a while. And it is kind of boring.
+
+In order to speed this up - you can use [Hot Code Push Local Development Add-on](https://github.com/nordnet/cordova-hot-code-push-local-dev-addon). Setup is pretty simple:
+
+1. Add the plugin to the project.
+2. Start local server by executing `cordova-hcp server`.
+3. Add `<local-development enabled='true' />` to the `<chcp />` block of your project's `config.xml` file.
+4. Launch the app.
+
+From that moment, all the changes in the web project will be detected by the plugin, and immediately loaded into the app without the need to restart it.
+
+You will have to restart the app only if you add some new plugin to the project.
+
+**Important: you should use this add-on only for the development purpose. Consider deleting it before building the release version by executing `cordova plugin remove cordova-hot-code-push-local-dev-addon`.**
+
 ### Cordova config preferences
 
 As you probably know, Cordova uses `config.xml` file to set different project preferences: name, description, starting page and so on. Using this config file you can also set options for the plugin.
@@ -190,23 +238,13 @@ Those preferences are specified inside the `<chcp>` block. For example:
 ```xml
 <chcp>
     <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
-    <local-development enabled="true"/>
 </chcp>
 ```
 
 ##### config-file
-Defines URL from which application config should be loaded. URL is declared in the `url` property.
+Defines URL from which application config should be loaded. URL is declared in the `url` property. **It is a required property.**
 
-In the case of the local development this value is automatically set to the applications config path on the local server.
-
-##### local-development
-Defines if local development mode is activated. If `enabled` is set to `true` - plugin will try to connect to local server via socket and listen for any changes that you make in the `www` folder. For production releases this must be set to `false`.
-
-When you execute
-```sh
-cordova run
-```
-it is automatically set to `true` since we are running in debug mode.
+In the case of the local development mode, if `config-file` is not defined - it is automatically set to the applications config path on the local server.
 
 #####  auto-download
 Defines if plugin is allowed to download updates. Originally update fetching is performed automatically, but you can disable it and do that manually through the JavaScript module.
@@ -254,7 +292,7 @@ Simplest example is:
 
 It should be placed in your `www` folder as `chcp.json` file. It is packed with the application and describes the version of the project that is installed on the device from the store.
 
-In the case of the local development this file is created automatically by the `cordova-hcp` utility.
+You can either create it manually, or let `cordova-hcp` utility to do it for you. Just run `cordova-hcp init` in your project's root folder, and then on every new build execute `cordova-hcp build`. For more details [read the documentation](https://github.com/nordnet/cordova-hot-code-push-cli) for the CLI client.
 
 ##### content_url
 URL on the server, where all your project files are located. Plugin will use it as a base url to download content manifest and all updated files. **This is a required option**.
@@ -391,10 +429,7 @@ Now we create `chcpbuild.options` file inside `/Cordova/Testproject/` and put in
 ```json
 {
   "dev": {
-    "config-file": "https://5027caf9.ngrok.com/chcp.json",
-    "local-development": {
-      "enabled": "false"
-    }
+    "config-file": "https://dev.company_server.com/mobile/www/chcp.json"
   },
   "production": {
     "config-file": "https://company_server.com/mobile/www/chcp.json"
@@ -413,8 +448,7 @@ cordova build -- chcp-dev
 As a result, platform-specific `config.xml` file (for example, `/Cordova/TestProject/platforms/android/res/xml/config.xml`) will have:
 ```xml
 <chcp>
-  <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
-  <local-development enabled="false"/>
+  <config-file url="https://dev.company_server.com/mobile/www/chcp.json"/>
 </chcp>
 ```
 
@@ -439,19 +473,6 @@ cordova build --release
 In that case `config.xml` is not modified.
 
 If `chcpbuild.options` are not used - then plugin will use preferences from the project's main `config.xml`.
-
-### Cordova Hot Code Push CLI client
-
-Cordova Hot Code Push CLI client is a command line utility that will help you with development and deployment of your web project.
-
-With it you can:
-- generate both `chcp.json` and `chcp.manifest` files, so you wouldn't have to do it manually;
-- run local server in order to detect any changes you make in your web project and instantly upload them on the devices;
-- deploy your web project on the external server.
-
-Of course, you can use Hot Code Push plugin without that utility. But it will make it much easier.
-
-It's repository and documentation can be found [here](https://github.com/nordnet/cordova-hot-code-push-cli).
 
 ### JavaScript module
 

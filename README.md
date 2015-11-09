@@ -12,7 +12,7 @@ As a result, your application receives updates of the web content as soon as pos
 
 **Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for. If your application should be a calculator, but after the update becomes audio player - you will be banned.
 
-## Supported Platforms
+## Supported platforms
 - Android 4.0.0 or above.
 - iOS 7.0 or above.
 
@@ -21,6 +21,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Quick start guide for Cordova project](#quick-start-guide-for-cordova-project)
 - [Quick start guide for Ionic project](#quick-start-guide-for-ionic-project)
 - [Update workflow](#update-workflow)
+- [How web project files are stored and updated](#how-web-project-files-are-stored-and-updated)
 - [Cordova Hot Code Push CLI client](#cordova-hot-code-push-cli-client)
 - [Local Development Add-on](#local-development-add-on)
 - [Cordova config preferences](#cordova-config-preferences)
@@ -194,6 +195,25 @@ Before overloading your head with all the configuration stuff - let us describe 
 7. Update installed, and user is redirected to the index page of your application.
 
 And that's it. Of course, there is a little more in it, but you get the general idea on how it works.
+
+### How web project files are stored and updated
+
+Every Cordova project has a `www` folder, where all your web files are stored. When `cordova build` is executed - `www` content is copied to the platform-specific `www` folder:
+
+- For Android: `platforms/android/assets/www`.
+- For iOS: `platforms/ios/www`.
+
+And they are packed with the application. We can't update them, since they have a read-only access. For this reason on the first startup those files are copied to the external storage. From this point, index page is loaded from the external folder, and not from the packed one.
+
+When new update arrives - we are changing files in the external folder and refreshing the web page.
+
+If your update includes additional plugins or some native code - you need to publish new version of the app on the store. And for that - increase build version of the app (that is mandatory anyway for every new release on the App Store or Google Play). On the next launch plugin checks if build version has changed, and if so - it will re-install `www` folder on the external folder.
+
+When you are developing your app - you can get confused: why you made some changes, launched it - but they are not applied. Now you know why: because plugin is using version of the web project from the external storage. To reset the cache you can do one of the following:
+
+- Manually uninstall the app, and then execute `cordova run`.
+- Increase build version of your app to force the plugin to reinstall the `www` folder. You can do it by setting `android-versionCode` and `ios-CFBundleVersion` in `config.xml`.
+- Install [local development add-on](#local-development-add-on) and let him handle folder reset for you. It will increase the build version of the app on each build, so you don't have to do it manually.
 
 ### Cordova Hot Code Push CLI client
 

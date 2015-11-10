@@ -44,11 +44,5 @@
  */
 - (void)setup:(id<HCPFilesStructure>)filesStructure;
 
-/**
- *  Flag to check if we are doing any downloads at the moment.
- *
- *  @return <code>YES</code> if download is running, <code>NO</code> otherwise.
- */
-@property (nonatomic, readonly, getter=isDownloadInProgress) BOOL isDownloadInProgress;
 
 @end

@@ -120,24 +120,9 @@
         target-dir="Model/" />
 
       <!-- sources for Network folder -->
-      <source-file src="src/ios/Network/HCPApplicationConfig+Downloader.m"
-        target-dir="Network/" />
-      <header-file src="src/ios/Network/HCPApplicationConfig+Downloader.h"
-        target-dir="Network/" />
-
-      <source-file src="src/ios/Network/HCPContentManifest+Downloader.m"
-        target-dir="Network/" />
-      <header-file src="src/ios/Network/HCPContentManifest+Downloader.h"
-        target-dir="Network/" />
-
       <source-file src="src/ios/Network/HCPFileDownloader.m"
         target-dir="Network/" />
       <header-file src="src/ios/Network/HCPFileDownloader.h"
-        target-dir="Network/" />
-
-      <source-file src="src/ios/Network/HCPJsonDownloader.m"
-        target-dir="Network/" />
-      <header-file src="src/ios/Network/HCPJsonDownloader.h"
         target-dir="Network/" />
 
       <!-- sources for Storage folder -->

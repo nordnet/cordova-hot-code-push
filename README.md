@@ -40,12 +40,12 @@ As a result, your application receives updates of the web content as soon as pos
 ### Installation
 This requires cordova 5.0+ (current stable 1.0.5)
 ```sh
-    cordova plugin add cordova-hot-code-push-plugin
+cordova plugin add cordova-hot-code-push-plugin
 ```
 
 It is also possible to install via repo url directly (__unstable__)
 ```sh
-    cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
+cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
 ```
 
 At the end of the installation plugin will recommend you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
@@ -207,7 +207,7 @@ And they are packed with the application. We can't update them, since they have 
 
 When new update arrives - we are changing files in the external folder and refreshing the web page.
 
-If your update includes additional plugins or some native code - you need to publish new version of the app on the store. And for that - increase build version of the app (that is mandatory anyway for every new release on the App Store or Google Play). On the next launch plugin checks if build version has changed, and if so - it will re-install `www` folder on the external folder.
+If your update includes additional plugins or some native code - you need to publish new version of the app on the store. And for that - increase build version of the app (that is mandatory anyway for every new release on the App Store or Google Play). On the next launch plugin checks if build version has changed, and if so - it will reinstall `www` folder on the external folder.
 
 When you are developing your app - you can get confused: why you made some changes, launched it - but they are not applied. Now you know why: because plugin is using version of the web project from the external storage. To reset the cache you can do one of the following:
 
@@ -240,14 +240,14 @@ In order to speed this up - you can use [Hot Code Push Local Development Add-on]
 
 1. Add the plugin to the project.
 2. Start local server by executing `cordova-hcp server`.
-3. Add `<local-development enabled='true' />` to the `<chcp />` block of your project's `config.xml` file.
+3. Add `<local-development enabled="true" />` to the `<chcp />` block of your project's `config.xml` file.
 4. Launch the app.
 
 From that moment, all the changes in the web project will be detected by the plugin, and immediately loaded into the app without the need to restart it.
 
 You will have to restart the app only if you add some new plugin to the project.
 
-**Important: you should use this add-on only for the development purpose. Consider deleting it before building the release version by executing `cordova plugin remove cordova-hot-code-push-local-dev-addon`.**
+**Important:** you should use this add-on for development purpose only. Consider deleting it before building the release version by executing `cordova plugin remove cordova-hot-code-push-local-dev-addon`.
 
 ### Cordova config preferences
 

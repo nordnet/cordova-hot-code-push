@@ -1,5 +1,18 @@
 # Change Log
 
+## 1.1.0 (2015-10-11)
+
+**Enchancements:**
+
+- Moved local development mode to the separate plugin: https://github.com/nordnet/cordova-hot-code-push-local-dev-addon
+- Node modules installed only once after plugin is added. Installation of the new plugin is not gonna trigger it, as before.
+- You can now build your project on Xcode 6.4, as long as you don't use local development add-on. [Issue #17](https://github.com/nordnet/cordova-hot-code-push/issues/17).
+- Minor cleanup and fixes.
+
+**Bug fixes:**
+
+Since local development mode was moved to the separate plugin - that should fix the [issue #26](https://github.com/nordnet/cordova-hot-code-push/issues/26) with the Swift on iOS, when it lead for the app to be rejected by the Apple. When development is done - just remove development plugin and that's it. For more information please visit [documentation page](https://github.com/nordnet/cordova-hot-code-push-local-dev-addon) of the local development add-on.
+
 ## 1.0.5 (2015-03-11)
 
 **Bug fixes:**

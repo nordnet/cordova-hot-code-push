@@ -167,6 +167,7 @@ In this guide we will show how quickly you can test this plugin and start using 
 
   ```sh
   ionic plugin add cordova-hot-code-push-plugin
+  npm install -D xml2js
   ```
 
 4. Add plugin for local development:

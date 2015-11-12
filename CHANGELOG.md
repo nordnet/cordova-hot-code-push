@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.1.1 (2015-12-11)
+
+Release holds only some documentation updates:
+
+- Added section: `Migrating from previous version`.
+- Small update to quick start guides.
+
 ## 1.1.0 (2015-10-11)
 
 **Enchancements:**

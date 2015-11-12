@@ -39,7 +39,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Error codes](#error-codes)
 
 ### Installation
-This requires cordova 5.0+ (current stable 1.1.0)
+This requires cordova 5.0+ (current stable 1.1.1)
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
 ```

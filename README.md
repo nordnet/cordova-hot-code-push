@@ -10,7 +10,7 @@ This plugin is intended to fix all that. When user starts the app for the first 
 
 As a result, your application receives updates of the web content as soon as possible, and still can work in offline mode. Also, plugin allows you to specify dependency between the web release and the native version to make sure, that new release will work on the older versions of the application.
 
-**Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for. If your application should be a calculator, but after the update becomes audio player - you will be banned.
+**Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for. If your application should be a calculator, but after the update becomes an audio player - you will be banned.
 
 ## Supported platforms
 - Android 4.0.0 or above.
@@ -59,7 +59,7 @@ Of course, you can use this plugin without the CLI client, but it will make your
 
 ##### From v1.0.x to v1.1.x
 
-In version 1.0.x local development mode was integrated in the plugin. Starting from v1.1.x it is moved to another [plugin](https://github.com/nordnet/cordova-hot-code-push-local-dev-addon) as an add-on. Since v1.0 of hot code push plugin does some tweaks to the iOS project file to activate Swift support - after updating to v1.1.x you need to disable it.
+In version 1.0.x local development mode was integrated in the plugin. Starting from v1.1.x it is moved to another [plugin](#local-development-add-on) as an add-on. Since v1.0 of hot code push plugin does some tweaks to the iOS project file to activate Swift support - after updating to v1.1.x you need to disable it.
 
 The easiest way is to reinstall iOS platform:
 ```
@@ -81,6 +81,8 @@ Harder approach - remove Swift support manually. For that you need to open your 
 3. Build the project to check, if everything is fine.
 
 ### Quick start guide for Cordova project
+
+In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on) which requires **Xcode 7**, although hot code push plugin itself can work on the older versions of the Xcode.
 
 1. Create new Cordova project using command line interface and add iOS/Android platforms:
 
@@ -135,11 +137,13 @@ Harder approach - remove Swift support manually. For that you need to open your 
 
   Wait until application is launched for both platforms.
 
-6. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+7. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
 ### Quick start guide for Ionic project
+
+In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on) which requires **Xcode 7**, although hot code push plugin itself can work on the older versions of the Xcode.
 
 1. Create new Ionic project using command line interface and add iOS/Android platforms:
 
@@ -252,7 +256,7 @@ With it you can:
 
 Of course, you can use Hot Code Push plugin without that utility. But it will make it much easier.
 
-### Local Development add-on
+### Local Development Add-on
 
 When you develop your app locally - the general process looks like that:
 
@@ -923,7 +927,7 @@ During the update download/installation process some errors can occur. To identi
 
 If error code is less then `0` - then this is a critical one. If greater then `0` - think of this as a warning/informational thing.
 
-- `1` - installation request was sent to plugin, but there is nothing to install.
+- `1` - installation request was sent to the plugin, but there is nothing to install.
 - `2` - nothing new is available for download.
 - `-1` - failed to download new application config from the server. Either file doesn't exist or some internet connection problems.
 - `-2` - application's build version is too low for this update. New web release requires newer version of the app. User must update it through the store.

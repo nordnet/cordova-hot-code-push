@@ -53,10 +53,10 @@ public class UpdatesInstaller {
     }
 
     private static void execute(final InstallationWorker task) {
+        isInstalling = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                isInstalling = true;
                 task.run();
                 isInstalling = false;
             }

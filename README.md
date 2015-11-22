@@ -368,6 +368,14 @@ In a `config.xml` you usually specify versions like so:
 
 Preference creates dependency between the web and the native versions of the application.
 
+**Important!** Due to [a quirk in cordova](https://issues.apache.org/jira/browse/CB-8976), the version code in your generated `.apk` will be multiplied by 10, resulting in an apk with a version code of 70, 72, or 74, depending on the platform (arm/x86/etc) for the previous example. In order to work around this, we recommend multiplying the iOS version code by `10` for every release, so that a `min_native_interface` of `70` can target both platforms, making your config.xml similar to: 
+```xml
+<widget id="io.cordova.hellocordova"
+      version="1.0.1"
+      android-versionCode="7"
+      ios-CFBundleVersion="70">
+```
+
 For example, if you add new plugin to the project - most likely it will require native version to update. In order to prevent user from downloading web content that he can't use right now - you increase the `min_native_interface` value.
 
 Lets say, that inside our app we have the following application config:
@@ -900,7 +908,7 @@ var app = {
   },
 
   onUpdateLoadError: function(eventData) {
-    var error = eventData.details.error;
+    var error = eventData.detail.error;
     if (error && error.code == -2) {
         console.log('Native side update required');
         var dialogMessage = 'New version of the application is available on the store. Please, update.';

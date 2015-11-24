@@ -127,6 +127,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // ensure that www folder installed on external storage;
         // if not - install it
+        // TODO: need to check if we can restore www folder from the backup.
         isPluginReadyForWork = isPluginReadyForWork();
         if (!isPluginReadyForWork) {
             installWwwFolder();
@@ -371,10 +372,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         if (UpdatesInstaller.install(fileStructure)) {
-          // ensure that we set the www folder as invalid, temporarily,
-          // so that if the app crashes or is killed we don't run from a corrupted www folder
-          pluginInternalPrefs.setWwwFolderInstalled(false);
-          pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
+            // TODO: Temporary fix. Need some better way to restore after installation failure.
+            // ensure that we set the www folder as invalid, temporarily,
+            // so that if the app crashes or is killed we don't run from a corrupted www folder
+            pluginInternalPrefs.setWwwFolderInstalled(false);
+            pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
         }
     }
 
@@ -625,9 +627,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @SuppressWarnings("unused")
     public void onEvent(UpdateDownloadErrorEvent event) {
         Log.d("CHCP", "Failed to update");
-        if (event.error() == ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND || event.error() == ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND) {
-          Log.d("CHCP", "Can't load application config from installation folder. Reinstalling external folder");
-          installWwwFolder();
+
+        // TODO: Temporary fix. Need some better way to restore after download failure.
+        final ChcpError error = event.error();
+        if (error == ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND || error == ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND) {
+            Log.d("CHCP", "Can't load application config from installation folder. Reinstalling external folder");
+            installWwwFolder();
         }
 
         PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
@@ -658,6 +663,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         Log.d("CHCP", "Update is installed");
 
         // reconfirm that our www folder is now valid
+        // TODO: Temporary fix. Need some better way to restore after installation failure.
         pluginInternalPrefs.setWwwFolderInstalled(true);
         pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
 

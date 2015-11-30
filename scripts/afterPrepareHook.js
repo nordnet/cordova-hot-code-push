@@ -44,12 +44,24 @@ function printLog(msg) {
  * @param {Object} ctx - cordova context object
  * @return {Object} parsed arguments; if none were provided - default options are returned
  */
-function parseOptionsFromConsole(ctx) {
-  var consoleOptions = ctx.opts.options,
-    parsedOptions = {
-      isRelease: false,
-      buildOption: ''
-    };
+function processConsoleOptions(ctx) {
+  var consoleOptions = ctx.opts.options;
+
+  // If we are using Cordova 5.3.3 or lower - arguments are array of strings.
+  // Will be removed after some time.
+  if (consoleOptions instanceof Array) {
+    return processConsoleOptions_cordova_53(consoleOptions);
+  }
+
+  // for newer version of Cordova - they are an object of properties
+  return processConsoleOptions_cordova_54(consoleOptions);
+}
+
+function processConsoleOptions_cordova_53(consoleOptions) {
+  var parsedOptions = {
+    isRelease: false,
+    buildOption: ''
+  };
 
   // Search for release flag, or plugin-specific build options.
   for (var idx in consoleOptions) {
@@ -61,6 +73,39 @@ function parseOptionsFromConsole(ctx) {
       parsedOptions.buildOption = opt.replace(BUILD_OPTION_PREFIX, '');
       break;
     }
+  }
+
+  return parsedOptions;
+}
+
+function processConsoleOptions_cordova_54(consoleOptions) {
+  // For now it's like this for backwards capability.
+  // Will be simplified later, when Cordova 5.4.x will be used more wide.
+  var parsedOptions = {
+    isRelease: false,
+    buildOption: ''
+  };
+
+  // if building for release - save that and exit
+  if (consoleOptions.hasOwnProperty('release')) {
+    parsedOptions.isRelease = consoleOptions.release;
+    return parsedOptions;
+  }
+
+  // search for plugin specific build options
+  var arguments = consoleOptions.argv;
+  for (var idx in arguments) {
+    var arg = arguments[idx];
+    if (!(arg instanceof String)) {
+      continue;
+    }
+
+    if (opt.indexOf(BUILD_OPTION_PREFIX) === -1) {
+      continue;
+    }
+
+    parsedOptions.buildOption = opt.replace(BUILD_OPTION_PREFIX, '');
+    break;
   }
 
   return parsedOptions;
@@ -98,10 +143,10 @@ module.exports = function(ctx) {
   logStart();
 
   // if we are running build with --release option - do nothing
-  var consoleOptions = parseOptionsFromConsole(ctx);
+  var consoleOptions = processConsoleOptions(ctx);
   if (consoleOptions.isRelease) {
-      printLog('Building for release, not changing config.xml');
-      return;
+    printLog('Building for release, not changing config.xml');
+    return;
   }
 
   // if any build option is provided in console - try to map it with chcpbuild.options

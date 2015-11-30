@@ -5,8 +5,6 @@
 //
 
 #import "HCPUpdateLoaderWorker.h"
-#import "HCPContentManifest+Downloader.h"
-#import "HCPApplicationConfig+Downloader.h"
 #import "NSJSONSerialization+HCPExtension.h"
 #import "NSBundle+HCPExtension.h"
 #import "HCPManifestDiff.h"
@@ -17,6 +15,7 @@
 #import "HCPEvents.h"
 #import "NSError+HCPExtension.h"
 #import "HCPUpdateInstaller.h"
+#import "HCPContentManifest.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
@@ -57,73 +56,88 @@
         return;
     }
     
+    HCPFileDownloader *configDownload = [[HCPFileDownloader alloc] init];
+    
     // download new application config
-    HCPApplicationConfig *newAppConfig = [HCPApplicationConfig downloadSyncFromURL:_configURL error:&error];
-    if (error) {
-        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
-            applicationConfig:nil];
-        return;
-    }
-    
-    // check if there is anything new on the server
-    if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
-        [self notifyNothingToUpdate:newAppConfig];
-        return;
-    }
-    
-    // check if current native version supports new content
-    if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
-        [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
-                                         description:@"Application build version is too low for this update"]
-            applicationConfig:newAppConfig];
-        return;
-    }
-    
-    // download new content manifest
-    NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
-    HCPContentManifest *newManifest = [HCPContentManifest downloadSyncFromURL:manifestFileURL error:&error];
-    if (error) {
-        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
-                                descriptionFromError:error]
-            applicationConfig:newAppConfig];
-        return;
-    }
-    
-    // find files that were updated
-    NSArray *updatedFiles = [_oldManifest calculateDifference:newManifest].updateFileList;
-    if (updatedFiles.count == 0) {
-        [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
-        [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
-        [self notifyNothingToUpdate:newAppConfig];
+    [configDownload downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
+        if (error) {
+            [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
+                applicationConfig:nil];
+            return;
+        }
+        NSError* jsonError = nil;
+        NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+        HCPApplicationConfig* newAppConfig = [HCPApplicationConfig instanceFromJsonObject:json];
         
-        return;
-    }
-    
-    [self recreateDownloadFolder:_pluginFiles.downloadFolder];
-    
-    // download files
-    HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
-    BOOL isDataLoaded = [downloader downloadFilesSync:updatedFiles
-                                              fromURL:newAppConfig.contentConfig.contentURL
-                                             toFolder:_pluginFiles.downloadFolder
-                                                error:&error];
-    if (!isDataLoaded) {
-        [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:&error];
-        [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
-                                descriptionFromError:error]
-            applicationConfig:newAppConfig];
-        return;
-    }
-    
-    // store configs
-    [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
-    [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
-    
-    // move download folder to installation folder
-    [self moveDownloadedContentToInstallationFolder];
-    
-    // notify that we are done
-    [self notifyUpdateDownloadSuccess:newAppConfig];
+        if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
+            [self notifyNothingToUpdate:newAppConfig];
+            return;
+        }
+        
+        // check if current native version supports new content
+        if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
+            [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
+                                             description:@"Application build version is too low for this update"]
+                applicationConfig:newAppConfig];
+            return;
+        }
+        
+        // download new content manifest
+        NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
+        [configDownload downloadDataFromUrl:manifestFileURL completionBlock:^(NSData *data, NSError *error) {
+            if (error) {
+                [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
+                                        descriptionFromError:error]
+                    applicationConfig:newAppConfig];
+                return;
+            }
+            
+            NSError* jsonError = nil;
+            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+            HCPContentManifest* newManifest = [HCPContentManifest instanceFromJsonObject:json];
+            
+            // find files that were updated
+            NSArray *updatedFiles = [_oldManifest calculateDifference:newManifest].updateFileList;
+            if (updatedFiles.count == 0) {
+                [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
+                [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
+                [self notifyNothingToUpdate:newAppConfig];
+                
+                return;
+            }
+            
+            [self recreateDownloadFolder:_pluginFiles.downloadFolder];
+            
+            // download files
+            HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
+            // todo set credentials on downloader
+            
+            [downloader downloadFiles:updatedFiles
+                              fromURL:newAppConfig.contentConfig.contentURL
+                             toFolder:_pluginFiles.downloadFolder
+                      completionBlock:^(NSError * error) {
+                          
+                if (error) {
+                    [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:&error];
+                    
+                    [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
+                                            descriptionFromError:error]
+                        applicationConfig:newAppConfig];
+                } else {
+                    // store configs
+                    [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
+                    [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
+                    
+                    // move download folder to installation folder
+                    [self moveDownloadedContentToInstallationFolder];
+                    
+                    // notify that we are done
+                    [self notifyUpdateDownloadSuccess:newAppConfig];
+                }
+            }];
+            
+        }];
+    }];
 }
 
 #pragma mark Private API
@@ -170,6 +184,7 @@
  */
 - (void)waitForInstallationToComplete {
     while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
+        [NSThread sleepForTimeInterval:0.1]; // avoid busy loop
     }
 }
 

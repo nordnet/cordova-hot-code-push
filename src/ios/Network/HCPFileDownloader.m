@@ -13,83 +13,74 @@
 
 #pragma mark Public API
 
-- (void)downloadFileFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSError *error = nil;
-        [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum error:&error];
-        block(error);
-    });
-}
 
-- (void)downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL complitionBlock:(HCPFileDownloadComplitionBlock)block {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSError *error = nil;
-        [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL error:&error];
-        block(error);
-    });
-}
-
-- (BOOL)downloadFilesSync:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
-    [self executeDownloadOfFiles:filesList fromURL:contentURL toFolder:folderURL error:error];
+- (void) downloadDataFromUrl:(NSURL*) url completionBlock:(HCPDataDownloadCompletionBlock) block {
     
-    return (*error == nil);
-}
-
-- (BOOL)downloadFileSyncFromUrl:(NSURL *)url saveToFile:(NSURL *)filePath checksum:(NSString *)checksum error:(NSError **)error {
-    [self executeFileDownloadFromURL:url saveToFile:filePath checksum:checksum error:error];
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession              *session       = [NSURLSession sessionWithConfiguration:configuration];
     
-    return (*error == nil);
+    NSURLSessionDataTask* dowloadTask = [session dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            block(data, error);
+    }];
+    
+    [dowloadTask resume];
 }
 
-#pragma mark Private API
-
-/**
- *  Perform download of the list of files
- *
- *  @param filesList  list of files to download
- *  @param contentURL base url for all the loaded files
- *  @param folderURL  where to put loaded files on the file system
- *  @param error      error information if any occure; <code>nil</code> if all files are loaded
- */
-- (void)executeDownloadOfFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL error:(NSError **)error {
-    for (HCPManifestFile *file in filesList) {
-        NSURL *filePathOnFileSystem = [folderURL URLByAppendingPathComponent:file.name isDirectory:NO];
-        NSURL *fileUrlOnServer = [contentURL URLByAppendingPathComponent:file.name isDirectory:NO];
-        BOOL isDownloaded = [self executeFileDownloadFromURL:fileUrlOnServer saveToFile:filePathOnFileSystem checksum:file.md5Hash error:error];
-        if (!isDownloaded) {
-            break;
-        }
+- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block {
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    NSURLSession              *session       = [NSURLSession sessionWithConfiguration:configuration];
+    
+    __block NSMutableSet* startedTasks = [NSMutableSet set];
+    __block BOOL canceled = NO;
+    for (HCPManifestFile *file in filesList)
+    {
+        NSURL *url = [contentURL URLByAppendingPathComponent:file.name];
+        __block NSURLSessionDataTask *downloadTask = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            NSError* operationError = nil;
+            if (error) {
+                operationError = error;
+            }
+            
+            if (!error) {
+                if (![self isDataCorrupted:data checksum:file.md5Hash error:&error]) {
+                    NSURL *finalPath = [folderURL URLByAppendingPathComponent:file.name];
+                    [self prepareFileForSaving:finalPath];
+                    
+                    BOOL success = [data writeToURL:finalPath options:kNilOptions error:&error];
+                    if (success) {
+                        NSLog(@"Loaded file %@", file.name);
+                        [startedTasks removeObject:downloadTask];
+                    } else {
+                        operationError = error;
+                    }
+                } else {
+                    NSString *message = [NSString stringWithFormat:@"Failed to load file: %@", url];
+                    operationError = [NSError errorWithCode:0 description:message];
+                }
+            }
+            
+            if (operationError) {
+                [session invalidateAndCancel];
+                [startedTasks removeAllObjects];
+            }
+            // operations finishes
+            if (!canceled && (startedTasks.count == 0 || operationError)) {
+                if (operationError) {
+                    canceled = YES; // do not dispatch any other error
+                }
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    block(operationError);
+                });
+            }
+            
+        }];
         
-        NSLog(@"Loaded file %@", file.name);
+        [startedTasks addObject:downloadTask];
+        [downloadTask resume];
     }
 }
 
-/**
- *  Perform download of the file from the provided url
- *
- *  @param url      url from which to downlaod the file
- *  @param fileURL  where to save file on the external storage
- *  @param checksum file checksum to validate it after the download
- *  @param error    error information if any occure; <code>nil</code> on download success
- *
- *  @return <code>YES</code> if file is downloaded; <code>NO</code> if we failed to download
- */
-- (BOOL)executeFileDownloadFromURL:(NSURL *)url saveToFile:(NSURL *)fileURL checksum:(NSString *)checksum error:(NSError **)error {
-    *error = nil;
-    NSData *downloadedContent = [NSData dataWithContentsOfURL:url];
-    if (downloadedContent == nil) {
-        NSString *message = [NSString stringWithFormat:@"Failed to load file: %@", url];
-        *error = [NSError errorWithCode:0 description:message];
-        return NO;
-    }
-    
-    if (![self isDataCorrupted:downloadedContent checksum:checksum error:error]) {
-        [self prepareFileForSaving:fileURL];
-        [downloadedContent writeToURL:fileURL options:kNilOptions error:error];
-    }
-    
-    return (*error == nil);
-}
+
 
 /**
  *  Check if data was corrupted during the download.

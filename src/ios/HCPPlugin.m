@@ -7,8 +7,6 @@
 #import <Cordova/CDVConfigParser.h>
 
 #import "HCPPlugin.h"
-#import "HCPApplicationConfig+Downloader.h"
-#import "HCPContentManifest+Downloader.h"
 #import "HCPFileDownloader.h"
 #import "HCPFilesStructure.h"
 #import "HCPFilesStructureImpl.h"

@@ -9,10 +9,17 @@
 /**
  *  Complition block for file download process.
  *
- *  @param holds information about occured error; <code>nil</code> if everything is fine
+ *  @param error holds information about occured error; <code>nil</code> if everything is fine
  */
-typedef void (^HCPFileDownloadCompletionBlock)(NSError *);
-typedef void (^HCPDataDownloadCompletionBlock)(NSData*, NSError *);
+typedef void (^HCPFileDownloadCompletionBlock)(NSError *error);
+
+/**
+ *  Complition block for data download.
+ *
+ *  @param data  downloaded data
+ *  @param error error information; <code>nil</code> - if everything is fine
+ */
+typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
 
 /**
  *  Helper class to download files from the server.

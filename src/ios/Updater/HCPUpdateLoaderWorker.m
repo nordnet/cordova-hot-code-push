@@ -56,19 +56,18 @@
         return;
     }
     
-    HCPFileDownloader *configDownload = [[HCPFileDownloader alloc] init];
+    HCPFileDownloader *configDownloader = [[HCPFileDownloader alloc] init];
     
     // download new application config
-    [configDownload downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
+    [configDownloader downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
+        HCPApplicationConfig *newAppConfig = [self getApplicationConfigFromData:data error:&error];
         if (error) {
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
                 applicationConfig:nil];
             return;
         }
-        NSError* jsonError = nil;
-        NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
-        HCPApplicationConfig* newAppConfig = [HCPApplicationConfig instanceFromJsonObject:json];
         
+        // check if new version is available
         if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
             [self notifyNothingToUpdate:newAppConfig];
             return;
@@ -84,17 +83,14 @@
         
         // download new content manifest
         NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
-        [configDownload downloadDataFromUrl:manifestFileURL completionBlock:^(NSData *data, NSError *error) {
+        [configDownloader downloadDataFromUrl:manifestFileURL completionBlock:^(NSData *data, NSError *error) {
+            HCPContentManifest *newManifest = [self getManifestConfigFromData:data error:&error];
             if (error) {
                 [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
                                         descriptionFromError:error]
                     applicationConfig:newAppConfig];
                 return;
             }
-            
-            NSError* jsonError = nil;
-            NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
-            HCPContentManifest* newManifest = [HCPContentManifest instanceFromJsonObject:json];
             
             // find files that were updated
             NSArray *updatedFiles = [_oldManifest calculateDifference:newManifest].updateFileList;
@@ -106,41 +102,71 @@
                 return;
             }
             
-            [self recreateDownloadFolder:_pluginFiles.downloadFolder];
-            
-            // download files
-            HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
-            // todo set credentials on downloader
-            
-            [downloader downloadFiles:updatedFiles
-                              fromURL:newAppConfig.contentConfig.contentURL
-                             toFolder:_pluginFiles.downloadFolder
-                      completionBlock:^(NSError * error) {
-                          
-                if (error) {
-                    [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:&error];
-                    
-                    [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
-                                            descriptionFromError:error]
-                        applicationConfig:newAppConfig];
-                } else {
-                    // store configs
-                    [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
-                    [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
-                    
-                    // move download folder to installation folder
-                    [self moveDownloadedContentToInstallationFolder];
-                    
-                    // notify that we are done
-                    [self notifyUpdateDownloadSuccess:newAppConfig];
-                }
-            }];
-            
+            [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest];
         }];
     }];
 }
 
 #pragma mark Private API
+
+- (void)downloadUpdatedFiles:(NSArray *)updatedFiles appConfig:(HCPApplicationConfig *)newAppConfig manifest:(HCPContentManifest *)newManifest {
+    
+    // create new download folder
+    [self recreateDownloadFolder:_pluginFiles.downloadFolder];
+    
+    // download files
+    HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
+    // TODO: set credentials on downloader
+    
+    [downloader downloadFiles:updatedFiles
+                      fromURL:newAppConfig.contentConfig.contentURL
+                     toFolder:_pluginFiles.downloadFolder
+              completionBlock:^(NSError * error) {
+        if (error) {
+            [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:nil];
+            [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
+                                              descriptionFromError:error]
+                          applicationConfig:newAppConfig];
+            return;
+        }
+                  
+        // store configs
+        [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
+        [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
+                  
+        // move download folder to installation folder
+        [self moveDownloadedContentToInstallationFolder];
+                  
+        // notify that we are done
+        [self notifyUpdateDownloadSuccess:newAppConfig];
+    }];
+}
+
+- (HCPApplicationConfig *)getApplicationConfigFromData:(NSData *)data error:(NSError **)error {
+    if (*error) {
+        return nil;
+    }
+    
+    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
+    if (*error) {
+        return nil;
+    }
+    
+    return [HCPApplicationConfig instanceFromJsonObject:json];
+}
+
+- (HCPContentManifest *)getManifestConfigFromData:(NSData *)data error:(NSError **)error {
+    if (*error) {
+        return nil;
+    }
+    
+    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
+    if (*error) {
+        return nil;
+    }
+    
+    return [HCPContentManifest instanceFromJsonObject:json];
+}
 
 /**
  *  Load configuration files from the file system.

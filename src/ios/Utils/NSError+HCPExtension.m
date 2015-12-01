@@ -36,4 +36,8 @@ NSInteger const kHCPNothingToUpdateErrorCode = 2;
     return [NSError errorWithDomain:kHCPPluginErrorDomain code:errorCode userInfo:error.userInfo];
 }
 
+- (NSString *)underlyingErrorLocalizedDesription {
+    return [self.userInfo[NSUnderlyingErrorKey] localizedDescription];
+}
+
 @end

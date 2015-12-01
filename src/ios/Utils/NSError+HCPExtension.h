@@ -121,4 +121,11 @@ extern NSInteger const kHCPNothingToUpdateErrorCode;
  */
 + (NSError *)errorWithCode:(NSInteger)errorCode descriptionFromError:(NSError *)error;
 
+/**
+ *  Helper method to get localized description of the underlying error.
+ *
+ *  @return error message
+ */
+- (NSString *)underlyingErrorLocalizedDesription;
+
 @end

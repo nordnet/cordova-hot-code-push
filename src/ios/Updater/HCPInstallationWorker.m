@@ -243,12 +243,19 @@
         NSURL *pathInInstallationFolder = [_fileStructure.installationFolder URLByAppendingPathComponent:manifestFile.name];
         NSURL *pathInWwwFolder = [_fileStructure.wwwFolder URLByAppendingPathComponent:manifestFile.name];
         if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
-            break;
+            continue;
+        }
+        
+        NSURL *pathInWwwFolderParent = [pathInWwwFolder URLByDeletingLastPathComponent];
+        if (![fileManager fileExistsAtPath:pathInWwwFolderParent.path]) {
+            if (![fileManager createDirectoryAtPath:pathInWwwFolderParent.path withIntermediateDirectories:YES attributes:nil error:NULL]) {
+                NSLog(@"Error: Create folder failed %@ %@", pathInWwwFolderParent);
+            }
         }
         
         if (![fileManager moveItemAtURL:pathInInstallationFolder toURL:pathInWwwFolder error:error]) {
-            NSLog(@"%@", [(*error).userInfo[NSUnderlyingErrorKey] localizedDescription]);
-            break;
+            NSLog(@"Error: Failed to copy %@ to %@ (%@)", pathInInstallationFolder, pathInWwwFolder, [(*error).userInfo[NSUnderlyingErrorKey] localizedDescription]);
+            continue;
         }
     }
     

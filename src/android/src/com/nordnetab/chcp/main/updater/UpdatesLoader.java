@@ -29,6 +29,10 @@ public class UpdatesLoader {
      * @return string identifier of the task.
      */
     public static String addUpdateTaskToQueue(Context context, final String configURL, final IPluginFilesStructure filesStructure) {
+        if (isExecuting()) {
+            return null;
+        }
+
         UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, filesStructure);
 //        addTaskToQueue(task);
         scheduledTask = task;
@@ -62,7 +66,6 @@ public class UpdatesLoader {
             @Override
             public void run() {
                 task.run();
-
                 executeTaskFromQueue();
             }
         }).start();

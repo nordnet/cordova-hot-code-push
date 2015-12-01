@@ -351,6 +351,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         String taskId = UpdatesLoader.addUpdateTaskToQueue(cordova.getActivity(), chcpXmlConfig.getConfigUrl(), fileStructure);
+        if (taskId == null) {
+            return;
+        }
+
         if (jsCallback != null) {
             putFetchTaskJsCallback(taskId, jsCallback);
         }
@@ -375,8 +379,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             // TODO: Temporary fix. Need some better way to restore after installation failure.
             // ensure that we set the www folder as invalid, temporarily,
             // so that if the app crashes or is killed we don't run from a corrupted www folder
-            pluginInternalPrefs.setWwwFolderInstalled(false);
-            pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
+//            pluginInternalPrefs.setWwwFolderInstalled(false);
+//            pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
         }
     }
 
@@ -664,8 +668,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         // reconfirm that our www folder is now valid
         // TODO: Temporary fix. Need some better way to restore after installation failure.
-        pluginInternalPrefs.setWwwFolderInstalled(true);
-        pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
+//        pluginInternalPrefs.setWwwFolderInstalled(true);
+//        pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
 
         final PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 

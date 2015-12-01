@@ -79,6 +79,10 @@ class UpdateLoaderWorker implements Runnable {
             return;
         }
 
+        // wait for possible installation process to end;
+        // otherwise we can end up loading same stuff twice
+        waitForInstallationToFinish();
+
         // download new application config
         ApplicationConfig newAppConfig = downloadApplicationConfig();
         if (newAppConfig == null) {
@@ -282,7 +286,7 @@ class UpdateLoaderWorker implements Runnable {
     private void waitForInstallationToFinish() {
         while (UpdatesInstaller.isInstalling()) {
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

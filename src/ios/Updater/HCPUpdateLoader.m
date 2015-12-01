@@ -6,10 +6,10 @@
 
 #import "HCPUpdateLoader.h"
 #import "HCPUpdateLoaderWorker.h"
+#import "HCPUpdateInstaller.h"
 
 @interface HCPUpdateLoader() {
-    BOOL _isExecuting;
-    id<HCPWorker> _scheduledTask;
+    __block BOOL _isExecuting;
     id<HCPFilesStructure> _filesStructure;
 }
 
@@ -29,15 +29,32 @@
     return sharedInstance;
 }
 
+- (BOOL)isDownloadInProgress {
+    return _isExecuting;
+}
+
 - (void)setup:(id<HCPFilesStructure>)filesStructure {
     _filesStructure = filesStructure;
 }
 
 - (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
+    // TODO: add better communication between installer and loader.
+    // For now - skip update load request if installation or download is in progress.
+    if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress || _isExecuting) {
+        return nil;
+    }
+    
     id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
-    [task run];
+    [self executeTask:task];
     
     return task.workerId;
+}
+
+- (void)executeTask:(id<HCPWorker>)task {
+    _isExecuting = YES;
+    [task runWithComplitionBlock:^{
+        _isExecuting = NO;
+    }];
 }
 
 @end

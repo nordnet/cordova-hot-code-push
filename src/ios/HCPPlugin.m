@@ -21,6 +21,7 @@
 #import "HCPApplicationConfigStorage.h"
 #import "HCPAppUpdateRequestAlertDialog.h"
 #import "HCPAssetsFolderHelper.h"
+#import "NSError+HCPExtension.h"
 
 @interface HCPPlugin() {
     id<HCPFilesStructure> _filesStructure;
@@ -210,18 +211,27 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @return <code>YES</code> if installation has started; <code>NO</code> otherwise
  */
 - (BOOL)_installUpdate:(NSString *)callbackID {
-    if (!_isPluginReadyForWork || [[HCPUpdateInstaller sharedInstance] isInstallationInProgress]) {
+    if (!_isPluginReadyForWork || _updateInstaller.isInstallationInProgress) {
         return NO;
     }
     
     if (callbackID) {
         _installationCallback = callbackID;
     }
-
-    // ignored for now
-    NSError *error = nil;
     
-    return [_updateInstaller launchUpdateInstallation:&error];
+    NSError *error = nil;
+    if (![_updateInstaller launchUpdateInstallation:&error]) {
+        if (error.code == kHCPNothingToInstallErrorCode) {
+            NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
+                                                         applicationConfig:nil
+                                                                    taskId:nil
+                                                                     error:error];
+            [self onNothingToInstallEvent:notification];
+        }
+        return NO;
+    }
+    
+    return YES;
 }
 
 /**
@@ -530,6 +540,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @param notification captured notification with the event details
  */
+// TODO: if event is not gonna be used in any other place - it should be removed in next version.
 - (void)onNothingToInstallEvent:(NSNotification *)notification {
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     

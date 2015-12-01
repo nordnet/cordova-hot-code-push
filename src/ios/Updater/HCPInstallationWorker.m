@@ -43,7 +43,7 @@
     return self;
 }
 
-- (void)run {
+- (void)runWithComplitionBlock:(void (^)(void))updateInstallationComplitionBlock {
     NSError *error = nil;
     if (![self initBeforeRun:&error] ||
         ![self isUpdateValid:&error] ||

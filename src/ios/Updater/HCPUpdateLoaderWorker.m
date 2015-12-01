@@ -48,10 +48,15 @@
 }
 
 - (void)run {
+    [self runWithComplitionBlock:nil];
+}
+
+- (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock {
     NSError *error = nil;
     
     // initialize before the run
     if (![self loadLocalConfigs:&error]) {
+        updateLoaderComplitionBlock();
         [self notifyWithError:error applicationConfig:nil];
         return;
     }
@@ -62,6 +67,7 @@
     [configDownloader downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
         HCPApplicationConfig *newAppConfig = [self getApplicationConfigFromData:data error:&error];
         if (error) {
+            updateLoaderComplitionBlock();
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
                 applicationConfig:nil];
             return;
@@ -69,12 +75,14 @@
         
         // check if new version is available
         if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
+            updateLoaderComplitionBlock();
             [self notifyNothingToUpdate:newAppConfig];
             return;
         }
         
         // check if current native version supports new content
         if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
+            updateLoaderComplitionBlock();
             [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
                                              description:@"Application build version is too low for this update"]
                 applicationConfig:newAppConfig];
@@ -86,6 +94,7 @@
         [configDownloader downloadDataFromUrl:manifestFileURL completionBlock:^(NSData *data, NSError *error) {
             HCPContentManifest *newManifest = [self getManifestConfigFromData:data error:&error];
             if (error) {
+                updateLoaderComplitionBlock();
                 [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
                                         descriptionFromError:error]
                     applicationConfig:newAppConfig];
@@ -97,19 +106,19 @@
             if (updatedFiles.count == 0) {
                 [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
                 [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
+                updateLoaderComplitionBlock();
                 [self notifyNothingToUpdate:newAppConfig];
-                
                 return;
             }
             
-            [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest];
+            [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest complitionBlock:updateLoaderComplitionBlock];
         }];
     }];
 }
 
 #pragma mark Private API
 
-- (void)downloadUpdatedFiles:(NSArray *)updatedFiles appConfig:(HCPApplicationConfig *)newAppConfig manifest:(HCPContentManifest *)newManifest {
+- (void)downloadUpdatedFiles:(NSArray *)updatedFiles appConfig:(HCPApplicationConfig *)newAppConfig manifest:(HCPContentManifest *)newManifest  complitionBlock:(void (^)(void))updateLoaderComplitionBlock{
     
     // create new download folder
     [self recreateDownloadFolder:_pluginFiles.downloadFolder];
@@ -124,6 +133,7 @@
               completionBlock:^(NSError * error) {
         if (error) {
             [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:nil];
+            updateLoaderComplitionBlock();
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
                                               descriptionFromError:error]
                           applicationConfig:newAppConfig];
@@ -136,6 +146,8 @@
                   
         // move download folder to installation folder
         [self moveDownloadedContentToInstallationFolder];
+                  
+        updateLoaderComplitionBlock();
                   
         // notify that we are done
         [self notifyUpdateDownloadSuccess:newAppConfig];
@@ -198,7 +210,8 @@
  *  Copy all loaded files from download folder to installation folder from which we will install the update.
  */
 - (void)moveDownloadedContentToInstallationFolder {
-    [self waitForInstallationToComplete];
+    // ignore for now, since we are not launching installation and download tasks at the same time
+    //[self waitForInstallationToComplete];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *error = nil;

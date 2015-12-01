@@ -22,6 +22,5 @@
 /**
  *  Run the worker logic.
  */
-- (void)run;
-
+- (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock;
 @end

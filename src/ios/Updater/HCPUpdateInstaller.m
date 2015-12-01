@@ -39,17 +39,23 @@
 - (BOOL)launchUpdateInstallation:(NSError **)error {
     *error = nil;
     
+    // TODO: need better communication bridge between loader and installer
+    
     // if installing - exit
     if (_isInstallationInProgress) {
         *error = [NSError errorWithCode:0 description:@"Installation is already in progress"];
+        return NO;
+    }
+    
+    // if download in progress - exit
+    if ([HCPUpdateLoader sharedInstance].isDownloadInProgress) {
+        *error = [NSError errorWithCode:0 description:@"Download in progress, can't perform the installation until it's done."];
         return NO;
     }
 
     // check if there is anything to install
     if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
-        [self dispatchNothingToInstallEvent:*error];
-
         return NO;
     }
         
@@ -61,19 +67,10 @@
 
 #pragma mark Private API
 
-- (void)dispatchNothingToInstallEvent:(NSError *)error {
-    NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
-                                                 applicationConfig:nil
-                                                            taskId:nil
-                                                             error:error];
-    
-    [[NSNotificationCenter defaultCenter] postNotification:notification];
-}
-
 - (void)execute:(id<HCPWorker>)worker {
     _isInstallationInProgress = YES;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [worker run];
+        [worker runWithComplitionBlock:nil];
         _isInstallationInProgress = NO;
     });
 }

@@ -307,8 +307,14 @@
     
     NSError *error = nil;
     [_fileManager removeItemAtURL:_fileStructure.wwwFolder error:&error];
-    [_fileManager createDirectoryAtURL:_fileStructure.wwwFolder withIntermediateDirectories:YES attributes:nil error:&error];
+    if (error) {
+        NSLog(@"Failed to rollback: %@", [error underlyingErrorLocalizedDesription]);
+    }
+    
     [_fileManager copyItemAtURL:_fileStructure.backupFolder toURL:_fileStructure.wwwFolder error:&error];
+    if (error) {
+        NSLog(@"Failed to rollback: %@", [error underlyingErrorLocalizedDesription]);
+    }
 }
 
 @end

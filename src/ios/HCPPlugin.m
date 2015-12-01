@@ -244,7 +244,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         // For example, if we loaded new css file - it is not gonna update, bacuse old version is cached and the file path is the same.
         // But if we reload page - everything is fine. This is hacky, but it is the only way to reset the cache.
         // Delay is set, because if we try to reload immidiatly - nothing good will happen.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self.webView reload];
         });
     }];

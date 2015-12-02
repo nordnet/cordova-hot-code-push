@@ -20,10 +20,14 @@
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
     id<HCPFilesStructure> _pluginFiles;
+    
     id<HCPConfigFileStorage> _appConfigStorage;
     id<HCPConfigFileStorage> _manifestStorage;
+    
     HCPApplicationConfig *_oldAppConfig;
     HCPContentManifest *_oldManifest;
+    
+    void (^_complitionBlock)(void);
 }
 
 @property (nonatomic, strong, readwrite) NSString *workerId;
@@ -51,15 +55,17 @@
     [self runWithComplitionBlock:nil];
 }
 
+// TODO: refactoring is required after merging https://github.com/nordnet/cordova-hot-code-push/pull/55.
+// To reduce merge conflicts leaving it as it is for now.
 - (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock {
-    NSError *error = nil;
+    _complitionBlock = updateLoaderComplitionBlock;
     
     // wait before installation is finished
     [self waitForInstallationToComplete];
     
     // initialize before the run
+    NSError *error = nil;
     if (![self loadLocalConfigs:&error]) {
-        updateLoaderComplitionBlock();
         [self notifyWithError:error applicationConfig:nil];
         return;
     }
@@ -69,8 +75,7 @@
     // download new application config
     [configDownloader downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
         HCPApplicationConfig *newAppConfig = [self getApplicationConfigFromData:data error:&error];
-        if (error) {
-            updateLoaderComplitionBlock();
+        if (newAppConfig == nil) {
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
                 applicationConfig:nil];
             return;
@@ -78,14 +83,12 @@
         
         // check if new version is available
         if ([newAppConfig.contentConfig.releaseVersion isEqualToString:_oldAppConfig.contentConfig.releaseVersion]) {
-            updateLoaderComplitionBlock();
             [self notifyNothingToUpdate:newAppConfig];
             return;
         }
         
         // check if current native version supports new content
         if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
-            updateLoaderComplitionBlock();
             [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
                                              description:@"Application build version is too low for this update"]
                 applicationConfig:newAppConfig];
@@ -96,8 +99,7 @@
         NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
         [configDownloader downloadDataFromUrl:manifestFileURL completionBlock:^(NSData *data, NSError *error) {
             HCPContentManifest *newManifest = [self getManifestConfigFromData:data error:&error];
-            if (error) {
-                updateLoaderComplitionBlock();
+            if (newManifest == nil) {
                 [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
                                         descriptionFromError:error]
                     applicationConfig:newAppConfig];
@@ -109,7 +111,6 @@
             if (manifestDiff.isEmpty) {
                 [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
                 [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
-                updateLoaderComplitionBlock();
                 [self notifyNothingToUpdate:newAppConfig];
                 return;
             }
@@ -130,9 +131,8 @@
             [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
             
             // move download folder to installation folder
+            // even if it's empty - think of it as a flag, that there is something to update
             [self moveDownloadedContentToInstallationFolder];
-            
-            updateLoaderComplitionBlock();
             
             [self notifyUpdateDownloadSuccess:newAppConfig];
         }];
@@ -253,6 +253,10 @@
  *  @param config application config that was used for download
  */
 - (void)notifyWithError:(NSError *)error applicationConfig:(HCPApplicationConfig *)config {
+    if (_complitionBlock) {
+        _complitionBlock();
+    }
+    
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateDownloadErrorEvent
                                                  applicationConfig:config
                                                             taskId:self.workerId
@@ -267,6 +271,10 @@
  *  @param config application config that was used for download
  */
 - (void)notifyNothingToUpdate:(HCPApplicationConfig *)config {
+    if (_complitionBlock) {
+        _complitionBlock();
+    }
+    
     NSError *error = [NSError errorWithCode:kHCPNothingToUpdateErrorCode description:@"Nothing to update"];
     NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToUpdateEvent
                                                  applicationConfig:config
@@ -282,6 +290,10 @@
  *  @param config application config that was used for download
  */
 - (void)notifyUpdateDownloadSuccess:(HCPApplicationConfig *)config {
+    if (_complitionBlock) {
+        _complitionBlock();
+    }
+    
     NSNotification *notification = [HCPEvents notificationWithName:kHCPUpdateIsReadyForInstallationEvent
                                                  applicationConfig:config
                                                             taskId:self.workerId];

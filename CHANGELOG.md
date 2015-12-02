@@ -1,13 +1,33 @@
 # Change Log
 
-## 1.1.1 (2015-12-11)
+## 1.1.2 (2015-12-2)
+
+**Bug fixes:**
+
+* Android. Fixed [issue #43](https://github.com/nordnet/cordova-hot-code-push/issues/43). Merged [pull request #44](https://github.com/nordnet/cordova-hot-code-push/pull/44). Thanks to [@andreialecu](https://github.com/andreialecu) for helping to fix that problem.
+* iOS. Fixed [issue #53](https://github.com/nordnet/cordova-hot-code-push/issues/53).
+* iOS. Fixed rollback procedure, if update installation has failed.
+* iOS. Fixed issue, when update failed to install if it contained unexisting folders. Thanks to [@legege](https://github.com/legege) for providing [pull request #50](https://github.com/nordnet/cordova-hot-code-push/pull/50).
+* Fixed [issue #49](https://github.com/nordnet/cordova-hot-code-push/issues/49) and [issue #48](https://github.com/nordnet/cordova-hot-code-push/issues/48). Added support for Cordova v5.4.
+* Other fixes for both platforms, that aimed to make update procedure safer for the user.
+
+**Enchancements:**
+
+* Merged [pull request #40](https://github.com/nordnet/cordova-hot-code-push/pull/40). Preparation to add auth headers to the network requests. Thanks to [@davidovich](https://github.com/davidovich).
+* Merged [pull request #52](https://github.com/nordnet/cordova-hot-code-push/pull/52). Thanks to [@legege](https://github.com/legege).
+
+**Docs:**
+
+* Documentation updates regarding `min_native_interface` for Android. Thanks to [@andreialecu](https://github.com/andreialecu) for providing [pull request #46](https://github.com/nordnet/cordova-hot-code-push/pull/46).
+
+## 1.1.1 (2015-11-12)
 
 Release holds only some documentation updates:
 
 - Added section: `Migrating from previous version`.
 - Small update to quick start guides.
 
-## 1.1.0 (2015-10-11)
+## 1.1.0 (2015-11-10)
 
 **Enchancements:**
 
@@ -20,13 +40,13 @@ Release holds only some documentation updates:
 
 Since local development mode was moved to the separate plugin - that should fix the [issue #26](https://github.com/nordnet/cordova-hot-code-push/issues/26) with the Swift on iOS, when it lead for the app to be rejected by the Apple. When development is done - just remove development plugin and that's it. For more information please visit [documentation page](https://github.com/nordnet/cordova-hot-code-push-local-dev-addon) of the local development add-on.
 
-## 1.0.5 (2015-03-11)
+## 1.0.5 (2015-11-03)
 
 **Bug fixes:**
 
 - Fixed [issue #31](https://github.com/nordnet/cordova-hot-code-push/issues/31). Additional checking that `www` folder was installed on the external storage.
 
-## 1.0.4 (2015-23-10)
+## 1.0.4 (2015-10-23)
 
 **Bug fixes:**
 

@@ -39,7 +39,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Error codes](#error-codes)
 
 ### Installation
-This requires cordova 5.0+ (current stable 1.1.1)
+This requires cordova 5.0+ (current stable 1.1.2)
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
 ```
@@ -368,7 +368,7 @@ In a `config.xml` you usually specify versions like so:
 
 Preference creates dependency between the web and the native versions of the application.
 
-**Important!** Due to [a quirk in cordova](https://issues.apache.org/jira/browse/CB-8976), the version code in your generated `.apk` will be multiplied by 10, resulting in an apk with a version code of 70, 72, or 74, depending on the platform (arm/x86/etc) for the previous example. In order to work around this, we recommend multiplying the iOS version code by `10` for every release, so that a `min_native_interface` of `70` can target both platforms, making your config.xml similar to: 
+**Important!** Due to [a quirk in cordova](https://issues.apache.org/jira/browse/CB-8976), the version code in your generated `.apk` will be multiplied by 10, resulting in an apk with a version code of 70, 72, or 74, depending on the platform (arm/x86/etc) for the previous example. In order to work around this, we recommend multiplying the iOS version code by `10` for every release, so that a `min_native_interface` of `70` can target both platforms, making your config.xml similar to:
 ```xml
 <widget id="io.cordova.hellocordova"
       version="1.0.1"

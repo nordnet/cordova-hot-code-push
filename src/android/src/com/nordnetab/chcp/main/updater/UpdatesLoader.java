@@ -10,13 +10,9 @@ import com.nordnetab.chcp.main.model.IPluginFilesStructure;
  * Utility class to perform update download.
  * It only schedules the download and executes it as soon as possible.
  * <p/>
- * Queue consists from 1 task, because we don't need to store 100 tasks for download request,
- * we need only the last one. But if for some reason you need a large queue of download tasks -
- * use ConcurrentLinkedQueue, that is commented out at the moment.
  */
 public class UpdatesLoader {
 
-    //    private static ConcurrentLinkedQueue<Runnable> queue;
     private static boolean isExecuting;
     private static Runnable scheduledTask;
 
@@ -29,16 +25,15 @@ public class UpdatesLoader {
      * @return string identifier of the task.
      */
     public static String addUpdateTaskToQueue(Context context, final String configURL, final IPluginFilesStructure filesStructure) {
+        // for now - just exit if we are already doing some loading.
+        // later - will return download queue
         if (isExecuting()) {
             return null;
         }
 
         UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, filesStructure);
-//        addTaskToQueue(task);
         scheduledTask = task;
-        if (!isExecuting()) {
-            executeTaskFromQueue();
-        }
+        executeTaskFromQueue();
 
         return task.getWorkerId();
     }
@@ -53,7 +48,6 @@ public class UpdatesLoader {
     }
 
     private static void executeTaskFromQueue() {
-        //final Runnable task = getQueue().poll();
         final Runnable task = scheduledTask;
         scheduledTask = null;
         if (task == null) {
@@ -70,17 +64,4 @@ public class UpdatesLoader {
             }
         }).start();
     }
-
-//    private static ConcurrentLinkedQueue<Runnable> getQueue() {
-//        if (queue == null) {
-//            queue = new ConcurrentLinkedQueue<Runnable>();
-//        }
-//
-//        return queue;
-//    }
-//
-//    private static void addTaskToQueue(Runnable task) {
-//        ConcurrentLinkedQueue<Runnable> queue = getQueue();
-//        queue.add(task);
-//    }
 }

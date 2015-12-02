@@ -47,12 +47,6 @@
         return NO;
     }
     
-    // if download in progress - exit
-    if ([HCPUpdateLoader sharedInstance].isDownloadInProgress) {
-        *error = [NSError errorWithCode:0 description:@"Download in progress, can't perform the installation until it's done."];
-        return NO;
-    }
-
     // check if there is anything to install
     if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];

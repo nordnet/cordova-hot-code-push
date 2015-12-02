@@ -476,7 +476,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
-    NSLog(@"Error during update: %@", error.userInfo[NSLocalizedDescriptionKey]);
+    NSLog(@"Error during update: %@", [error underlyingErrorLocalizedDesription]);
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];

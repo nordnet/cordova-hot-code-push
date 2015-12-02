@@ -37,7 +37,12 @@ NSInteger const kHCPNothingToUpdateErrorCode = 2;
 }
 
 - (NSString *)underlyingErrorLocalizedDesription {
-    return [self.userInfo[NSUnderlyingErrorKey] localizedDescription];
+    NSString *msg = [self.userInfo[NSUnderlyingErrorKey] localizedDescription];
+    if (msg) {
+        return msg;
+    }
+    
+    return self.localizedDescription;
 }
 
 @end

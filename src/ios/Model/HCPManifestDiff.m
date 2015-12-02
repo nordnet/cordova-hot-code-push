@@ -27,4 +27,8 @@
     return updateFileList;
 }
 
+- (BOOL)isEmpty {
+    return _addedFiles.count == 0 && _changedFiles.count == 0 && _deletedFiles.count == 0;
+}
+
 @end

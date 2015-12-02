@@ -21,6 +21,11 @@
 @property (nonatomic, strong, readonly) NSArray *updateFileList;
 
 /**
+ *  Check if there is no defference between the manifests.
+ */
+@property (nonatomic, readonly, getter=isEmpty) BOOL isEmpty;
+
+/**
  *  Getter for the list of new files, that were added to the project.
  *
  *  @return array of HCPManifestFile objects

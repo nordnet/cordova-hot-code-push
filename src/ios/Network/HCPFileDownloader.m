@@ -19,7 +19,7 @@
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
     NSURLSessionDataTask* dowloadTask = [session dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-            block(data, error);
+        block(data, error);
     }];
     
     [dowloadTask resume];
@@ -53,9 +53,8 @@
                 if (error) {
                     canceled = YES; // do not dispatch any other error
                 }
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                    block(error);
-                });
+                // we should already be in the background thread
+                block(error);
             }
         }];
         

@@ -39,8 +39,7 @@
 
 - (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
     // TODO: add better communication between installer and loader.
-    // For now - skip update load request if installation or download is in progress.
-    if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress || _isExecuting) {
+    if (_isExecuting) {
         return nil;
     }
     
@@ -52,9 +51,12 @@
 
 - (void)executeTask:(id<HCPWorker>)task {
     _isExecuting = YES;
-    [task runWithComplitionBlock:^{
-        _isExecuting = NO;
-    }];
+    // execute in background, so the callbacks don't block main thread
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [task runWithComplitionBlock:^{
+            _isExecuting = NO;
+        }];
+    });
 }
 
 @end

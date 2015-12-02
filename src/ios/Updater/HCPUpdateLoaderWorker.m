@@ -54,6 +54,9 @@
 - (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock {
     NSError *error = nil;
     
+    // wait before installation is finished
+    [self waitForInstallationToComplete];
+    
     // initialize before the run
     if (![self loadLocalConfigs:&error]) {
         updateLoaderComplitionBlock();
@@ -101,9 +104,9 @@
                 return;
             }
             
-            // find files that were updated
-            NSArray *updatedFiles = [_oldManifest calculateDifference:newManifest].updateFileList;
-            if (updatedFiles.count == 0) {
+            // compare manifests to find out if anything has changed since the last update
+            HCPManifestDiff *manifestDiff = [_oldManifest calculateDifference:newManifest];
+            if (manifestDiff.isEmpty) {
                 [_manifestStorage store:newManifest inFolder:_pluginFiles.wwwFolder];
                 [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.wwwFolder];
                 updateLoaderComplitionBlock();
@@ -111,7 +114,27 @@
                 return;
             }
             
-            [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest complitionBlock:updateLoaderComplitionBlock];
+            // create new download folder
+            [self recreateDownloadFolder:_pluginFiles.downloadFolder];
+            
+            // if there is anything to load - do that
+            NSArray *updatedFiles = manifestDiff.updateFileList;
+            if (updatedFiles.count > 0) {
+                [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest complitionBlock:updateLoaderComplitionBlock];
+                return;
+            }
+            
+            // otherwise - update holds only files for deletion;
+            // just save new configs and notify subscribers about success
+            [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
+            [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
+            
+            // move download folder to installation folder
+            [self moveDownloadedContentToInstallationFolder];
+            
+            updateLoaderComplitionBlock();
+            
+            [self notifyUpdateDownloadSuccess:newAppConfig];
         }];
     }];
 }
@@ -119,9 +142,6 @@
 #pragma mark Private API
 
 - (void)downloadUpdatedFiles:(NSArray *)updatedFiles appConfig:(HCPApplicationConfig *)newAppConfig manifest:(HCPContentManifest *)newManifest  complitionBlock:(void (^)(void))updateLoaderComplitionBlock{
-    
-    // create new download folder
-    [self recreateDownloadFolder:_pluginFiles.downloadFolder];
     
     // download files
     HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
@@ -210,8 +230,7 @@
  *  Copy all loaded files from download folder to installation folder from which we will install the update.
  */
 - (void)moveDownloadedContentToInstallationFolder {
-    // ignore for now, since we are not launching installation and download tasks at the same time
-    //[self waitForInstallationToComplete];
+    [self waitForInstallationToComplete];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSError *error = nil;
@@ -223,7 +242,7 @@
  */
 - (void)waitForInstallationToComplete {
     while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [NSThread sleepForTimeInterval:0.1]; // avoid busy loop
+        [NSThread sleepForTimeInterval:1]; // avoid busy loop
     }
 }
 

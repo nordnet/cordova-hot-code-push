@@ -80,6 +80,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 #pragma mark Private API
 
 - (void)installWwwFolder {
+    _isPluginReadyForWork = NO;
     // reset www folder installed flag
     if (_pluginInternalPrefs.isWwwFolderInstalled) {
         _pluginInternalPrefs.wwwFolderInstalled = NO;
@@ -477,6 +478,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
     NSLog(@"Error during update: %@", [error underlyingErrorLocalizedDesription]);
+    if (error.code == kHCPLocalVersionOfApplicationConfigNotFoundErrorCode || error.code == kHCPLocalVersionOfManifestNotFoundErrorCode) {
+        NSLog(@"WWW folder is corrupted, reinstalling it from bundle.");
+        [self installWwwFolder];
+    }
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];

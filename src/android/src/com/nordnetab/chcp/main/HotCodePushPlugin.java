@@ -419,7 +419,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @return <code>true</code> if application was update; <code>false</code> - otherwise
      */
     private boolean isApplicationHasBeenUpdated() {
-        return pluginInternalPrefs.getAppBuildVersion() < VersionHelper.applicationVersionCode(cordova.getActivity());
+        return pluginInternalPrefs.getAppBuildVersion() != VersionHelper.applicationVersionCode(cordova.getActivity());
     }
 
     /**

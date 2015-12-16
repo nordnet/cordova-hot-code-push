@@ -26,9 +26,6 @@
     <!-- Config.xml preferences -->
     <config-file target="config.xml" parent="/*">
       <preference name="loadUrlTimeoutValue" value="60000" />
-      <chcp>
-        <!-- <config-file url="url to your chcp.json file"/> -->
-      </chcp>
     </config-file>
 
     <!-- Hooks -->

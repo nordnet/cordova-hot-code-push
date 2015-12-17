@@ -35,6 +35,7 @@
     HCPXmlConfig *_pluginXmllConfig;
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
+    NSURLRequest *_lastRequest;
 }
 
 @end
@@ -242,21 +243,31 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)loadURL:(NSURL *)url {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        
+        NSURLCache *cache = [[NSURLCache alloc] initWithMemoryCapacity:0 diskCapacity:0 diskPath:nil];
+        [NSURLCache setSharedURLCache:cache];
+        
         NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
         NSString *path = components.path;
         NSURL *loadURL = [NSURL fileURLWithPath:path];
         
-        [[NSURLCache sharedURLCache] removeAllCachedResponses];
-        [self.webView loadRequest:[NSURLRequest requestWithURL:loadURL
-                                                   cachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData
-                                               timeoutInterval:60.0]];
+        if (_lastRequest) {
+            [[NSURLCache sharedURLCache] removeCachedResponseForRequest:_lastRequest];
+            [[NSURLCache sharedURLCache] removeAllCachedResponses];
+        }
+        
+        _lastRequest = [NSURLRequest requestWithURL:loadURL
+                                        cachePolicy:NSURLRequestReloadIgnoringCacheData
+                                    timeoutInterval:10000];
+        
+        [self.webViewEngine loadRequest:_lastRequest];
         
         // We need to reload the page because of the webview caching.
         // For example, if we loaded new css file - it is not gonna update, bacuse old version is cached and the file path is the same.
         // But if we reload page - everything is fine. This is hacky, but it is the only way to reset the cache.
         // Delay is set, because if we try to reload immidiatly - nothing good will happen.
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.webView reload];
+            [self.webViewEngine evaluateJavaScript:@"window.location.reload(true);" completionHandler:nil];
         });
     }];
 }
@@ -265,7 +276,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Redirect user to the index page that is located on the external storage.
  */
 - (void)resetIndexPageToExternalStorage {
-    NSString *currentUrl = self.webView.request.URL.path;
+    NSString *currentUrl = [self.webViewEngine URL].path;
     if ([currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
         return;
     }

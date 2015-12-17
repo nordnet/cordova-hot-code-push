@@ -49,6 +49,8 @@ It is also possible to install via repo url directly (__unstable__)
 cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
 ```
 
+**Note: Be aware, that at the moment github version of the plugin is not compatible with iOS Cordova versions below 4.0.0. So, please install the latest ios cordova platform: `cordova platform add ios@4.0.0`. Same goes for Ionic projects: `ionic platform add ios@4.0.0`.**
+
 At the end of the installation plugin will recommend you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
 - easily generate necessary configuration files;
 - launch local server to listen for any changes in the web project and deploy new version immediately on the app.

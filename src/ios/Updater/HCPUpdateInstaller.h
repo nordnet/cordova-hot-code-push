@@ -31,13 +31,15 @@
 
 /**
  *  Launch update installation process.
- *
+ *  
+ *  @param installVersion version to install
+ *  @param currentVersion current version of web content
  *  @param error error details if we failed to launch the installation worker
  *
  *  @return <code>YES</code> if installation is launched; <code>NO</code> - otherwise
  */
 - (BOOL)installVersion:(NSString *)newVersion
-        currentRelease:(NSString *)currentVersion
+        currentVersion:(NSString *)currentVersion
                  error:(NSError **)error;
 
 @end

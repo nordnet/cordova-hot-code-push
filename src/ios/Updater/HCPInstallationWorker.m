@@ -36,11 +36,11 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithNewRelease:(NSString *)newRelease currentRelease:(NSString *)currentRelease {
+- (instancetype)initWithNewVersion:(NSString *)newVersion currentVersion:(NSString *)currentVersion {
     self = [super init];
     if (self) {
-        _newReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:newRelease];
-        _currentReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:currentRelease];
+        _newReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:newVersion];
+        _currentReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:currentVersion];
     }
     
     return self;

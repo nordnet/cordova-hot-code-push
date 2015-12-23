@@ -32,7 +32,7 @@
     return sharedInstance;
 }
 
-- (BOOL)installVersion:(NSString *)newVersion currentRelease:(NSString *)currentVersion error:(NSError **)error {
+- (BOOL)installVersion:(NSString *)newVersion currentVersion:(NSString *)currentVersion error:(NSError **)error {
     *error = nil;
     
     // if installing - exit
@@ -50,7 +50,7 @@
     }
     
     // launch installation
-    id<HCPWorker> installationTask = [[HCPInstallationWorker alloc] initWithNewRelease:newVersion currentRelease:currentVersion];
+    id<HCPWorker> installationTask = [[HCPInstallationWorker alloc] initWithNewVersion:newVersion currentVersion:currentVersion];
     [self execute:installationTask];
     
     return YES;

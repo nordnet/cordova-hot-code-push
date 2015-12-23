@@ -32,16 +32,18 @@
     return _isExecuting;
 }
 
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentReleaseVersion:(NSString *)currentRelease {
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion {
     if (_isExecuting) {
         return nil;
     }
     
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl currentRelease:currentRelease];
+    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl currentVersion:currentVersion];
     [self executeTask:task];
     
     return task.workerId;
 }
+
+#pragma mark Private API
 
 - (void)executeTask:(id<HCPWorker>)task {
     _isExecuting = YES;

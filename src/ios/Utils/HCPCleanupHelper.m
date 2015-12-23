@@ -8,7 +8,7 @@
 #import "HCPFilesStructure.h"
 
 @interface HCPCleanupHelper() {
-    BOOL _isExecuting;
+    __block BOOL _isExecuting;
 }
 
 @end

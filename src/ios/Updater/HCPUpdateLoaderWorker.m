@@ -38,12 +38,12 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithConfigUrl:(NSURL *)configURL currentRelease:(NSString *)releaseVersion {
+- (instancetype)initWithConfigUrl:(NSURL *)configURL currentVersion:(NSString *)currentVersion {
     self = [super init];
     if (self) {
         _configURL = configURL;
         _workerId = [self generateWorkerId];
-        _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:releaseVersion];
+        _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:currentVersion];
         _appConfigStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_pluginFiles];
         _manifestStorage = [[HCPContentManifestStorage alloc] initWithFileStructure:_pluginFiles];
     }

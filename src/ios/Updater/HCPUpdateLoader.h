@@ -5,7 +5,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "HCPFilesStructure.h"
 
 /**
  *  Utility class to perform update download.
@@ -31,10 +30,11 @@
  *  Add update download task to queue. It will be executed as fast as possible.
  *
  *  @param configUrl url to the application config on the server
+ *  @param currentVersion current working version of the web content
  *
  *  @return id of the created worker
  */
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentReleaseVersion:(NSString *)currentRelease;
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion;
 
 /**
  *  Flag to check if we are doing any downloads at the moment.

@@ -147,7 +147,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     NSString *taskId = [[HCPUpdateLoader sharedInstance] addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl
-                                                                     currentReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
+                                                                            currentVersion:_pluginInternalPrefs.currentReleaseVersionName];
     [self storeCallback:callbackId forFetchTask:taskId];
     
     return taskId != nil;
@@ -217,7 +217,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         _installationCallback = callbackID;
     }
     
-    if (_pluginInternalPrefs.readyForInstallationReleaseVersionName.length == 0) {
+    NSString *newVersion = _pluginInternalPrefs.readyForInstallationReleaseVersionName;
+    if (newVersion.length == 0) {
         NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
                                                      applicationConfig:nil
                                                                 taskId:nil
@@ -227,7 +228,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     NSError *error = nil;
-    if (![[HCPUpdateInstaller sharedInstance] installVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName currentRelease:_pluginInternalPrefs.currentReleaseVersionName error:&error]) {
+    NSString *currentVersion = _pluginInternalPrefs.currentReleaseVersionName;
+    [[HCPUpdateInstaller sharedInstance] installVersion:newVersion currentVersion:currentVersion error:&error];
+    if (error) {
         if (error.code == kHCPNothingToInstallErrorCode) {
             NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
                                                          applicationConfig:nil

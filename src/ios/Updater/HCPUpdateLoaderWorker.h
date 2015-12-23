@@ -19,11 +19,11 @@
  *  Worker initializer.
  *
  *  @param configURL     url to the application config on the server
- *  @param fileStructure plugin files structure
+ *  @param currentVersion current version of the web content
  *
  *  @return instance of the object
  *  @see HCPFilesStructure
  */
-- (instancetype)initWithConfigUrl:(NSURL *)configURL currentRelease:(NSString *)releaseVersion;
+- (instancetype)initWithConfigUrl:(NSURL *)configURL currentVersion:(NSString *)currentVersion;
 
 @end

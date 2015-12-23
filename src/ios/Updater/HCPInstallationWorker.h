@@ -19,10 +19,11 @@
 /**
  *  Initialize the worker.
  *
- *  @param fileStructure plugins file structure
+ *  @param newVersion new version of web content, that needs to be installed
+ *  @param currentVersion current version of the web content
  *
  *  @return instance of the object
  */
-- (instancetype)initWithNewRelease:(NSString *)newRelease currentRelease:(NSString *)currentRelease;
+- (instancetype)initWithNewVersion:(NSString *)newVersion currentVersion:(NSString *)currentVersion;
 
 @end

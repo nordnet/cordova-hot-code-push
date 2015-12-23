@@ -20,15 +20,7 @@
 
 @implementation HCPAssetsFolderHelper
 
-+ (HCPAssetsFolderHelper *)sharedInstance {
-    static HCPAssetsFolderHelper *sharedInstance = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        sharedInstance = [[HCPAssetsFolderHelper alloc] init];
-    });
-    
-    return sharedInstance;
-}
+#pragma mark Public API
 
 + (void)installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL {
     HCPAssetsFolderHelper *helper = [HCPAssetsFolderHelper sharedInstance];
@@ -44,6 +36,16 @@
 }
 
 #pragma mark Private API
+
++ (HCPAssetsFolderHelper *)sharedInstance {
+    static HCPAssetsFolderHelper *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[HCPAssetsFolderHelper alloc] init];
+    });
+    
+    return sharedInstance;
+}
 
 - (void)__installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL {
     NSError *error = nil;

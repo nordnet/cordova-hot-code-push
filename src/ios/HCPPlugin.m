@@ -25,11 +25,9 @@
 
 @interface HCPPlugin() {
     HCPFilesStructure *_filesStructure;
-    HCPUpdateLoader *_updatesLoader;
     NSString *_defaultCallbackID;
     BOOL _isPluginReadyForWork;
     HCPPluginInternalPreferences *_pluginInternalPrefs;
-    HCPUpdateInstaller *_updateInstaller;
     NSMutableArray *_fetchTasks;
     NSString *_installationCallback;
     HCPXmlConfig *_pluginXmllConfig;
@@ -134,13 +132,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // init file structure for www files
     _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
-    
-    // init updates loader
-    _updatesLoader = [HCPUpdateLoader sharedInstance];
-    [_updatesLoader setup:_filesStructure];
-    
-    // init updates installer
-    _updateInstaller = [HCPUpdateInstaller sharedInstance];
 }
 
 /**
@@ -155,7 +146,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return NO;
     }
     
-    NSString *taskId = [_updatesLoader addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl];
+    NSString *taskId = [[HCPUpdateLoader sharedInstance] addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl
+                                                                     currentReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     [self storeCallback:callbackId forFetchTask:taskId];
     
     return taskId != nil;
@@ -217,7 +209,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @return <code>YES</code> if installation has started; <code>NO</code> otherwise
  */
 - (BOOL)_installUpdate:(NSString *)callbackID {
-    if (!_isPluginReadyForWork || _updateInstaller.isInstallationInProgress) {
+    if (!_isPluginReadyForWork || [HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
         return NO;
     }
     
@@ -235,8 +227,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     NSError *error = nil;
-    HCPFilesStructure *newReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
-    if (![_updateInstaller installVersion:newReleaseFS currentRelease:_filesStructure error:&error]) {
+    if (![[HCPUpdateInstaller sharedInstance] installVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName currentRelease:_pluginInternalPrefs.currentReleaseVersionName error:&error]) {
         if (error.code == kHCPNothingToInstallErrorCode) {
             NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
                                                          applicationConfig:nil

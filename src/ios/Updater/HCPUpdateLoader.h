@@ -34,15 +34,7 @@
  *
  *  @return id of the created worker
  */
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl;
-
-/**
- *  Setup loader. Should be called on application startup before any real work is performed.
- *
- *  @param filesStructure plugins file structure
- *  @see HCPFilesStructure
- */
-- (void)setup:(HCPFilesStructure *)filesStructure;
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentReleaseVersion:(NSString *)currentRelease;
 
 /**
  *  Flag to check if we are doing any downloads at the moment.

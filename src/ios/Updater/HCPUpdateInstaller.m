@@ -32,7 +32,7 @@
     return sharedInstance;
 }
 
-- (BOOL)installVersion:(HCPFilesStructure *)newVersionFS currentRelease:(HCPFilesStructure *)currentReleaseFS error:(NSError **)error {
+- (BOOL)installVersion:(NSString *)newVersion currentRelease:(NSString *)currentVersion error:(NSError **)error {
     *error = nil;
     
     // if installing - exit
@@ -41,6 +41,8 @@
         return NO;
     }
     
+    HCPFilesStructure *newVersionFS = [[HCPFilesStructure alloc] initWithReleaseVersion:newVersion];
+    
     // check if there is anything to install
     if (![[NSFileManager defaultManager] fileExistsAtPath:newVersionFS.downloadFolder.path]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
@@ -48,7 +50,8 @@
     }
     
     // launch installation
-    [self execute:[[HCPInstallationWorker alloc] initWithNewReleaseFS:newVersionFS currentReleaseFS:currentReleaseFS]];
+    id<HCPWorker> installationTask = [[HCPInstallationWorker alloc] initWithNewRelease:newVersion currentRelease:currentVersion];
+    [self execute:installationTask];
     
     return YES;
 }

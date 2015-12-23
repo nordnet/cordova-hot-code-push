@@ -23,6 +23,6 @@
  *
  *  @return instance of the object
  */
-- (instancetype)initWithNewReleaseFS:(HCPFilesStructure *)newReleaseFS currentReleaseFS:(HCPFilesStructure *)currentReleaseFS;
+- (instancetype)initWithNewRelease:(NSString *)newRelease currentRelease:(NSString *)currentRelease;
 
 @end

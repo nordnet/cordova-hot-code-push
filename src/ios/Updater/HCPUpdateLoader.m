@@ -10,7 +10,6 @@
 
 @interface HCPUpdateLoader() {
     __block BOOL _isExecuting;
-    HCPFilesStructure *_filesStructure;
 }
 
 @end
@@ -33,16 +32,12 @@
     return _isExecuting;
 }
 
-- (void)setup:(HCPFilesStructure *)filesStructure {
-    _filesStructure = filesStructure;
-}
-
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
+- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentReleaseVersion:(NSString *)currentRelease {
     if (_isExecuting) {
         return nil;
     }
     
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl filesStructure:_filesStructure];
+    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl currentRelease:currentRelease];
     [self executeTask:task];
     
     return task.workerId;

@@ -21,6 +21,6 @@
  *
  *  @return instance of the object
  */
-- (instancetype)initWithFileStructure:(id<HCPFilesStructure>)fileStructure;
+- (instancetype)initWithFileStructure:(HCPFilesStructure *)fileStructure;
 
 @end

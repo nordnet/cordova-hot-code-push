@@ -1,5 +1,5 @@
 //
-//  HCPFilesStructure.h
+//  HCPFilesStructureImpl.h
 //
 //  Created by Nikolay Demyankov on 12.08.15.
 //
@@ -7,10 +7,13 @@
 #import <Foundation/Foundation.h>
 
 /**
- *  Protocol describes structure of the plugin working directories, like where
- *  to download updates, from where install them and so on.
+ *  Implementation of the HCPFileStructure protocol.
+ *  
+ *  @see HCPFileStructure
  */
-@protocol HCPFilesStructure <NSObject>
+@interface HCPFilesStructure : NSObject
+
+- (instancetype)initWithReleaseVersion:(NSString *)releaseVersion;
 
 /**
  *  Absolute path to plugins working directory.
@@ -30,19 +33,6 @@
 @property (nonatomic, strong, readonly) NSURL *downloadFolder;
 
 /**
- *  Absolute path to the temporary folder where new update is located.
- *  Folder is created after update download. We will perform installation from it.
- */
-//@property (nonatomic, strong, readonly) NSURL *installationFolder;
-
-/**
- *  Absolute path to the temporary folder where we put backup of the current web content before
- *  installing new version. If during the installation some error will happen - we will restore content
- *  from this folder.
- */
-//@property (nonatomic, strong, readonly) NSURL *backupFolder;
-
-/**
  *  Getter for the name of the application config file.
  */
 @property (nonatomic, strong, readonly) NSString *configFileName;
@@ -53,5 +43,7 @@
 @property (nonatomic, strong, readonly) NSString *manifestFileName;
 
 - (void)switchToRelease:(NSString *)releaseName;
+
++ (NSURL *)pluginRootFolder;
 
 @end

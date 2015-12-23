@@ -9,7 +9,6 @@
 #import "HCPPlugin.h"
 #import "HCPFileDownloader.h"
 #import "HCPFilesStructure.h"
-#import "HCPFilesStructureImpl.h"
 #import "HCPUpdateLoader.h"
 #import "HCPEvents.h"
 #import "HCPPluginInternalPreferences+UserDefaults.h"
@@ -24,7 +23,7 @@
 #import "NSError+HCPExtension.h"
 
 @interface HCPPlugin() {
-    id<HCPFilesStructure> _filesStructure;
+    HCPFilesStructure *_filesStructure;
     HCPUpdateLoader *_updatesLoader;
     NSString *_defaultCallbackID;
     BOOL _isPluginReadyForWork;
@@ -49,8 +48,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 #pragma mark Lifecycle
 
 -(void)pluginInitialize {
-    [self subscribeToEvents];
     [self doLocalInit];
+    [self subscribeToEvents];
     
     // install www folder if it is needed
     if ([self isWWwFolderNeedsToBeInstalled]) {
@@ -130,7 +129,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     // init file structure for www files
-    _filesStructure = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
+    _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     
     // init updates loader
     _updatesLoader = [HCPUpdateLoader sharedInstance];
@@ -232,7 +231,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     NSError *error = nil;
-    id<HCPFilesStructure> newReleaseFS = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
+    HCPFilesStructure *newReleaseFS = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
     if (![_updateInstaller installVersion:newReleaseFS currentRelease:_filesStructure error:&error]) {
         if (error.code == kHCPNothingToInstallErrorCode) {
             NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
@@ -271,17 +270,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Redirect user to the index page that is located on the external storage.
  */
 - (void)resetIndexPageToExternalStorage {
-    NSString *currentUrl = [self.webViewEngine URL].path;
-    if ([currentUrl containsString:_filesStructure.wwwFolder.absoluteString]) {
-        return;
-    }
-    
-    if (currentUrl.length == 0) {
-        currentUrl = [self getStartingPagePath];
-    }
-    
-    currentUrl = [currentUrl stringByReplacingOccurrencesOfString:[NSBundle pathToWwwFolder] withString:@""];
-    NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:currentUrl];
+    NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalURL.path]) {
         return;
     }

@@ -36,8 +36,8 @@
  *
  *  @return <code>YES</code> if installation is launched; <code>NO</code> - otherwise
  */
-- (BOOL)installVersion:(id<HCPFilesStructure>)newVersionFS
-        currentRelease:(id<HCPFilesStructure>)currentReleaseFS
+- (BOOL)installVersion:(HCPFilesStructure *)newVersionFS
+        currentRelease:(HCPFilesStructure *)currentReleaseFS
                  error:(NSError **)error;
 
 @end

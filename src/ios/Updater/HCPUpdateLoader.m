@@ -10,7 +10,7 @@
 
 @interface HCPUpdateLoader() {
     __block BOOL _isExecuting;
-    id<HCPFilesStructure> _filesStructure;
+    HCPFilesStructure *_filesStructure;
 }
 
 @end
@@ -33,7 +33,7 @@
     return _isExecuting;
 }
 
-- (void)setup:(id<HCPFilesStructure>)filesStructure {
+- (void)setup:(HCPFilesStructure *)filesStructure {
     _filesStructure = filesStructure;
 }
 

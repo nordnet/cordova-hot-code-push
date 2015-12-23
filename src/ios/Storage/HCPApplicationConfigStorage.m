@@ -15,7 +15,7 @@
 
 @implementation HCPApplicationConfigStorage
 
-- (instancetype)initWithFileStructure:(id<HCPFilesStructure>)fileStructure {
+- (instancetype)initWithFileStructure:(HCPFilesStructure *)fileStructure {
     self = [super init];
     if (self) {
         _fileName = fileStructure.configFileName;

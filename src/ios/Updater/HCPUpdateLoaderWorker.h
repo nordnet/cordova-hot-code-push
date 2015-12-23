@@ -24,6 +24,6 @@
  *  @return instance of the object
  *  @see HCPFilesStructure
  */
-- (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(id<HCPFilesStructure>)fileStructure;
+- (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(HCPFilesStructure *)fileStructure;
 
 @end

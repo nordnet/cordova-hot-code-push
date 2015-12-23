@@ -15,8 +15,8 @@
 #import "HCPEvents.h"
 
 @interface HCPInstallationWorker() {
-    id<HCPFilesStructure> _newReleaseFS;
-    id<HCPFilesStructure> _currentReleaseFS;
+    HCPFilesStructure *_newReleaseFS;
+    HCPFilesStructure *_currentReleaseFS;
     
     id<HCPConfigFileStorage> _manifestStorage;
     id<HCPConfigFileStorage> _configStorage;
@@ -36,7 +36,7 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithNewReleaseFS:(id<HCPFilesStructure>)newReleaseFS currentReleaseFS:(id<HCPFilesStructure>)currentReleaseFS {
+- (instancetype)initWithNewReleaseFS:(HCPFilesStructure *)newReleaseFS currentReleaseFS:(HCPFilesStructure *)currentReleaseFS {
     self = [super init];
     if (self) {
         _newReleaseFS = newReleaseFS;

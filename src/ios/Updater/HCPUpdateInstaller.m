@@ -11,7 +11,7 @@
 #import "HCPEvents.h"
 
 @interface HCPUpdateInstaller() {
-    id<HCPFilesStructure> _filesStructure;
+    HCPFilesStructure *_filesStructure;
 }
 
 @property (nonatomic, readwrite, getter=isInstallationInProgress) BOOL isInstallationInProgress;
@@ -32,7 +32,7 @@
     return sharedInstance;
 }
 
-- (BOOL)installVersion:(id<HCPFilesStructure>)newVersionFS currentRelease:(id<HCPFilesStructure>)currentReleaseFS error:(NSError **)error {
+- (BOOL)installVersion:(HCPFilesStructure *)newVersionFS currentRelease:(HCPFilesStructure *)currentReleaseFS error:(NSError **)error {
     *error = nil;
     
     // if installing - exit

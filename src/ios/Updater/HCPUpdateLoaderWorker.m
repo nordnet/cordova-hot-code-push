@@ -16,11 +16,10 @@
 #import "NSError+HCPExtension.h"
 #import "HCPUpdateInstaller.h"
 #import "HCPContentManifest.h"
-#import "HCPFilesStructureImpl.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
-    id<HCPFilesStructure> _pluginFiles;
+    HCPFilesStructure *_pluginFiles;
     
     id<HCPConfigFileStorage> _appConfigStorage;
     id<HCPConfigFileStorage> _manifestStorage;
@@ -39,7 +38,7 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(id<HCPFilesStructure>)fileStructure {
+- (instancetype)initWithConfigUrl:(NSURL *)configURL filesStructure:(HCPFilesStructure *)fileStructure {
     self = [super init];
     if (self) {
         _configURL = configURL;
@@ -114,7 +113,7 @@
             }
             
             // switch file structure to new release
-            _pluginFiles = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:newAppConfig.contentConfig.releaseVersion];
+            _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:newAppConfig.contentConfig.releaseVersion];
             
             // create new download folder
             [self createNewReleaseDownloadFolder:_pluginFiles.downloadFolder];

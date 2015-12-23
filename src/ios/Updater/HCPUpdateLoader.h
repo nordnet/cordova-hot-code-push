@@ -42,7 +42,7 @@
  *  @param filesStructure plugins file structure
  *  @see HCPFilesStructure
  */
-- (void)setup:(id<HCPFilesStructure>)filesStructure;
+- (void)setup:(HCPFilesStructure *)filesStructure;
 
 /**
  *  Flag to check if we are doing any downloads at the moment.

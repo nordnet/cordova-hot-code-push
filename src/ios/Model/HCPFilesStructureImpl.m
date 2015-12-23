@@ -24,8 +24,6 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 @property (nonatomic, strong, readwrite) NSURL *installationFolder;
 @property (nonatomic, strong, readwrite) NSURL *backupFolder;
 @property (nonatomic, strong, readwrite) NSURL *wwwFolder;
-@property (nonatomic, strong) NSURL *contentConfigFileURL;
-@property (nonatomic, strong) NSURL *manifestFileURL;
 
 @end
 
@@ -33,42 +31,48 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
 #pragma mark Public API
 
-- (NSURL *)contentFolder {
-    if (_contentFolder) {
-        return _contentFolder;
+- (instancetype)initWithReleaseVersion:(NSString *)releaseVersion {
+    self = [super init];
+    if (self) {
+        [self localInitWithReleaseVersion:releaseVersion];
     }
     
-    NSURL *appSupportDir = [[NSFileManager defaultManager] applicationSupportDirectory];
-    _contentFolder = [appSupportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
-    
-    return _contentFolder;
+    return self;
+}
+
+- (void)switchToRelease:(NSString *)releaseVersion {
+    [self localInitWithReleaseVersion:releaseVersion];
+    self.downloadFolder = nil;
+    self.installationFolder = nil;
+    self.backupFolder = nil;
+    self.wwwFolder = nil;
+}
+
+- (void)localInitWithReleaseVersion:(NSString *)releaseVersion {
+    NSURL *supportDir = [[NSFileManager defaultManager] applicationSupportDirectory];
+    _contentFolder = [[supportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES]
+                      URLByAppendingPathComponent:releaseVersion isDirectory:YES];
 }
 
 - (NSURL *)downloadFolder {
-    if (_downloadFolder) {
-        return _downloadFolder;
+    if (_downloadFolder == nil) {
+        _downloadFolder = [self.contentFolder URLByAppendingPathComponent:DOWNLOAD_FOLDER isDirectory:YES];
     }
-    
-    NSURL *appCacheDirectory = [[NSFileManager defaultManager] applicationCacheDirectory];
-    _downloadFolder = [appCacheDirectory URLByAppendingPathComponent:DOWNLOAD_FOLDER isDirectory:YES];
     
     return _downloadFolder;
 }
 
 - (NSURL *)installationFolder {
-    if (_installationFolder) {
-        return _installationFolder;
+    if (_installationFolder == nil) {
+        _installationFolder = [self.contentFolder URLByAppendingPathComponent:INSTALLATION_FOLDER isDirectory:YES];
     }
-    
-    NSURL *appCacheDirectory = [[NSFileManager defaultManager] applicationCacheDirectory];
-    _installationFolder = [appCacheDirectory URLByAppendingPathComponent:INSTALLATION_FOLDER isDirectory:YES];
     
     return _installationFolder;
 }
 
 - (NSURL *)backupFolder {
     if (_backupFolder == nil) {
-        _backupFolder = [[self contentFolder] URLByAppendingPathComponent:BACKUP_FOLDER isDirectory:YES];
+        _backupFolder = [self.contentFolder URLByAppendingPathComponent:BACKUP_FOLDER isDirectory:YES];
     }
     
     return _backupFolder;
@@ -76,7 +80,7 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
 - (NSURL *)wwwFolder {
     if (_wwwFolder == nil) {
-        _wwwFolder = [[self contentFolder] URLByAppendingPathComponent:WWWW_FOLDER isDirectory:YES];
+        _wwwFolder = [self.contentFolder URLByAppendingPathComponent:WWWW_FOLDER isDirectory:YES];
     }
     
     return _wwwFolder;

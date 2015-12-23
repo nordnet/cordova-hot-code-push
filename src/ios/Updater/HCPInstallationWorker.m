@@ -15,7 +15,9 @@
 #import "HCPEvents.h"
 
 @interface HCPInstallationWorker() {
-    id<HCPFilesStructure> _fileStructure;
+    id<HCPFilesStructure> _newReleaseFS;
+    id<HCPFilesStructure> _currentReleaseFS;
+    
     id<HCPConfigFileStorage> _manifestStorage;
     id<HCPConfigFileStorage> _configStorage;
     HCPApplicationConfig *_oldConfig;
@@ -34,10 +36,11 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithFileStructure:(id<HCPFilesStructure>)fileStructure {
+- (instancetype)initWithNewReleaseFS:(id<HCPFilesStructure>)newReleaseFS currentReleaseFS:(id<HCPFilesStructure>)currentReleaseFS {
     self = [super init];
     if (self) {
-        _fileStructure = fileStructure;
+        _newReleaseFS = newReleaseFS;
+        _currentReleaseFS = currentReleaseFS;
     }
     
     return self;
@@ -47,11 +50,10 @@
     NSError *error = nil;
     if (![self initBeforeRun:&error] ||
         ![self isUpdateValid:&error] ||
-        ![self backupFiles:&error] ||
+        ![self copyFilesFromCurrentReleaseToNewRelease:&error] ||
         ![self deleteUnusedFiles:&error] ||
         ![self moveDownloadedFilesToWwwFolder:&error]) {
             NSLog(@"%@", error.localizedDescription);
-            [self rollback];
             [self cleanUp];
             [self dispatchEventWithError:error];
         
@@ -102,11 +104,11 @@
     *error = nil;
     
     _fileManager = [NSFileManager defaultManager];
-    _manifestStorage = [[HCPContentManifestStorage alloc] initWithFileStructure:_fileStructure];
-    _configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_fileStructure];
+    _manifestStorage = [[HCPContentManifestStorage alloc] initWithFileStructure:_newReleaseFS];
+    _configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_newReleaseFS];
     
     // load from file system current version of application config
-    _oldConfig = [_configStorage loadFromFolder:_fileStructure.wwwFolder];
+    _oldConfig = [_configStorage loadFromFolder:_currentReleaseFS.wwwFolder];
     if (_oldConfig == nil) {
         *error = [NSError errorWithCode:kHCPLocalVersionOfApplicationConfigNotFoundErrorCode
                             description:@"Failed to load application config from cache folder"];
@@ -114,7 +116,7 @@
     }
     
     // load from file system new version of the application config
-    _newConfig = [_configStorage loadFromFolder:_fileStructure.installationFolder];
+    _newConfig = [_configStorage loadFromFolder:_newReleaseFS.downloadFolder];
     if (_newConfig == nil) {
         *error = [NSError errorWithCode:kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode
                             description:@"Failed to load application config from download folder"];
@@ -122,7 +124,7 @@
     }
     
     // load from file system old version of the manifest
-    _oldManifest = [_manifestStorage loadFromFolder:_fileStructure.wwwFolder];
+    _oldManifest = [_manifestStorage loadFromFolder:_currentReleaseFS.wwwFolder];
     if (_oldManifest == nil) {
         *error = [NSError errorWithCode:kHCPLocalVersionOfManifestNotFoundErrorCode
                             description:@"Failed to load content manifest from cache folder"];
@@ -130,7 +132,7 @@
     }
     
     // load from file system new version of the manifest
-    _newManifest = [_manifestStorage loadFromFolder:_fileStructure.installationFolder];
+    _newManifest = [_manifestStorage loadFromFolder:_newReleaseFS.downloadFolder];
     if (_newManifest == nil) {
         *error = [NSError errorWithCode:kHCPLoadedVersionOfManifestNotFoundErrorCode
                             description:@"Failed to load content manifest from download folder"];
@@ -157,7 +159,7 @@
     
     NSArray *updateFileList = _manifestDiff.updateFileList;
     for (HCPManifestFile *updatedFile in updateFileList) {
-        NSURL *fileLocalURL = [_fileStructure.installationFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
+        NSURL *fileLocalURL = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
         if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
             errorMsg = [NSString stringWithFormat:@"Update validation error! File not found: %@", updatedFile.name];
             break;
@@ -177,26 +179,11 @@
     return (*error == nil);
 }
 
-/**
- *  Create backup of the current www folder.
- *  If something will go wrong during the update we will rollback to it.
- *
- *  @param error filled with any occured error; <code>nil</code> if backup created
- *
- *  @return <code>YES</code> if backup created; <code>NO</code> on error
- */
-- (BOOL)backupFiles:(NSError **)error {
+- (BOOL)copyFilesFromCurrentReleaseToNewRelease:(NSError **)error {
     *error = nil;
     
-    // create backup folder
-    NSURL *backupParentFolderURL = [_fileStructure.backupFolder URLByDeletingLastPathComponent];
-    if (![_fileManager createDirectoryAtURL:backupParentFolderURL withIntermediateDirectories:YES attributes:nil error:error]) {
-        *error = [NSError errorWithCode:kHCPFailedToCreateBackupErrorCode descriptionFromError:*error];
-        return NO;
-    }
-    
-    // copy items from www to backup
-    if (![_fileManager copyItemAtURL:_fileStructure.wwwFolder toURL:_fileStructure.backupFolder error:error]) {
+    // copy items from current www folder to new www folder
+    if (![_fileManager copyItemAtURL:_currentReleaseFS.wwwFolder toURL:_newReleaseFS.wwwFolder error:error]) {
         *error = [NSError errorWithCode:kHCPFailedToCreateBackupErrorCode descriptionFromError:*error];
         return NO;
     }
@@ -215,16 +202,11 @@
     *error = nil;
     NSArray *deletedFiles = _manifestDiff.deletedFiles;
     for (HCPManifestFile *deletedFile in deletedFiles) {
-        NSURL *filePath = [_fileStructure.wwwFolder URLByAppendingPathComponent:deletedFile.name];
+        NSURL *filePath = [_newReleaseFS.wwwFolder URLByAppendingPathComponent:deletedFile.name];
         if (![_fileManager removeItemAtURL:filePath error:error]) {
             NSLog(@"CHCP Warinig! Failed to delete file: %@", filePath.absoluteString);
-            //break;
         }
     }
-    
-    // Since we are deleting files and some doesn't exist - probably it's not important and we can skip that kind of error in this situation.
-    // If not - we should uncomment that line
-    //return (*error == nil);
     
     return YES;
 }
@@ -243,8 +225,8 @@
     NSString *errorMsg = nil;
     for (HCPManifestFile *manifestFile in updatedFiles) {
         // determine paths to the file in installation and www folders
-        NSURL *pathInInstallationFolder = [_fileStructure.installationFolder URLByAppendingPathComponent:manifestFile.name];
-        NSURL *pathInWwwFolder = [_fileStructure.wwwFolder URLByAppendingPathComponent:manifestFile.name];
+        NSURL *pathInInstallationFolder = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:manifestFile.name];
+        NSURL *pathInWwwFolder = [_newReleaseFS.wwwFolder URLByAppendingPathComponent:manifestFile.name];
         
         // if file already exists in www folder - remove it before copying
         if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
@@ -282,8 +264,8 @@
  *  Save loaded configs to the www folder. They are now our current configs.
  */
 - (void)saveNewConfigsToWwwFolder {
-    [_manifestStorage store:_newManifest inFolder:_fileStructure.wwwFolder];
-    [_configStorage store:_newConfig inFolder:_fileStructure.wwwFolder];
+    [_manifestStorage store:_newManifest inFolder:_newReleaseFS.wwwFolder];
+    [_configStorage store:_newConfig inFolder:_newReleaseFS.wwwFolder];
 }
 
 /**
@@ -291,30 +273,7 @@
  */
 - (void)cleanUp {
     NSError *error = nil;
-    [_fileManager removeItemAtURL:_fileStructure.installationFolder error:&error];
-    if ([_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
-        [_fileManager removeItemAtURL:_fileStructure.backupFolder error:&error];
-    }
-}
-
-/**
- *  Restore content from the backup.
- */
-- (void)rollback {
-    if (![_fileManager fileExistsAtPath:_fileStructure.backupFolder.path]) {
-        return;
-    }
-    
-    NSError *error = nil;
-    [_fileManager removeItemAtURL:_fileStructure.wwwFolder error:&error];
-    if (error) {
-        NSLog(@"Failed to rollback: %@", [error underlyingErrorLocalizedDesription]);
-    }
-    
-    [_fileManager copyItemAtURL:_fileStructure.backupFolder toURL:_fileStructure.wwwFolder error:&error];
-    if (error) {
-        NSLog(@"Failed to rollback: %@", [error underlyingErrorLocalizedDesription]);
-    }
+    [_fileManager removeItemAtURL:_newReleaseFS.downloadFolder error:&error];
 }
 
 @end

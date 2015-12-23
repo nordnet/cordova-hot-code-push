@@ -35,7 +35,7 @@
     HCPXmlConfig *_pluginXmllConfig;
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
-    NSURLRequest *_lastRequest;
+    NSString *_indexPagePath;
 }
 
 @end
@@ -118,7 +118,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)doLocalInit {
     _fetchTasks = [[NSMutableArray alloc] init];
-    _filesStructure = [[HCPFilesStructureImpl alloc] init];
     
     // init plugin config from xml
     _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
@@ -130,13 +129,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [_pluginInternalPrefs saveToUserDefaults];
     }
     
+    // init file structure for www files
+    _filesStructure = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
+    
     // init updates loader
     _updatesLoader = [HCPUpdateLoader sharedInstance];
     [_updatesLoader setup:_filesStructure];
     
     // init updates installer
     _updateInstaller = [HCPUpdateInstaller sharedInstance];
-    [_updateInstaller setup:_filesStructure];
 }
 
 /**
@@ -161,7 +162,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Store download callback for later use. 
  *  Callback is associated with the worker.
  *
- *  @param callbackId d of the caller on JavaScript side; it will be used to send back the result of the download process
+ *  @param callbackId id of the caller on JavaScript side; it will be used to send back the result of the download process
  *  @param taskId     worker id, associated with this callback
  */
 - (void)storeCallback:(NSString *)callbackId forFetchTask:(NSString *)taskId {
@@ -221,8 +222,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         _installationCallback = callbackID;
     }
     
+    if (_pluginInternalPrefs.readyForInstallationReleaseVersionName.length == 0) {
+        NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
+                                                     applicationConfig:nil
+                                                                taskId:nil
+                                                                 error:nil];
+        [self onNothingToInstallEvent:notification];
+        return NO;
+    }
+    
     NSError *error = nil;
-    if (![_updateInstaller launchUpdateInstallation:&error]) {
+    id<HCPFilesStructure> newReleaseFS = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
+    if (![_updateInstaller installVersion:newReleaseFS currentRelease:_filesStructure error:&error]) {
         if (error.code == kHCPNothingToInstallErrorCode) {
             NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
                                                          applicationConfig:nil
@@ -244,31 +255,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)loadURL:(NSURL *)url {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         
-        NSURLCache *cache = [[NSURLCache alloc] initWithMemoryCapacity:0 diskCapacity:0 diskPath:nil];
-        [NSURLCache setSharedURLCache:cache];
-        
         NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
         NSString *path = components.path;
         NSURL *loadURL = [NSURL fileURLWithPath:path];
         
-        if (_lastRequest) {
-            [[NSURLCache sharedURLCache] removeCachedResponseForRequest:_lastRequest];
-            [[NSURLCache sharedURLCache] removeAllCachedResponses];
-        }
+        NSURLRequest *request = [NSURLRequest requestWithURL:loadURL
+                                                 cachePolicy:NSURLRequestReloadIgnoringCacheData
+                                             timeoutInterval:10000];
         
-        _lastRequest = [NSURLRequest requestWithURL:loadURL
-                                        cachePolicy:NSURLRequestReloadIgnoringCacheData
-                                    timeoutInterval:10000];
-        
-        [self.webViewEngine loadRequest:_lastRequest];
-        
-        // We need to reload the page because of the webview caching.
-        // For example, if we loaded new css file - it is not gonna update, bacuse old version is cached and the file path is the same.
-        // But if we reload page - everything is fine. This is hacky, but it is the only way to reset the cache.
-        // Delay is set, because if we try to reload immidiatly - nothing good will happen.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.webViewEngine evaluateJavaScript:@"window.location.reload(true);" completionHandler:nil];
-        });
+        [self.webViewEngine loadRequest:request];
     }];
 }
 
@@ -315,28 +310,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 /**
- *  Getter for the starting page relative path.
- *  Retrieved either from hosting view controller or config.xml.
- *
- *  @return index page of the application.
- */
-- (NSString *)getStartingPagePath {
-    NSString *startPage = nil;
-    if ([self.viewController isKindOfClass:[CDVViewController class]]) {
-        startPage = ((CDVViewController *)self.viewController).startPage;
-    } else {
-        startPage = [self getStartingPageFromConfig];
-    }
-    
-    return startPage;
-}
-
-/**
  *  Get index page from config.xml
  *
  *  @return index page of the application
  */
-- (NSString *)getStartingPageFromConfig {
+- (NSString *)getStartingPagePath {
+    if (_indexPagePath) {
+        return _indexPagePath;
+    }
+    
     CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
     
     // read from config.xml in the app bundle
@@ -347,10 +329,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [configParser parse];
     
     if (delegate.startPage) {
-        return delegate.startPage;
+        _indexPagePath = delegate.startPage;
+    } else {
+        _indexPagePath = DEFAULT_STARTING_PAGE;
     }
     
-    return DEFAULT_STARTING_PAGE;
+    return _indexPagePath;
 }
 
 /**
@@ -462,7 +446,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // fetch update
     [self loadApplicationConfig];
-    if (_pluginXmllConfig.isUpdatesAutoDowloadAllowed) {
+    if (_pluginXmllConfig.isUpdatesAutoDownloadAllowed) {
         [self _fetchUpdate:nil];
     }
 }
@@ -542,8 +526,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
-    // if it is allowed - launch the installation
+    
+    // new application config from server
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
+    
+    // store, that we are ready for installation
+    _pluginInternalPrefs.readyForInstallationReleaseVersionName = newConfig.contentConfig.releaseVersion;
+    [_pluginInternalPrefs saveToUserDefaults];
+    
+    // if it is allowed - launch the installation
     if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
     }
@@ -556,7 +547,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @param notification captured notification with the event details
  */
-// TODO: if event is not gonna be used in any other place - it should be removed in next version.
 - (void)onNothingToInstallEvent:(NSNotification *)notification {
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
@@ -576,6 +566,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @param notification captured notification with the event details
  */
 - (void)onUpdateInstallationErrorEvent:(NSNotification *)notification {
+    _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
+    [_pluginInternalPrefs saveToUserDefaults];
+    
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
     // send notification to the caller from the JavaScript side if there was any
@@ -594,6 +587,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @param notification captured notification with the event details
  */
 - (void)onUpdateInstalledEvent:(NSNotification *)notification {
+    _appConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
+    
+    _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
+    _pluginInternalPrefs.previousReleaseVersionName = _pluginInternalPrefs.currentReleaseVersionName;
+    _pluginInternalPrefs.currentReleaseVersionName = _appConfig.contentConfig.releaseVersion;
+    [_pluginInternalPrefs saveToUserDefaults];
+    
+    [_filesStructure switchToRelease:_pluginInternalPrefs.currentReleaseVersionName];
+    
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
     // send notification to the caller from the JavaScript side of there was any
@@ -615,7 +617,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
     
-    if (_pluginXmllConfig.isUpdatesAutoDowloadAllowed) {
+    if (_pluginXmllConfig.isUpdatesAutoDownloadAllowed && _fetchTasks.count == 0) {
         [self _fetchUpdate:nil];
     }
 }

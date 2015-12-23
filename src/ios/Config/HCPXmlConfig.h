@@ -22,7 +22,7 @@
  *
  *  @return <code>YES</code> if auto download is allowed; <code>NO</code> if auto download is disabled
  */
-@property (nonatomic, getter=isUpdatesAutoDowloadAllowed) BOOL allowUpdatesAutoDownload;
+@property (nonatomic, getter=isUpdatesAutoDownloadAllowed) BOOL allowUpdatesAutoDownload;
 
 /**
  *  Flag that indicates if updates auto installation is allowed. By default - <code>YES</code>.

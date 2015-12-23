@@ -32,14 +32,8 @@
     return sharedInstance;
 }
 
-- (void)setup:(id<HCPFilesStructure>)filesStructure {
-    _filesStructure = filesStructure;
-}
-
-- (BOOL)launchUpdateInstallation:(NSError **)error {
+- (BOOL)installVersion:(id<HCPFilesStructure>)newVersionFS currentRelease:(id<HCPFilesStructure>)currentReleaseFS error:(NSError **)error {
     *error = nil;
-    
-    // TODO: need better communication bridge between loader and installer
     
     // if installing - exit
     if (_isInstallationInProgress) {
@@ -48,13 +42,13 @@
     }
     
     // check if there is anything to install
-    if (![[NSFileManager defaultManager] fileExistsAtPath:_filesStructure.installationFolder.path]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:newVersionFS.downloadFolder.path]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
         return NO;
     }
-        
+    
     // launch installation
-    [self execute:[[HCPInstallationWorker alloc] initWithFileStructure:_filesStructure]];
+    [self execute:[[HCPInstallationWorker alloc] initWithNewReleaseFS:newVersionFS currentReleaseFS:currentReleaseFS]];
     
     return YES;
 }

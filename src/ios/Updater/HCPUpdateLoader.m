@@ -38,7 +38,6 @@
 }
 
 - (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl {
-    // TODO: add better communication between installer and loader.
     if (_isExecuting) {
         return nil;
     }

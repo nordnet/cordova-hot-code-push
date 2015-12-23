@@ -25,4 +25,6 @@
  */
 @property (nonatomic, strong, readonly) HCPContentConfig *contentConfig;
 
++ (instancetype)configFromBundle;
+
 @end

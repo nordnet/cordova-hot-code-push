@@ -33,14 +33,14 @@
  *  Absolute path to the temporary folder where new update is located.
  *  Folder is created after update download. We will perform installation from it.
  */
-@property (nonatomic, strong, readonly) NSURL *installationFolder;
+//@property (nonatomic, strong, readonly) NSURL *installationFolder;
 
 /**
  *  Absolute path to the temporary folder where we put backup of the current web content before
  *  installing new version. If during the installation some error will happen - we will restore content
  *  from this folder.
  */
-@property (nonatomic, strong, readonly) NSURL *backupFolder;
+//@property (nonatomic, strong, readonly) NSURL *backupFolder;
 
 /**
  *  Getter for the name of the application config file.
@@ -51,5 +51,7 @@
  *  Getter for the name of the manifest file.
  */
 @property (nonatomic, strong, readonly) NSString *manifestFileName;
+
+- (void)switchToRelease:(NSString *)releaseName;
 
 @end

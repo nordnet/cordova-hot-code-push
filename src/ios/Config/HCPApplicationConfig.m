@@ -5,6 +5,8 @@
 //
 
 #import "HCPApplicationConfig.h"
+#import "NSBundle+HCPExtension.h"
+#import "NSError+HCPExtension.h"
 
 @interface HCPApplicationConfig() {
     NSString *_storeUrl;
@@ -63,7 +65,7 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
 }
 
 + (instancetype)instanceFromJsonObject:(id)json {
-    if (![json isKindOfClass:[NSDictionary class]]) {
+    if (!json || ![json isKindOfClass:[NSDictionary class]]) {
         return nil;
     }
     NSDictionary *jsonObject = json;
@@ -73,6 +75,25 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
     appConfig.contentConfig = [HCPContentConfig instanceFromJsonObject:jsonObject];
     
     return appConfig;
+}
+
++ (instancetype)configFromBundle {
+    NSURL *wwwFolderURL = [NSURL fileURLWithPath:[NSBundle pathToWwwFolder] isDirectory:YES];
+    NSURL *chcpJsonFileURLFromBundle = [wwwFolderURL URLByAppendingPathComponent:@"chcp.json"];
+    
+    NSData *jsonData = [NSData dataWithContentsOfURL:chcpJsonFileURLFromBundle];
+    if (jsonData == nil) {
+        return nil;
+    }
+    
+    NSError *error = nil;
+    id json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&error];
+    if (error) {
+        NSLog(@"Can't read chcp.json config from bundle. %@", [error underlyingErrorLocalizedDesription]);
+        return nil;
+    }
+    
+    return [HCPApplicationConfig instanceFromJsonObject:json];
 }
 
 @end

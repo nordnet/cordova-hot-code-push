@@ -16,6 +16,7 @@
 #import "NSError+HCPExtension.h"
 #import "HCPUpdateInstaller.h"
 #import "HCPContentManifest.h"
+#import "HCPFilesStructureImpl.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
@@ -59,9 +60,6 @@
 // To reduce merge conflicts leaving it as it is for now.
 - (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock {
     _complitionBlock = updateLoaderComplitionBlock;
-    
-    // wait before installation is finished
-    [self waitForInstallationToComplete];
     
     // initialize before the run
     NSError *error = nil;
@@ -115,8 +113,11 @@
                 return;
             }
             
+            // switch file structure to new release
+            _pluginFiles = [[HCPFilesStructureImpl alloc] initWithReleaseVersion:newAppConfig.contentConfig.releaseVersion];
+            
             // create new download folder
-            [self recreateDownloadFolder:_pluginFiles.downloadFolder];
+            [self createNewReleaseDownloadFolder:_pluginFiles.downloadFolder];
             
             // if there is anything to load - do that
             NSArray *updatedFiles = manifestDiff.updateFileList;
@@ -130,10 +131,6 @@
             [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
             [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
             
-            // move download folder to installation folder
-            // even if it's empty - think of it as a flag, that there is something to update
-            [self moveDownloadedContentToInstallationFolder];
-            
             [self notifyUpdateDownloadSuccess:newAppConfig];
         }];
     }];
@@ -141,7 +138,10 @@
 
 #pragma mark Private API
 
-- (void)downloadUpdatedFiles:(NSArray *)updatedFiles appConfig:(HCPApplicationConfig *)newAppConfig manifest:(HCPContentManifest *)newManifest  complitionBlock:(void (^)(void))updateLoaderComplitionBlock{
+- (void)downloadUpdatedFiles:(NSArray *)updatedFiles
+                   appConfig:(HCPApplicationConfig *)newAppConfig
+                    manifest:(HCPContentManifest *)newManifest
+             complitionBlock:(void (^)(void))updateLoaderComplitionBlock{
     
     // download files
     HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
@@ -163,9 +163,6 @@
         // store configs
         [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
         [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
-                  
-        // move download folder to installation folder
-        [self moveDownloadedContentToInstallationFolder];
                   
         updateLoaderComplitionBlock();
                   
@@ -224,26 +221,6 @@
     }
     
     return YES;
-}
-
-/**
- *  Copy all loaded files from download folder to installation folder from which we will install the update.
- */
-- (void)moveDownloadedContentToInstallationFolder {
-    [self waitForInstallationToComplete];
-    
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSError *error = nil;
-    [fileManager moveItemAtURL:_pluginFiles.downloadFolder toURL:_pluginFiles.installationFolder error:&error];
-}
-
-/**
- *  If installation is in progress - we should wait for it to finish before moving newly loaded files to installation folder.
- */
-- (void)waitForInstallationToComplete {
-    while ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [NSThread sleepForTimeInterval:1]; // avoid busy loop
-    }
 }
 
 /**
@@ -306,7 +283,7 @@
  *
  *  @param downloadFolder url to the download folder
  */
-- (void)recreateDownloadFolder:(NSURL *)downloadFolder {
+- (void)createNewReleaseDownloadFolder:(NSURL *)downloadFolder {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
     NSError *error = nil;

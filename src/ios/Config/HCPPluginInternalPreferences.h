@@ -25,6 +25,12 @@
 
 @property (nonatomic, getter=isWwwFolderInstalled) BOOL wwwFolderInstalled;
 
+@property (nonatomic, strong) NSString *previousReleaseVersionName;
+
+@property (nonatomic, strong) NSString *currentReleaseVersionName;
+
+@property (nonatomic, strong) NSString *readyForInstallationReleaseVersionName;
+
 /**
  *  Create default plugin config.
  *

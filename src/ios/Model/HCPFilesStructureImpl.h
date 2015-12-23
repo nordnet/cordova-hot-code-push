@@ -14,4 +14,6 @@
  */
 @interface HCPFilesStructureImpl : NSObject<HCPFilesStructure>
 
+- (instancetype)initWithReleaseVersion:(NSString *)releaseVersion;
+
 @end

@@ -30,20 +30,14 @@
 @property (nonatomic, readonly, getter=isInstallationInProgress) BOOL isInstallationInProgress;
 
 /**
- *  Setup installer. Should be called on application startup before any real work is performed.
- *
- *  @param filesStructure plugins file structure.
- *  @see HCPFilesStructure
- */
-- (void)setup:(id<HCPFilesStructure>)filesStructure;
-
-/**
  *  Launch update installation process.
  *
  *  @param error error details if we failed to launch the installation worker
  *
  *  @return <code>YES</code> if installation is launched; <code>NO</code> - otherwise
  */
-- (BOOL)launchUpdateInstallation:(NSError **)error;
+- (BOOL)installVersion:(id<HCPFilesStructure>)newVersionFS
+        currentRelease:(id<HCPFilesStructure>)currentReleaseFS
+                 error:(NSError **)error;
 
 @end

@@ -23,6 +23,6 @@
  *
  *  @return instance of the object
  */
-- (instancetype)initWithFileStructure:(id<HCPFilesStructure>)fileStructure;
+- (instancetype)initWithNewReleaseFS:(id<HCPFilesStructure>)newReleaseFS currentReleaseFS:(id<HCPFilesStructure>)currentReleaseFS;
 
 @end

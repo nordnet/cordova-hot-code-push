@@ -21,6 +21,7 @@
 #import "HCPAppUpdateRequestAlertDialog.h"
 #import "HCPAssetsFolderHelper.h"
 #import "NSError+HCPExtension.h"
+#import "HCPCleanupHelper.h"
 
 @interface HCPPlugin() {
     HCPFilesStructure *_filesStructure;
@@ -56,6 +57,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self installWwwFolder];
         return;
     }
+    
+    // cleanup file system: remove older releases, except current and the previous one
+    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName, _pluginInternalPrefs.previousReleaseVersionName]];
     
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];

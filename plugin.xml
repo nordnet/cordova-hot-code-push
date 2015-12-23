@@ -95,12 +95,9 @@
         target-dir="JS/" />
 
       <!-- sources for Model folder -->
+      <source-file src="src/ios/Model/HCPFilesStructure.m"
+        target-dir="Model/" />
       <header-file src="src/ios/Model/HCPFilesStructure.h"
-        target-dir="Model/" />
-
-      <source-file src="src/ios/Model/HCPFilesStructureImpl.m"
-        target-dir="Model/" />
-      <header-file src="src/ios/Model/HCPFilesStructureImpl.h"
         target-dir="Model/" />
 
       <header-file src="src/ios/Model/HCPJsonConvertable.h"

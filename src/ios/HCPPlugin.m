@@ -257,7 +257,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (void)loadURL:(NSURL *)url {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        
         NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
         NSString *path = components.path;
         NSURL *loadURL = [NSURL fileURLWithPath:path];

@@ -121,7 +121,7 @@
             // if there is anything to load - do that
             NSArray *updatedFiles = manifestDiff.updateFileList;
             if (updatedFiles.count > 0) {
-                [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest complitionBlock:updateLoaderComplitionBlock];
+                [self downloadUpdatedFiles:updatedFiles appConfig:newAppConfig manifest:newManifest];
                 return;
             }
             
@@ -139,8 +139,7 @@
 
 - (void)downloadUpdatedFiles:(NSArray *)updatedFiles
                    appConfig:(HCPApplicationConfig *)newAppConfig
-                    manifest:(HCPContentManifest *)newManifest
-             complitionBlock:(void (^)(void))updateLoaderComplitionBlock{
+                    manifest:(HCPContentManifest *)newManifest {
     
     // download files
     HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
@@ -151,8 +150,8 @@
                      toFolder:_pluginFiles.downloadFolder
               completionBlock:^(NSError * error) {
         if (error) {
-            [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.downloadFolder error:nil];
-            updateLoaderComplitionBlock();
+            // remove new release folder
+            [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.contentFolder error:nil];
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
                                               descriptionFromError:error]
                           applicationConfig:newAppConfig];
@@ -162,8 +161,6 @@
         // store configs
         [_manifestStorage store:newManifest inFolder:_pluginFiles.downloadFolder];
         [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
-                  
-        updateLoaderComplitionBlock();
                   
         // notify that we are done
         [self notifyUpdateDownloadSuccess:newAppConfig];

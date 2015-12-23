@@ -455,6 +455,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self invokeDefaultCallbackWithMessage:[CDVPluginResult pluginResultForNotification:notification]];
 }
 
+
 #pragma mark Update download events
 
 /**
@@ -465,10 +466,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)onUpdateDownloadErrorEvent:(NSNotification *)notification {
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
     NSLog(@"Error during update: %@", [error underlyingErrorLocalizedDesription]);
-    if (error.code == kHCPLocalVersionOfApplicationConfigNotFoundErrorCode || error.code == kHCPLocalVersionOfManifestNotFoundErrorCode) {
-        NSLog(@"WWW folder is corrupted, reinstalling it from bundle.");
-        [self installWwwFolder];
-    }
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
@@ -479,6 +476,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
+    
+    // probably never happens, but just for safety
+    [self rollbackIfCorrupted:error];
 }
 
 /**
@@ -571,6 +571,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
+    
+    // probably never happens, but just for safety
+    NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
+    [self rollbackIfCorrupted:error];
 }
 
 /**
@@ -588,6 +592,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     [_filesStructure switchToRelease:_pluginInternalPrefs.currentReleaseVersionName];
     
+    // path to index page of the new release
+    NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
     // send notification to the caller from the JavaScript side of there was any
@@ -600,8 +606,39 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
     // reload application to the index page
-    NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     [self loadURL:startingPageURL];
+}
+
+#pragma mark Rollback process
+
+- (void)rollbackToPreviousRelease {
+    _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
+    _pluginInternalPrefs.currentReleaseVersionName = _pluginInternalPrefs.previousReleaseVersionName;
+    _pluginInternalPrefs.previousReleaseVersionName = @"";
+    [_pluginInternalPrefs saveToUserDefaults];
+    
+    [_filesStructure switchToRelease:_pluginInternalPrefs.currentReleaseVersionName];
+    
+    if (_appConfig) {
+        [self loadApplicationConfig];
+    }
+    
+    NSURL *indexPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
+    [self loadURL:indexPageURL];
+}
+
+- (void)rollbackIfCorrupted:(NSError *)error {
+    if (error.code != kHCPLocalVersionOfApplicationConfigNotFoundErrorCode && error.code != kHCPLocalVersionOfManifestNotFoundErrorCode) {
+        return;
+    }
+    
+    if (_pluginInternalPrefs.previousReleaseVersionName.length > 0) {
+        NSLog(@"WWW folder is corrupted, rolling back to previous version.");
+        [self rollbackToPreviousRelease];
+    } else {
+        NSLog(@"WWW folder is corrupted, reinstalling it from bundle.");
+        [self installWwwFolder];
+    }
 }
 
 #pragma mark Methods, invoked from Javascript

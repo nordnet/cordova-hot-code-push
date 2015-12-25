@@ -57,7 +57,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     // cleanup file system: remove older releases, except current and the previous one
-    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName, _pluginInternalPrefs.previousReleaseVersionName]];
+    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
+                                                   _pluginInternalPrefs.previousReleaseVersionName,
+                                                   _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
     
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];

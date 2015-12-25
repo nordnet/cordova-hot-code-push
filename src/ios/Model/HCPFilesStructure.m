@@ -10,7 +10,7 @@
 #pragma mark Predefined folders and file names of the plugin
 
 static NSString *const CHCP_FOLDER = @"cordova-hot-code-push-plugin";
-static NSString *const DOWNLOAD_FOLDER = @"www_tmp";
+static NSString *const DOWNLOAD_FOLDER = @"update";
 static NSString *const WWWW_FOLDER = @"www";
 static NSString *const CHCP_JSON_FILE_PATH = @"chcp.json";
 static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";

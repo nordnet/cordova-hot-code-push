@@ -152,6 +152,8 @@
         if (error) {
             // remove new release folder
             [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.contentFolder error:nil];
+            
+            // notify about the error
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode
                                               descriptionFromError:error]
                           applicationConfig:newAppConfig];

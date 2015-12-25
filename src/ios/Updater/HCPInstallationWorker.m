@@ -273,7 +273,7 @@
  */
 - (void)cleanUp {
     NSError *error = nil;
-    [_fileManager removeItemAtURL:_newReleaseFS.downloadFolder error:&error];
+    [_fileManager removeItemAtURL:_newReleaseFS.contentFolder error:&error];
 }
 
 @end

@@ -1,5 +1,5 @@
 //
-//  HCPFilesStructureImpl.h
+//  HCPFilesStructure.h
 //
 //  Created by Nikolay Demyankov on 12.08.15.
 //
@@ -7,12 +7,20 @@
 #import <Foundation/Foundation.h>
 
 /**
- *  Implementation of the HCPFileStructure protocol.
+ *  Model for plugins file structure.
+ *  Each release has it's own folder, so we need to initialize this object with release version.
  *  
  *  @see HCPFileStructure
  */
 @interface HCPFilesStructure : NSObject
 
+/**
+ *  Constructor.
+ *
+ *  @param releaseVersion for what version this file structure
+ *
+ *  @return object instance
+ */
 - (instancetype)initWithReleaseVersion:(NSString *)releaseVersion;
 
 /**
@@ -42,8 +50,19 @@
  */
 @property (nonatomic, strong, readonly) NSString *manifestFileName;
 
+/**
+ *  Re-initialize this object with other release version.
+ *
+ *  @param releaseName version to switch to
+ */
 - (void)switchToRelease:(NSString *)releaseName;
 
+/**
+ *  Get root folder for this plugin. 
+ *  In it all releases are located.
+ *
+ *  @return url on the external storage to the plugins root folder.
+ */
 + (NSURL *)pluginRootFolder;
 
 @end

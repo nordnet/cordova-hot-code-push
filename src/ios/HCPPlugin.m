@@ -176,26 +176,14 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @return <code>YES</code> if installation has started; <code>NO</code> otherwise
  */
 - (BOOL)_installUpdate:(NSString *)callbackID {
-    if (!_isPluginReadyForWork || [HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
+    if (!_isPluginReadyForWork) {
         return NO;
-    }
-    
-    if (callbackID) {
-        _installationCallback = callbackID;
     }
     
     NSString *newVersion = _pluginInternalPrefs.readyForInstallationReleaseVersionName;
-    if (newVersion.length == 0) {
-        NSNotification *notification = [HCPEvents notificationWithName:kHCPNothingToInstallEvent
-                                                     applicationConfig:nil
-                                                                taskId:nil
-                                                                 error:nil];
-        [self onNothingToInstallEvent:notification];
-        return NO;
-    }
+    NSString *currentVersion = _pluginInternalPrefs.currentReleaseVersionName;
     
     NSError *error = nil;
-    NSString *currentVersion = _pluginInternalPrefs.currentReleaseVersionName;
     [[HCPUpdateInstaller sharedInstance] installVersion:newVersion currentVersion:currentVersion error:&error];
     if (error) {
         if (error.code == kHCPNothingToInstallErrorCode) {
@@ -213,6 +201,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         
         return NO;
     }
+    
+    if (callbackID) {
+        _installationCallback = callbackID;
+    }
+
     
     return YES;
 }
@@ -439,7 +432,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-    //NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (_downloadCallback) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
         _downloadCallback = nil;
@@ -462,7 +454,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-//    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (_downloadCallback) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
         _downloadCallback = nil;
@@ -498,7 +489,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [_pluginInternalPrefs saveToUserDefaults];
     
     // if it is allowed - launch the installation
-    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed &&
+        newConfig.contentConfig.updateTime == HCPUpdateNow &&
+        ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
+        ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
         [self _installUpdate:nil];
     }
 }
@@ -582,6 +576,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 #pragma mark Rollback process
 
+/**
+ *  Rollback to the previously installed version of the app.
+ */
 - (void)rollbackToPreviousRelease {
     _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
     _pluginInternalPrefs.currentReleaseVersionName = _pluginInternalPrefs.previousReleaseVersionName;
@@ -598,6 +595,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self loadURL:indexPageURL];
 }
 
+/**
+ *  Rollback to the previous/bundled version of the app, if error indicates that current release is corrupted.
+ *
+ *  @param error captured error
+ */
 - (void)rollbackIfCorrupted:(NSError *)error {
     if (error.code != kHCPLocalVersionOfApplicationConfigNotFoundErrorCode && error.code != kHCPLocalVersionOfManifestNotFoundErrorCode) {
         return;

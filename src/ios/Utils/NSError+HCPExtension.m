@@ -22,13 +22,15 @@ NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode = -10;
 NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode = -11;
 NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode = -12;
 NSInteger const kHCPFailedToInstallAssetsOnExternalStorageErrorCode = -13;
+NSInteger const kHCPCantInstallWhileDownloadInProgressErrorCode = -14;
+NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode = -15;
+NSInteger const kHCPInstallationAlreadyInProgressErorrCode = -16;
+NSInteger const kHCPDownloadAlreadyInProgressErrorCode = -17;
+NSInteger const kHCPAssetsNotYetInstalledErrorCode = -18;
 
 // Kind of warnings
 NSInteger const kHCPNothingToInstallErrorCode = 1;
 NSInteger const kHCPNothingToUpdateErrorCode = 2;
-NSInteger const kHCPCantInstallWhileDownloadInProgressErrorCode = 3;
-NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode = 4;
-NSInteger const kHCPInstallationAlreadyInProgressErorrCode = 5;
 
 @implementation NSError (HCPExtension)
 

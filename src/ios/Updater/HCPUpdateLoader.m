@@ -7,6 +7,7 @@
 #import "HCPUpdateLoader.h"
 #import "HCPUpdateLoaderWorker.h"
 #import "HCPUpdateInstaller.h"
+#import "NSError+HCPExtension.h"
 
 @interface HCPUpdateLoader() {
     __block BOOL _isExecuting;
@@ -32,20 +33,23 @@
     return _isExecuting;
 }
 
-- (NSString *)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion {
+- (BOOL)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion error:(NSError **)error {
     if (_isExecuting) {
-        return nil;
+        *error = [NSError errorWithCode:kHCPDownloadAlreadyInProgressErrorCode description:@"Download already in progress. Please, wait for it to finish."];
+        return NO;
     }
     
     // if installing - don't start the task.
     if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        return nil;
+        *error = [NSError errorWithCode:kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode description:@"Installation is in progress, can't launch the download task. Please, wait for it to finish."];
+        return NO;
     }
     
+    *error = nil;
     id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl currentVersion:currentVersion];
     [self executeTask:task];
     
-    return task.workerId;
+    return YES;
 }
 
 #pragma mark Private API

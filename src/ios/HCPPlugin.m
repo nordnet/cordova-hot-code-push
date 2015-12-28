@@ -146,13 +146,26 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return NO;
     }
     
-    NSString *taskId = [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
-                                                                            currentVersion:_pluginInternalPrefs.currentReleaseVersionName];
-    if (taskId) {
+    NSError *error = nil;
+    [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
+                                                   currentVersion:_pluginInternalPrefs.currentReleaseVersionName
+                                                            error:&error];
+    if (error) {
+        if (callbackId) {
+            CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateDownloadErrorEvent
+                                                                     applicationConfig:nil
+                                                                                 error:error];
+            [self.commandDelegate sendPluginResult:errorResult callbackId:callbackId];
+        }
+        
+        return NO;
+    }
+    
+    if (callbackId) {
         _downloadCallback = callbackId;
     }
     
-    return taskId != nil;
+    return YES;
 }
 
 /**
@@ -191,6 +204,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                                                                     taskId:nil
                                                                      error:error];
             [self onNothingToInstallEvent:notification];
+        } else {
+            if (callbackID) {
+                CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateInstallationErrorEvent applicationConfig:nil error:error];
+                [self.commandDelegate sendPluginResult:errorResult callbackId:callbackID];
+            }
         }
         
         return NO;
@@ -464,7 +482,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-//    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
     if (_downloadCallback) {
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
         _downloadCallback = nil;
@@ -472,7 +489,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
-    
     
     // new application config from server
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
@@ -610,6 +626,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)jsConfigure:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
+        [self sendPluginNotReadyToWorkMessageForEvent:nil callbackID:command.callbackId];
         return;
     }
     
@@ -628,7 +645,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)jsFetchUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
-        return;
+        [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
     
     [self _fetchUpdate:command.callbackId];
@@ -636,6 +653,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork) {
+        [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateInstallationErrorEvent callbackID:command.callbackId];
         return;
     }
     
@@ -644,6 +662,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)jsRequestAppUpdate:(CDVInvokedUrlCommand *)command {
     if (!_isPluginReadyForWork || command.arguments.count == 0) {
+        [self sendPluginNotReadyToWorkMessageForEvent:nil callbackID:command.callbackId];
         return;
     }
     
@@ -661,6 +680,15 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }];
     
     [_appUpdateRequestDialog show];
+}
+
+- (void)sendPluginNotReadyToWorkMessageForEvent:(NSString *)eventName callbackID:(NSString *)callbackID {
+    NSError *error = [NSError errorWithCode:kHCPAssetsNotYetInstalledErrorCode
+                                description:@"WWW folder from the bundle is not yet installed on the external device. Please, wait for this operation to finish."];
+    CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:eventName
+                                                             applicationConfig:nil
+                                                                         error:error];
+    [self.commandDelegate sendPluginResult:errorResult callbackId:callbackID];
 }
 
 @end

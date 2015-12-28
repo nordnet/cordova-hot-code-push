@@ -34,7 +34,7 @@
  *
  *  @return id of the created worker
  */
-- (NSString *)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion;
+- (BOOL)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion error:(NSError **)error;
 
 /**
  *  Flag to check if we are doing any downloads at the moment.

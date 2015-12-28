@@ -5,6 +5,7 @@
 //
 
 #import <Cordova/CDV.h>
+#import "HCPApplicationConfig.h"
 
 /**
  *  Category for CDVPluginResult class.
@@ -22,5 +23,7 @@
  *  @return plugin result instance
  */
 + (CDVPluginResult *)pluginResultForNotification:(NSNotification *)notification;
+
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action applicationConfig:(HCPApplicationConfig *)appConfig error:(NSError *)error;
 
 @end

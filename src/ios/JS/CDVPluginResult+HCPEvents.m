@@ -27,9 +27,17 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
 + (CDVPluginResult *)pluginResultForNotification:(NSNotification *)notification {
     HCPApplicationConfig *appConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
     NSError *error = notification.userInfo[kHCPEventUserInfoErrorKey];
+    NSString *action = notification.name;
     
+    return [CDVPluginResult pluginResultWithActionName:action applicationConfig:appConfig error:error];
+}
+
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action applicationConfig:(HCPApplicationConfig *)appConfig error:(NSError *)error {
     NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
-    jsonObject[ACTION_KEY] = notification.name;
+    
+    if (action) {
+        jsonObject[ACTION_KEY] = action;
+    }
     
     if (error) {
         jsonObject[ERROR_KEY] = [self constructErrorBlock:error];

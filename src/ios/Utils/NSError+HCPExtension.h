@@ -110,6 +110,16 @@ extern NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCod
 extern NSInteger const kHCPInstallationAlreadyInProgressErorrCode;
 
 /**
+ *  Code error occures when we try to download the update while it's already in progress.
+ */
+extern NSInteger const kHCPDownloadAlreadyInProgressErrorCode;
+
+/**
+ *  Code error occures when we try to call plugin API before assets are installed on external storage.
+ */
+extern NSInteger const kHCPAssetsNotYetInstalledErrorCode;
+
+/**
  *  Category for NSError.
  *  Extended with plugin specific errors.
  */

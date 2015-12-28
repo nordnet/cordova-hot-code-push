@@ -50,6 +50,7 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonObject options:kNilOptions error:nil];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     
+    // TODO: should be moved to an [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
     return [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:jsonString];
 }
 

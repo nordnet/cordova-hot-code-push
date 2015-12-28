@@ -644,21 +644,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return;
     }
     
-    id configureArguments = command.arguments[0];
-    NSError *error = nil;
-    NSDictionary *options;
-    if ([configureArguments isKindOfClass:[NSString class]]) {
-        options = [NSJSONSerialization JSONObjectWithContentsFromString:configureArguments error:&error];
-    } else {
-        options = configureArguments;
-    }
-    
-    if (error) {
-        CDVPluginResult *pluginResult = [CDVPluginResult pluginResultWithActionName:nil applicationConfig:nil error:error];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        return;
-    }
-    
+    NSDictionary *options = command.arguments[0];
     [_pluginXmlConfig mergeOptionsFromJS:options];
     // TODO: store them somewhere?
     

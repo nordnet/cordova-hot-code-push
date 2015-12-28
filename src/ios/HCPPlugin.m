@@ -483,6 +483,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
     NSLog(@"Update is ready for installation");
     
+    // new application config from server
+    HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
+    
+    // store, that we are ready for installation
+    _pluginInternalPrefs.readyForInstallationReleaseVersionName = newConfig.contentConfig.releaseVersion;
+    [_pluginInternalPrefs saveToUserDefaults];
+    
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     if (_downloadCallback) {
@@ -492,13 +499,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];
-    
-    // new application config from server
-    HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
-    
-    // store, that we are ready for installation
-    _pluginInternalPrefs.readyForInstallationReleaseVersionName = newConfig.contentConfig.releaseVersion;
-    [_pluginInternalPrefs saveToUserDefaults];
     
     // if it is allowed - launch the installation
     if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed &&

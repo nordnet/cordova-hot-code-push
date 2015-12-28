@@ -44,9 +44,9 @@ extern NSInteger const kHCPFailedToMoveLoadedFilesToInstallationFolderErrorCode;
 extern NSInteger const kHCPUpdateIsInvalidErrorCode;
 
 /**
- *  Code fore error during the installation. Indicates that we couldn't create backup before performing the installation.
+ *  Code fore error during the installation. Indicates that we couldn't copy project files from the previous release.
  */
-extern NSInteger const kHCPFailedToCreateBackupErrorCode;
+extern NSInteger const kHCPFailedToCopyFilesFromPreviousReleaseErrorCode;
 
 /**
  *  Code for error during the installation. Means that we could not install loaded files.
@@ -93,6 +93,21 @@ extern NSInteger const kHCPNothingToInstallErrorCode;
  *  Code error occures when we tried to download new release, but there is nothing to download.
  */
 extern NSInteger const kHCPNothingToUpdateErrorCode;
+
+/**
+ *  Code error occures when we tried to install, while update downlod is in progress.
+ */
+extern NSInteger const kHCPCantInstallWhileDownloadInProgressErrorCode;
+
+/**
+ *  Code error occures when we tried to download the update, while installation is in progress.
+ */
+extern NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode;
+
+/**
+ *  Code error occures when we try to install the update while installation is already in progress.
+ */
+extern NSInteger const kHCPInstallationAlreadyInProgressErorrCode;
 
 /**
  *  Category for NSError.

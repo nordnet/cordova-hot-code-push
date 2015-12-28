@@ -8,21 +8,27 @@
 
 NSString *const kHCPPluginErrorDomain = @"HCPPluginError";
 
+// Actual errors
 NSInteger const kHCPFailedToDownloadApplicationConfigErrorCode = -1;
 NSInteger const kHCPApplicationBuildVersionTooLowErrorCode = -2;
 NSInteger const kHCPFailedToDownloadContentManifestErrorCode = -3;
 NSInteger const kHCPFailedToDownloadUpdateFilesErrorCode = -4;
 NSInteger const kHCPFailedToMoveLoadedFilesToInstallationFolderErrorCode = -5;
 NSInteger const kHCPUpdateIsInvalidErrorCode = -6;
-NSInteger const kHCPFailedToCreateBackupErrorCode = -7;
+NSInteger const kHCPFailedToCopyFilesFromPreviousReleaseErrorCode = -7;
 NSInteger const kHCPFailedToCopyNewContentFilesErrorCode = -8;
 NSInteger const kHCPLocalVersionOfApplicationConfigNotFoundErrorCode = -9;
 NSInteger const kHCPLocalVersionOfManifestNotFoundErrorCode = -10;
 NSInteger const kHCPLoadedVersionOfApplicationConfigNotFoundErrorCode = -11;
 NSInteger const kHCPLoadedVersionOfManifestNotFoundErrorCode = -12;
 NSInteger const kHCPFailedToInstallAssetsOnExternalStorageErrorCode = -13;
+
+// Kind of warnings
 NSInteger const kHCPNothingToInstallErrorCode = 1;
 NSInteger const kHCPNothingToUpdateErrorCode = 2;
+NSInteger const kHCPCantInstallWhileDownloadInProgressErrorCode = 3;
+NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode = 4;
+NSInteger const kHCPInstallationAlreadyInProgressErorrCode = 5;
 
 @implementation NSError (HCPExtension)
 

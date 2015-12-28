@@ -53,15 +53,15 @@
         ![self copyFilesFromCurrentReleaseToNewRelease:&error] ||
         ![self deleteUnusedFiles:&error] ||
         ![self moveDownloadedFilesToWwwFolder:&error]) {
-            NSLog(@"%@", error.localizedDescription);
-            [self cleanUp];
+            NSLog(@"%@. Error code %ld", [error underlyingErrorLocalizedDesription], (long)error.code);
+            [self cleanUpOnFailure];
             [self dispatchEventWithError:error];
         
             return;
     }
     
+    [self cleanUpOnSucess];
     [self saveNewConfigsToWwwFolder];
-    [self cleanUp];
     [self dispatchSuccessEvent];
 }
 
@@ -182,9 +182,9 @@
 - (BOOL)copyFilesFromCurrentReleaseToNewRelease:(NSError **)error {
     *error = nil;
     
-    // copy items from current www folder to new www folder
+    // copy items from current www folder to the new www folder
     if (![_fileManager copyItemAtURL:_currentReleaseFS.wwwFolder toURL:_newReleaseFS.wwwFolder error:error]) {
-        *error = [NSError errorWithCode:kHCPFailedToCreateBackupErrorCode descriptionFromError:*error];
+        *error = [NSError errorWithCode:kHCPFailedToCopyFilesFromPreviousReleaseErrorCode descriptionFromError:*error];
         return NO;
     }
     
@@ -269,11 +269,17 @@
 }
 
 /**
- *  Remove all temporary files and folders.
+ *  Cleanup on failed installation attempt.
  */
-- (void)cleanUp {
-    NSError *error = nil;
-    [_fileManager removeItemAtURL:_newReleaseFS.contentFolder error:&error];
+- (void)cleanUpOnFailure {
+    [_fileManager removeItemAtURL:_newReleaseFS.contentFolder error:nil];
+}
+
+/**
+ *  Cleanup on successfull installation.
+ */
+- (void)cleanUpOnSucess {
+    [_fileManager removeItemAtURL:_newReleaseFS.downloadFolder error:nil];
 }
 
 @end

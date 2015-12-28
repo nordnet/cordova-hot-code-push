@@ -66,7 +66,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self loadApplicationConfig];
     
     // install update if any exists
-    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed) {
+    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed &&
+        _pluginInternalPrefs.readyForInstallationReleaseVersionName.length > 0) {
         [self _installUpdate:nil];
     }
 }
@@ -76,7 +77,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 - (void)onResume:(NSNotification *)notification {
-    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
+    if (!_pluginXmlConfig.isUpdatesAutoInstallationAllowed ||
+        _pluginInternalPrefs.readyForInstallationReleaseVersionName.length == 0) {
+        return;
+    }
+    
+    // load app config from update folder and check, if we are allowed to install it
+    HCPFilesStructure *fs = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
+    id<HCPConfigFileStorage> configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:fs];
+    HCPApplicationConfig *configFromNewRelease = [configStorage loadFromFolder:fs.downloadFolder];
+        
+    if (configFromNewRelease.contentConfig.updateTime == HCPUpdateOnResume ||
+        configFromNewRelease.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
     }
 }

@@ -41,12 +41,6 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     return [supportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
 }
 
-- (void)switchToRelease:(NSString *)releaseVersion {
-    [self localInitWithReleaseVersion:releaseVersion];
-    self.downloadFolder = nil;
-    self.wwwFolder = nil;
-}
-
 - (void)localInitWithReleaseVersion:(NSString *)releaseVersion {
     _contentFolder = [[HCPFilesStructure pluginRootFolder]
                       URLByAppendingPathComponent:releaseVersion isDirectory:YES];

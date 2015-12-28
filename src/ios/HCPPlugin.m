@@ -555,7 +555,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     _pluginInternalPrefs.currentReleaseVersionName = _appConfig.contentConfig.releaseVersion;
     [_pluginInternalPrefs saveToUserDefaults];
     
-    [_filesStructure switchToRelease:_pluginInternalPrefs.currentReleaseVersionName];
+    _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     
     // path to index page of the new release
     NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
@@ -585,7 +585,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     _pluginInternalPrefs.previousReleaseVersionName = @"";
     [_pluginInternalPrefs saveToUserDefaults];
     
-    [_filesStructure switchToRelease:_pluginInternalPrefs.currentReleaseVersionName];
+    _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     
     if (_appConfig) {
         [self loadApplicationConfig];

@@ -51,13 +51,6 @@
 @property (nonatomic, strong, readonly) NSString *manifestFileName;
 
 /**
- *  Re-initialize this object with other release version.
- *
- *  @param releaseName version to switch to
- */
-- (void)switchToRelease:(NSString *)releaseName;
-
-/**
  *  Get root folder for this plugin. 
  *  In it all releases are located.
  *

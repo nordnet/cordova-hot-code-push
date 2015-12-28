@@ -37,7 +37,15 @@
     
     // if installing - exit
     if (_isInstallationInProgress) {
-        *error = [NSError errorWithCode:0 description:@"Installation is already in progress"];
+        *error = [NSError errorWithCode:kHCPInstallationAlreadyInProgressErorrCode
+                            description:@"Installation is already in progress"];
+        return NO;
+    }
+    
+    // if download in progress - exit
+    if ([HCPUpdateLoader sharedInstance].isDownloadInProgress) {
+        *error = [NSError errorWithCode:kHCPCantInstallWhileDownloadInProgressErrorCode
+                            description:@"Can't perform the installation, while update download in progress"];
         return NO;
     }
     

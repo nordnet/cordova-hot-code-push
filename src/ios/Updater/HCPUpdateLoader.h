@@ -34,7 +34,7 @@
  *
  *  @return id of the created worker
  */
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion;
+- (NSString *)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion;
 
 /**
  *  Flag to check if we are doing any downloads at the moment.

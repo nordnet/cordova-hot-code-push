@@ -28,9 +28,9 @@
     NSString *_defaultCallbackID;
     BOOL _isPluginReadyForWork;
     HCPPluginInternalPreferences *_pluginInternalPrefs;
-    NSMutableArray *_fetchTasks;
     NSString *_installationCallback;
-    HCPXmlConfig *_pluginXmllConfig;
+    NSString *_downloadCallback;
+    HCPXmlConfig *_pluginXmlConfig;
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
     NSString *_indexPagePath;
@@ -66,7 +66,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self loadApplicationConfig];
     
     // install update if any exists
-    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed) {
+    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed) {
         [self _installUpdate:nil];
     }
 }
@@ -76,7 +76,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 - (void)onResume:(NSNotification *)notification {
-    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
+    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed && _appConfig.contentConfig.updateTime == HCPUpdateOnResume) {
         [self _installUpdate:nil];
     }
 }
@@ -120,10 +120,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Perform initialization of the plugin variables.
  */
 - (void)doLocalInit {
-    _fetchTasks = [[NSMutableArray alloc] init];
-    
     // init plugin config from xml
-    _pluginXmllConfig = [HCPXmlConfig loadFromCordovaConfigXml];
+    _pluginXmlConfig = [HCPXmlConfig loadFromCordovaConfigXml];
     
     // load plugin internal preferences
     _pluginInternalPrefs = [HCPPluginInternalPreferences loadFromUserDefaults];
@@ -148,59 +146,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return NO;
     }
     
-    NSString *taskId = [[HCPUpdateLoader sharedInstance] addUpdateTaskToQueueWithConfigUrl:_pluginXmllConfig.configUrl
+    NSString *taskId = [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
                                                                             currentVersion:_pluginInternalPrefs.currentReleaseVersionName];
-    [self storeCallback:callbackId forFetchTask:taskId];
+    if (taskId) {
+        _downloadCallback = callbackId;
+    }
     
     return taskId != nil;
-}
-
-/**
- *  Store download callback for later use. 
- *  Callback is associated with the worker.
- *
- *  @param callbackId id of the caller on JavaScript side; it will be used to send back the result of the download process
- *  @param taskId     worker id, associated with this callback
- */
-- (void)storeCallback:(NSString *)callbackId forFetchTask:(NSString *)taskId {
-    if (callbackId == nil || taskId == nil) {
-        return;
-    }
-    
-    NSDictionary *dict = @{taskId:callbackId};
-    if (_fetchTasks.count < 2) {
-        [_fetchTasks addObject:dict];
-    } else {
-        [_fetchTasks replaceObjectAtIndex:1 withObject:dict];
-    }
-}
-
-/**
- *  Get callback, associated with the given worker.
- *
- *  @param taskId worker id
- *
- *  @return callback id
- */
-- (NSString *)pollCallbackForTask:(NSString *)taskId {
-    NSString *callbackId = nil;
-    NSInteger index = -1;
-    
-    for (NSInteger i=0, len=_fetchTasks.count; i<len; i++) {
-        NSDictionary *dict = _fetchTasks[i];
-        NSString *storedCallbackId = dict[taskId];
-        if (storedCallbackId) {
-            callbackId = storedCallbackId;
-            index = i;
-            break;
-        }
-    }
-    
-    if (callbackId) {
-        [_fetchTasks removeObjectAtIndex:index];
-    }
-    
-    return callbackId;
 }
 
 /**
@@ -240,6 +192,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                                                                      error:error];
             [self onNothingToInstallEvent:notification];
         }
+        
         return NO;
     }
     
@@ -434,7 +387,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // fetch update
     [self loadApplicationConfig];
-    if (_pluginXmllConfig.isUpdatesAutoDownloadAllowed) {
+    
+    if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
+        ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
+        ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
         [self _fetchUpdate:nil];
     }
 }
@@ -465,9 +421,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
-    if (callbackID) {
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+    //NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (_downloadCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
+        _downloadCallback = nil;
     }
     
     // send notification to the default callback
@@ -487,9 +444,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
-    if (callbackID) {
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+//    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (_downloadCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
+        _downloadCallback = nil;
     }
     
     // send notification to the default callback
@@ -506,9 +464,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // send notification to the associated callback
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
-    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
-    if (callbackID) {
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackID];
+//    NSString *callbackID = [self pollCallbackForTask:notification.userInfo[kHCPEventUserInfoTaskIdKey]];
+    if (_downloadCallback) {
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_downloadCallback];
+        _downloadCallback = nil;
     }
     
     // send notification to the default callback
@@ -523,7 +482,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [_pluginInternalPrefs saveToUserDefaults];
     
     // if it is allowed - launch the installation
-    if (_pluginXmllConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
+    if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed && newConfig.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
     }
 }
@@ -642,7 +601,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
     
-    if (_pluginXmllConfig.isUpdatesAutoDownloadAllowed && _fetchTasks.count == 0) {
+    if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
+        ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
+        ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
         [self _fetchUpdate:nil];
     }
 }
@@ -659,7 +620,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         return;
     }
     
-    [_pluginXmllConfig mergeOptionsFromJS:options];
+    [_pluginXmlConfig mergeOptionsFromJS:options];
     // TODO: store them somewhere?
     
     [self.commandDelegate sendPluginResult:nil callbackId:command.callbackId];

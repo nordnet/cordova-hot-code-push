@@ -32,8 +32,13 @@
     return _isExecuting;
 }
 
-- (NSString *)addUpdateTaskToQueueWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion {
+- (NSString *)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion {
     if (_isExecuting) {
+        return nil;
+    }
+    
+    // if installing - don't start the task.
+    if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
         return nil;
     }
     

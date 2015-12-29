@@ -10,7 +10,7 @@ import com.nordnetab.chcp.main.model.ChcpError;
  */
 public class UpdateDownloadErrorEvent extends WorkerEvent {
 
-    private static final String EVENT_NAME = "chcp_updateLoadFailed";
+    public static final String EVENT_NAME = "chcp_updateLoadFailed";
 
     /**
      * Class constructor.

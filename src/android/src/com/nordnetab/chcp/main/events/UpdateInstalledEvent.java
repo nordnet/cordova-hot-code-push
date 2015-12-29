@@ -9,7 +9,7 @@ import com.nordnetab.chcp.main.config.ApplicationConfig;
  */
 public class UpdateInstalledEvent extends WorkerEvent {
 
-    private static final String EVENT_NAME = "chcp_updateInstalled";
+    public static final String EVENT_NAME = "chcp_updateInstalled";
 
     /**
      * Class constructor.

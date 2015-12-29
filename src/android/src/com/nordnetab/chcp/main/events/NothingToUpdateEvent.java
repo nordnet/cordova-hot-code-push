@@ -10,7 +10,7 @@ import com.nordnetab.chcp.main.model.ChcpError;
  */
 public class NothingToUpdateEvent extends WorkerEvent {
 
-    private static final String EVENT_NAME = "chcp_nothingToUpdate";
+    public static final String EVENT_NAME = "chcp_nothingToUpdate";
 
     /**
      * Class constructor.

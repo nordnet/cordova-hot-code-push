@@ -9,7 +9,7 @@ import com.nordnetab.chcp.main.model.ChcpError;
  */
 public class AssetsInstallationErrorEvent extends PluginEventImpl {
 
-    private static final String EVENT_NAME = "chcp_assetsInstallationError";
+    public static final String EVENT_NAME = "chcp_assetsInstallationError";
 
     /**
      * Class constructor

@@ -10,7 +10,7 @@ import com.nordnetab.chcp.main.model.ChcpError;
  */
 public class NothingToInstallEvent extends WorkerEvent {
 
-    private static final String EVENT_NAME = "chcp_nothingToInstall";
+    public static final String EVENT_NAME = "chcp_nothingToInstall";
 
     /**
      * Class constructor

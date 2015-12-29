@@ -7,7 +7,7 @@ package com.nordnetab.chcp.main.events;
  */
 public class AssetsInstalledEvent extends PluginEventImpl {
 
-    private static final String EVENT_NAME = "chcp_assetsInstalledOnExternalStorage";
+    public static final String EVENT_NAME = "chcp_assetsInstalledOnExternalStorage";
 
     /**
      * Class constructor

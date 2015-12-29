@@ -1,11 +1,18 @@
 package com.nordnetab.chcp.main.config;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -54,6 +61,32 @@ public class ApplicationConfig {
         config.jsonString = jsonString;
 
         return config;
+    }
+
+    public static ApplicationConfig configFromAssets(Context context) {
+        final AssetManager assetManager = context.getResources().getAssets();
+        final StringBuilder returnString = new StringBuilder();
+        BufferedReader reader = null;
+        try {
+            InputStreamReader isr = new InputStreamReader(assetManager.open("www/chcp.json"));
+            reader = new BufferedReader(isr);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                returnString.append(line);
+            }
+        } catch (Exception e) {
+            Log.d("CHCP", "Failed to read chcp.json from assets", e);
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (Exception e2) {
+                Log.d("CHCP", "Failed to clear resources after reading chcp.json from the assets", e2);
+            }
+        }
+
+        return ApplicationConfig.fromJson(returnString.toString());
     }
 
     /**

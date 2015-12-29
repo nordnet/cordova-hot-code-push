@@ -17,13 +17,18 @@ import java.io.IOException;
  */
 public class PluginInternalPreferences {
 
-    private static class JsonKeys {
-        public static final String APPLICATION_BUILD_VERSION = "app_build_version";
-        public static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
-    }
+    private static final String APPLICATION_BUILD_VERSION = "app_build_version";
+    private static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
+    private static final String PREVIOUS_RELEASE_VERSION_NAME = "previous_release_version_name";
+    private static final String CURRENT_RELEASE_VERSION_NAME = "current_release_version_name";
+    private static final String READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = "ready_for_installation_release_version_name";
+
 
     private int appBuildVersion;
     private boolean wwwFolderInstalled;
+    private String currentReleaseVersionName;
+    private String previousReleaseVersionName;
+    private String readyForInstallationReleaseVersionName;
 
     /**
      * Create instance of the object from JSON string.
@@ -31,15 +36,24 @@ public class PluginInternalPreferences {
      * @param json JSON string
      * @return object instance
      */
-    public static PluginInternalPreferences fromJson(String json) {
+    public static PluginInternalPreferences fromJson(final String json) {
         PluginInternalPreferences config = new PluginInternalPreferences();
         try {
             JsonNode jsonNode = new ObjectMapper().readTree(json);
             config.setAppBuildVersion(
-                    jsonNode.get(JsonKeys.APPLICATION_BUILD_VERSION).asInt()
+                    jsonNode.get(APPLICATION_BUILD_VERSION).asInt()
             );
             config.setWwwFolderInstalled(
-                    jsonNode.get(JsonKeys.WWW_FOLDER_INSTALLED_FLAG).asBoolean()
+                    jsonNode.get(WWW_FOLDER_INSTALLED_FLAG).asBoolean()
+            );
+            config.setCurrentReleaseVersionName(
+                    jsonNode.get(CURRENT_RELEASE_VERSION_NAME).asText()
+            );
+            config.setPreviousReleaseVersionName(
+                    jsonNode.get(PREVIOUS_RELEASE_VERSION_NAME).asText()
+            );
+            config.setReadyForInstallationReleaseVersionName(
+                    jsonNode.get(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME).asText()
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,12 +68,19 @@ public class PluginInternalPreferences {
     }
 
     public static PluginInternalPreferences createDefault(Context context) {
-        PluginInternalPreferences config = new PluginInternalPreferences();
+        final PluginInternalPreferences pluginPrefs = new PluginInternalPreferences();
+        pluginPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
+        pluginPrefs.setWwwFolderInstalled(false);
+        pluginPrefs.setPreviousReleaseVersionName("");
+        pluginPrefs.setReadyForInstallationReleaseVersionName("");
+        pluginPrefs.setCurrentReleaseVersionName("");
 
-        config.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
-        config.setWwwFolderInstalled(false);
+        final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context);
+        if (appConfig != null) {
+            pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
+        }
 
-        return config;
+        return pluginPrefs;
     }
 
     /**
@@ -99,6 +120,30 @@ public class PluginInternalPreferences {
         wwwFolderInstalled = isWwwFolderInstalled;
     }
 
+    public String getCurrentReleaseVersionName() {
+        return currentReleaseVersionName;
+    }
+
+    public void setCurrentReleaseVersionName(String currentReleaseVersionName) {
+        this.currentReleaseVersionName = currentReleaseVersionName;
+    }
+
+    public String getPreviousReleaseVersionName() {
+        return previousReleaseVersionName;
+    }
+
+    public void setPreviousReleaseVersionName(String previousReleaseVersionName) {
+        this.previousReleaseVersionName = previousReleaseVersionName;
+    }
+
+    public String getReadyForInstallationReleaseVersionName() {
+        return readyForInstallationReleaseVersionName;
+    }
+
+    public void setReadyForInstallationReleaseVersionName(String readyForInstallationReleaseVersionName) {
+        this.readyForInstallationReleaseVersionName = readyForInstallationReleaseVersionName;
+    }
+
     /**
      * Convert object into JSON string
      *
@@ -108,8 +153,11 @@ public class PluginInternalPreferences {
     public String toString() {
         JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
         ObjectNode object = nodeFactory.objectNode();
-        object.set(JsonKeys.APPLICATION_BUILD_VERSION, nodeFactory.numberNode(appBuildVersion));
-        object.set(JsonKeys.WWW_FOLDER_INSTALLED_FLAG, nodeFactory.booleanNode(wwwFolderInstalled));
+        object.set(APPLICATION_BUILD_VERSION, nodeFactory.numberNode(appBuildVersion));
+        object.set(WWW_FOLDER_INSTALLED_FLAG, nodeFactory.booleanNode(wwwFolderInstalled));
+        object.set(CURRENT_RELEASE_VERSION_NAME, nodeFactory.textNode(currentReleaseVersionName));
+        object.set(PREVIOUS_RELEASE_VERSION_NAME, nodeFactory.textNode(previousReleaseVersionName));
+        object.set(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME, nodeFactory.textNode(readyForInstallationReleaseVersionName));
 
         return object.toString();
     }

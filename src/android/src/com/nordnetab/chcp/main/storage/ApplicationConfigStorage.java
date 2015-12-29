@@ -1,7 +1,7 @@
 package com.nordnetab.chcp.main.storage;
 
 import com.nordnetab.chcp.main.config.ApplicationConfig;
-import com.nordnetab.chcp.main.model.IPluginFilesStructure;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
 import com.nordnetab.chcp.main.utils.Paths;
 
 /**
@@ -20,9 +20,8 @@ public class ApplicationConfigStorage extends FileStorageAbs<ApplicationConfig> 
      * Class constructor
      *
      * @param filesStructure structure of plugins directories
-     * @see IPluginFilesStructure
      */
-    public ApplicationConfigStorage(IPluginFilesStructure filesStructure) {
+    public ApplicationConfigStorage(PluginFilesStructure filesStructure) {
         fileName = filesStructure.configFileName();
     }
 

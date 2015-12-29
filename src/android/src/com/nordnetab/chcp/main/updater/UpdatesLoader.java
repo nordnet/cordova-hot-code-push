@@ -2,7 +2,7 @@ package com.nordnetab.chcp.main.updater;
 
 import android.content.Context;
 
-import com.nordnetab.chcp.main.model.IPluginFilesStructure;
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.
@@ -14,28 +14,32 @@ import com.nordnetab.chcp.main.model.IPluginFilesStructure;
 public class UpdatesLoader {
 
     private static boolean isExecuting;
-    private static Runnable scheduledTask;
 
     /**
      * Add update download task to queue. It will be executed as fast as possible.
      *
      * @param context        application context
      * @param configURL      url from which we should download application config
-     * @param filesStructure plugins files structure
+     * @param currentVersion current version of the content
      * @return string identifier of the task.
      */
-    public static String addUpdateTaskToQueue(Context context, final String configURL, final IPluginFilesStructure filesStructure) {
-        // for now - just exit if we are already doing some loading.
-        // later - will return download queue
-        if (isExecuting()) {
-            return null;
+    public static boolean downloadUpdate(final Context context, final String configURL, final String currentVersion) {
+        // if we download already in progress - exit
+        if (isExecuting) {
+            return false;
         }
 
-        UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, filesStructure);
-        scheduledTask = task;
-        executeTaskFromQueue();
+        // if we are installing - exit
+        if (UpdatesInstaller.isInstalling()) {
+            return false;
+        }
 
-        return task.getWorkerId();
+        isExecuting = true;
+
+        UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, currentVersion);
+        executeTask(task);
+
+        return true;
     }
 
     /**
@@ -47,20 +51,14 @@ public class UpdatesLoader {
         return isExecuting;
     }
 
-    private static void executeTaskFromQueue() {
-        final Runnable task = scheduledTask;
-        scheduledTask = null;
-        if (task == null) {
-            isExecuting = false;
-            return;
-        }
-        isExecuting = true;
-
+    private static void executeTask(final WorkerTask task) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 task.run();
-                executeTaskFromQueue();
+                isExecuting = false;
+
+                EventBus.getDefault().post(task.result());
             }
         }).start();
     }

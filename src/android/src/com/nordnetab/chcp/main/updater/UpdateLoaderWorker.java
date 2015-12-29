@@ -9,10 +9,11 @@ import com.nordnetab.chcp.main.config.ContentManifest;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.main.events.UpdateDownloadErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateIsReadyToInstallEvent;
+import com.nordnetab.chcp.main.events.WorkerEvent;
 import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.ManifestDiff;
 import com.nordnetab.chcp.main.model.ManifestFile;
-import com.nordnetab.chcp.main.model.IPluginFilesStructure;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
 import com.nordnetab.chcp.main.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.main.network.ContentManifestDownloader;
 import com.nordnetab.chcp.main.network.DownloadResult;
@@ -27,8 +28,6 @@ import com.nordnetab.chcp.main.utils.VersionHelper;
 import java.io.IOException;
 import java.util.List;
 
-import de.greenrobot.event.EventBus;
-
 /**
  * Created by Nikolay Demyankov on 28.07.15.
  * <p/>
@@ -42,11 +41,11 @@ import de.greenrobot.event.EventBus;
  * @see UpdateIsReadyToInstallEvent
  * @see NothingToUpdateEvent
  */
-class UpdateLoaderWorker implements Runnable {
+class UpdateLoaderWorker implements WorkerTask {
 
     private final String applicationConfigUrl;
     private final int appBuildVersion;
-    private final IPluginFilesStructure filesStructure;
+    private final PluginFilesStructure filesStructure;
     private final String workerId;
 
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
@@ -55,10 +54,12 @@ class UpdateLoaderWorker implements Runnable {
     private ApplicationConfig oldAppConfig;
     private ContentManifest oldManifest;
 
-    public UpdateLoaderWorker(Context context, final String configUrl, final IPluginFilesStructure filesStructure) {
+    private WorkerEvent resultEvent;
+
+    public UpdateLoaderWorker(Context context, final String configUrl, final String currentVersion) {
         this.workerId = generateId();
 
-        this.filesStructure = filesStructure;
+        filesStructure = new PluginFilesStructure(context, currentVersion);
         applicationConfigUrl = configUrl;
         appBuildVersion = VersionHelper.applicationVersionCode(context);
     }
@@ -78,10 +79,6 @@ class UpdateLoaderWorker implements Runnable {
         if (!init()) {
             return;
         }
-
-        // wait for possible installation process to end;
-        // otherwise we can end up loading same stuff twice
-        waitForInstallationToFinish();
 
         // download new application config
         ApplicationConfig newAppConfig = downloadApplicationConfig();
@@ -112,39 +109,29 @@ class UpdateLoaderWorker implements Runnable {
         // find files that were updated
         ManifestDiff diff = oldManifest.calculateDifference(newContentManifest);
         if (diff.isEmpty()) {
-            manifestStorage.storeInFolder(newContentManifest, filesStructure.wwwFolder());
-            appConfigStorage.storeInFolder(newAppConfig, filesStructure.wwwFolder());
+            manifestStorage.storeInFolder(newContentManifest, filesStructure.getWwwFolder());
+            appConfigStorage.storeInFolder(newAppConfig, filesStructure.getWwwFolder());
             dispatchNothingToUpdateEvent(newAppConfig);
 
             return;
         }
 
-        recreateDownloadFolder(filesStructure.downloadFolder());
+        // switch file structure to new release
+        filesStructure.switchToRelease(newAppConfig.getContentConfig().getReleaseVersion());
+
+        recreateDownloadFolder(filesStructure.getDownloadFolder());
 
         // download files
-        boolean isDownloaded = downloadNewAndChagedFiles(newAppConfig, diff);
+        boolean isDownloaded = downloadNewAndChangedFiles(newAppConfig, diff);
         if (!isDownloaded) {
             cleanUp();
             dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES, newAppConfig);
-
             return;
         }
 
         // store configs
-        manifestStorage.storeInFolder(newContentManifest, filesStructure.downloadFolder());
-        appConfigStorage.storeInFolder(newAppConfig, filesStructure.downloadFolder());
-
-        waitForInstallationToFinish();
-
-        // copy all loaded content to installation folder
-        boolean isReadyToInstall = moveDownloadedContentToInstallationFolder();
-        if (!isReadyToInstall) {
-            cleanUp();
-            dispatchErrorEvent(ChcpError.FAILED_TO_MOVE_LOADED_FILES_TO_INSTALLATION_FOLDER, newAppConfig);
-            return;
-        }
-
-        cleanUp();
+        manifestStorage.storeInFolder(newContentManifest, filesStructure.getDownloadFolder());
+        appConfigStorage.storeInFolder(newAppConfig, filesStructure.getDownloadFolder());
 
         // notify that we are done
         dispatchSuccessEvent(newAppConfig);
@@ -162,14 +149,14 @@ class UpdateLoaderWorker implements Runnable {
         appConfigStorage = new ApplicationConfigStorage(filesStructure);
 
         // load current application config
-        oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.wwwFolder());
+        oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.getWwwFolder());
         if (oldAppConfig == null) {
             dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
             return false;
         }
 
         // load current content manifest
-        oldManifest = manifestStorage.loadFromFolder(filesStructure.wwwFolder());
+        oldManifest = manifestStorage.loadFromFolder(filesStructure.getWwwFolder());
         if (oldManifest == null) {
             dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
             return false;
@@ -234,7 +221,7 @@ class UpdateLoaderWorker implements Runnable {
      * @param diff         manifest difference from which we will know, what files to download
      * @return <code>true</code> if files are loaded; <code>false</code> - otherwise
      */
-    private boolean downloadNewAndChagedFiles(ApplicationConfig newAppConfig, ManifestDiff diff) {
+    private boolean downloadNewAndChangedFiles(ApplicationConfig newAppConfig, ManifestDiff diff) {
         final String contentUrl = newAppConfig.getContentConfig().getContentUrl();
         if (TextUtils.isEmpty(contentUrl)) {
             Log.d("CHCP", "Content url is not set in your application config! Can't load updates.");
@@ -245,7 +232,7 @@ class UpdateLoaderWorker implements Runnable {
 
         boolean isFinishedWithSuccess = true;
         try {
-            FileDownloader.downloadFiles(filesStructure.downloadFolder(), contentUrl, downloadFiles);
+            FileDownloader.downloadFiles(filesStructure.getDownloadFolder(), contentUrl, downloadFiles);
         } catch (IOException e) {
             e.printStackTrace();
             isFinishedWithSuccess = false;
@@ -255,56 +242,29 @@ class UpdateLoaderWorker implements Runnable {
     }
 
     /**
-     * Copy all loaded files into installation folder.
-     *
-     * @return <code>true</code> if files are copied; <code>false</code> otherwise
-     */
-    private boolean moveDownloadedContentToInstallationFolder() {
-        boolean isMoved = false;
-        FilesUtility.ensureDirectoryExists(filesStructure.installationFolder());
-        try {
-            FilesUtility.copy(filesStructure.downloadFolder(), filesStructure.installationFolder());
-            isMoved = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return isMoved;
-    }
-
-    /**
      * Remove temporary files
      */
     private void cleanUp() {
-        FilesUtility.delete(filesStructure.downloadFolder());
-    }
-
-    /**
-     * It is possible that download and installation are performed at the same time.
-     * In that case we must wait for installation to finish before copying downloaded data into installation folder.
-     */
-    private void waitForInstallationToFinish() {
-        while (UpdatesInstaller.isInstalling()) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        FilesUtility.delete(filesStructure.getContentFolder());
     }
 
     // region Events
 
     private void dispatchErrorEvent(ChcpError error, ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig));
+        resultEvent = new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig);
     }
 
     private void dispatchSuccessEvent(ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig));
+        resultEvent = new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig);
     }
 
     private void dispatchNothingToUpdateEvent(ApplicationConfig newAppConfig) {
-        EventBus.getDefault().post(new NothingToUpdateEvent(getWorkerId(), newAppConfig));
+        resultEvent = new NothingToUpdateEvent(getWorkerId(), newAppConfig);
+    }
+
+    @Override
+    public WorkerEvent result() {
+        return resultEvent;
     }
 
     // endregion

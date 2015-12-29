@@ -14,7 +14,7 @@ import java.util.Map;
  * @see com.nordnetab.chcp.main.updater.UpdateLoaderWorker
  * @see IPluginEvent
  */
-class WorkerEvent extends PluginEventImpl {
+public class WorkerEvent extends PluginEventImpl {
 
     private static final String CONFIG_KEY = "config";
 

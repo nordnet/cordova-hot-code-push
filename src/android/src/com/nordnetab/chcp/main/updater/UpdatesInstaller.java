@@ -1,7 +1,10 @@
 package com.nordnetab.chcp.main.updater;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
-import com.nordnetab.chcp.main.model.IPluginFilesStructure;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
 import java.io.File;
 
@@ -20,24 +23,31 @@ public class UpdatesInstaller {
      * Request update installation.
      * Installation performed in background. Events are dispatched to notify us about the result.
      *
-     * @param filesStructure structure of the plugin working directories
      * @return <code>true</code> if installation has started; <code>false</code> - otherwise
-     * @see IPluginFilesStructure
      * @see NothingToInstallEvent
      * @see com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent
      * @see com.nordnetab.chcp.main.events.UpdateInstalledEvent
      */
-    public static boolean install(final IPluginFilesStructure filesStructure) {
+    public static boolean install(final Context context, final String newVersion, final String currentVersion) {
+        // if we already installing - exit
         if (isInstalling) {
+            Log.d("CHCP", "Installation is in progress");
             return false;
         }
 
-        if (!new File(filesStructure.installationFolder()).exists()) {
+        // if we are loading update - exit
+        if (UpdatesLoader.isExecuting()) {
+            Log.d("CHCP", "Loading is in progress");
+            return false;
+        }
+
+        final PluginFilesStructure newReleaseFS = new PluginFilesStructure(context, newVersion);
+        if (!new File(newReleaseFS.getDownloadFolder()).exists()) {
             EventBus.getDefault().post(new NothingToInstallEvent(null));
             return false;
         }
 
-        InstallationWorker task = new InstallationWorker(filesStructure);
+        final WorkerTask task = new InstallationWorker(context, newVersion, currentVersion);
         execute(task);
 
         return true;
@@ -52,13 +62,15 @@ public class UpdatesInstaller {
         return isInstalling;
     }
 
-    private static void execute(final InstallationWorker task) {
+    private static void execute(final WorkerTask task) {
         isInstalling = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 task.run();
                 isInstalling = false;
+
+                EventBus.getDefault().post(task.result());
             }
         }).start();
     }

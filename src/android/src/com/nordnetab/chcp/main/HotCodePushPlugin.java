@@ -108,7 +108,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        redirectToLocalStorage();
+        redirectToLocalStorageIndexPage();
 
         // install update if there is anything to install
         if (chcpXmlConfig.isAutoInstallIsAllowed() &&
@@ -406,6 +406,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Install assets folder onto the external storage
      */
     private void installWwwFolder() {
+        isPluginReadyForWork = false;
+
         // reset www folder installed flag
         if (pluginInternalPrefs.isWwwFolderInstalled()) {
             pluginInternalPrefs.setWwwFolderInstalled(false);
@@ -418,7 +420,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     /**
      * Redirect user onto the page, that resides on the external storage instead of the assets folder.
      */
-    private void redirectToLocalStorage() {
+    private void redirectToLocalStorageIndexPage() {
         final String external = Paths.get(fileStructure.getWwwFolder(), getStartingPage());
         if (!new File(external).exists()) {
             Log.d("CHCP", "External starting page not found. Aborting page change.");
@@ -579,6 +581,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         sendMessageToDefaultCallback(jsResult);
+
+        rollbackIfCorrupted(event.error());
     }
 
     // endregion
@@ -617,10 +621,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         sendMessageToDefaultCallback(jsResult);
 
         // reset content to index page
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
-                HotCodePushPlugin.this.redirectToLocalStorage();
+                HotCodePushPlugin.this.redirectToLocalStorageIndexPage();
             }
         });
     }
@@ -646,6 +650,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         sendMessageToDefaultCallback(jsResult);
+
+        rollbackIfCorrupted(event.error());
     }
 
     /**
@@ -672,4 +678,35 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     // endregion
+
+    private void rollbackIfCorrupted(ChcpError error) {
+        if (error != ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND &&
+                error != ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND) {
+            return;
+        }
+
+        if (pluginInternalPrefs.getPreviousReleaseVersionName().length() > 0) {
+            Log.d("CHCP", "Current release is corrupted, trying to rollback to the previous one");
+            rollbackToPreviousRelease();
+        } else {
+            Log.d("CHCP", "Current release is corrupted, reinstalling www folder from assets");
+            installWwwFolder();
+        }
+    }
+
+    private void rollbackToPreviousRelease() {
+        pluginInternalPrefs.setCurrentReleaseVersionName(pluginInternalPrefs.getPreviousReleaseVersionName());
+        pluginInternalPrefs.setPreviousReleaseVersionName("");
+        pluginInternalPrefs.setReadyForInstallationReleaseVersionName("");
+        pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
+
+        fileStructure.switchToRelease(pluginInternalPrefs.getCurrentReleaseVersionName());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                redirectToLocalStorageIndexPage();
+            }
+        });
+    }
 }

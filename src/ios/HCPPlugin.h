@@ -7,7 +7,7 @@
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDV.h>
 
-#ifndef
+#ifndef HCP_CORDOVA_VERSION
 #define HCP_CORDOVA_VERSION 3
 #endif
 

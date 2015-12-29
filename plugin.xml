@@ -11,7 +11,7 @@
   <issue>https://github.com/nordnet/cordova-hot-code-push/issues</issue>
 
   <engines>
-    <engine name="cordova-ios" version=">=4"></engine>
+    <engine name="cordova-ios" version=">=3.8"></engine>
     <engine name="cordova-android" version=">=4"></engine>
     <engine name="cordova-plugman" version=">=4.2.0"></engine>
     <!-- needed for gradleReference support -->

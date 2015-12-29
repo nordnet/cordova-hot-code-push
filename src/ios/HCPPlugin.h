@@ -7,6 +7,10 @@
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDV.h>
 
+#ifndef
+#define HCP_CORDOVA_VERSION 3
+#endif
+
 /**
  *  Plugin main class
  */

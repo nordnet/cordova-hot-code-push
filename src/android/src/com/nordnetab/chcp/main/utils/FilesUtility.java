@@ -42,8 +42,10 @@ public class FilesUtility {
         }
 
         if (fileOrDirectory.isDirectory()) {
-            for (File child : fileOrDirectory.listFiles())
+            File[] filesList = fileOrDirectory.listFiles();
+            for (File child : filesList) {
                 delete(child);
+            }
         }
 
         final File to = new File(fileOrDirectory.getAbsolutePath() + System.currentTimeMillis());

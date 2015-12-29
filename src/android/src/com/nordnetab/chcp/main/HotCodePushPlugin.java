@@ -31,6 +31,7 @@ import com.nordnetab.chcp.main.storage.PluginInternalPreferencesStorage;
 import com.nordnetab.chcp.main.updater.UpdatesInstaller;
 import com.nordnetab.chcp.main.updater.UpdatesLoader;
 import com.nordnetab.chcp.main.utils.AssetsHelper;
+import com.nordnetab.chcp.main.utils.CleanUpHelper;
 import com.nordnetab.chcp.main.utils.Paths;
 import com.nordnetab.chcp.main.utils.VersionHelper;
 
@@ -86,6 +87,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         parseCordovaConfigXml();
         loadPluginInternalPreferences();
+
+        CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
+                new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
+                        pluginInternalPrefs.getPreviousReleaseVersionName(),
+                        pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
+                }
+        );
 
         handler = new Handler();
 

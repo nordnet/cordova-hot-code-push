@@ -251,7 +251,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         });
 
         // fetch update when we are initialized
-        if (chcpXmlConfig.isAutoDownloadIsAllowed()) {
+        if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
+                !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
             fetchUpdate(null);
         }
     }
@@ -507,7 +508,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
         sendMessageToDefaultCallback(result);
 
-        fetchUpdate(null);
+        if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
+                !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
+            fetchUpdate(null);
+        }
     }
 
     /**

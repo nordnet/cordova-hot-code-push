@@ -81,6 +81,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         parseCordovaConfigXml();
         loadPluginInternalPreferences();
 
+        // clean up file system
         CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
                 new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
                         pluginInternalPrefs.getPreviousReleaseVersionName(),
@@ -89,9 +90,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         );
 
         handler = new Handler();
-
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
-
         appConfigStorage = new ApplicationConfigStorage();
     }
 
@@ -112,7 +111,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
         redirectToLocalStorage();
 
         // install update if there is anything to install
-        if (chcpXmlConfig.isAutoInstallIsAllowed()) {
+        if (chcpXmlConfig.isAutoInstallIsAllowed() &&
+                !UpdatesInstaller.isInstalling() &&
+                !UpdatesLoader.isExecuting() &&
+                !TextUtils.isEmpty(pluginInternalPrefs.getReadyForInstallationReleaseVersionName())) {
             installUpdate(null);
         }
     }
@@ -126,6 +128,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         if (!chcpXmlConfig.isAutoInstallIsAllowed() ||
+                UpdatesInstaller.isInstalling() ||
+                UpdatesLoader.isExecuting() ||
                 TextUtils.isEmpty(pluginInternalPrefs.getReadyForInstallationReleaseVersionName())) {
             return;
         }
@@ -594,14 +598,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         sendMessageToDefaultCallback(jsResult);
 
-        resetApplicationToStartingPage();
-    }
-
-    /**
-     * Reset web content to starting page.
-     * Called after the update.
-     */
-    private void resetApplicationToStartingPage() {
+        // reset content to index page
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {

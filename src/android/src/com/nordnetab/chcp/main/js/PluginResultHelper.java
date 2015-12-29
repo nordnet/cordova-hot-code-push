@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nordnetab.chcp.main.events.IPluginEvent;
+import com.nordnetab.chcp.main.model.ChcpError;
 
 import org.apache.cordova.PluginResult;
 
@@ -45,18 +46,26 @@ public class PluginResultHelper {
      * @see IPluginEvent
      */
     public static PluginResult pluginResultFromEvent(IPluginEvent event) {
+        final String actionName = event.name();
+        final Map<String, Object> data = event.data();
+        final ChcpError error = event.error();
+
+        return createPluginResult(actionName, data, error);
+    }
+
+    public static PluginResult createPluginResult(String actionName, Map<String, Object> data, ChcpError error) {
         JsonNode errorNode = null;
         JsonNode dataNode = null;
 
-        if (event.error() != null) {
-            errorNode = createErrorNode(event.error().getErrorCode(), event.error().getErrorDescription());
+        if (error != null) {
+            errorNode = createErrorNode(error.getErrorCode(), error.getErrorDescription());
         }
 
-        if (event.data() != null && event.data().size() > 0) {
-            dataNode = createDataNode(event.data());
+        if (data != null && data.size() > 0) {
+            dataNode = createDataNode(data);
         }
 
-        return getResult(event.name(), dataNode, errorNode);
+        return getResult(actionName, dataNode, errorNode);
     }
 
     // region Private API

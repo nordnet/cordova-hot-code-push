@@ -196,22 +196,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-        // initialize even if we are not ready to do all other work
-        if (JSAction.INIT.equals(action)) {
-            initJs(callbackContext);
-            return true;
-        }
-
-        // if www folder is not yet created on external storage - ignore requests from JavaScript
-        if (!isPluginReadyForWork) {
-            return false;
-        }
-
         boolean cmdProcessed = true;
-        if (JSAction.FETCH_UPDATE.equals(action)) {
-            fetchUpdate(callbackContext);
+        if (JSAction.INIT.equals(action)) {
+            jsInit(callbackContext);
+        } else if (JSAction.FETCH_UPDATE.equals(action)) {
+            jsFetchUpdate(callbackContext);
         } else if (JSAction.INSTALL_UPDATE.equals(action)) {
-            installUpdate(callbackContext);
+            jsInstallUpdate(callbackContext);
         } else if (JSAction.CONFIGURE.equals(action)) {
             jsSetPluginOptions(args, callbackContext);
         } else if (JSAction.REQUEST_APP_UPDATE.equals(action)) {
@@ -244,7 +235,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      *
      * @param callback callback to use for events broadcasting
      */
-    private void initJs(CallbackContext callback) {
+    private void jsInit(CallbackContext callback) {
         jsDefaultCallback = callback;
 
         // Clear web history.
@@ -263,6 +254,29 @@ public class HotCodePushPlugin extends CordovaPlugin {
         if (chcpXmlConfig.isAutoDownloadIsAllowed()) {
             fetchUpdate(null);
         }
+    }
+
+    private void jsFetchUpdate(CallbackContext callback) {
+        if (!isPluginReadyForWork) {
+            sendPluginNotReadyToWork(UpdateDownloadErrorEvent.EVENT_NAME, callback);
+            return;
+        }
+
+        fetchUpdate(callback);
+    }
+
+    private void jsInstallUpdate(CallbackContext callback) {
+        if (!isPluginReadyForWork) {
+            sendPluginNotReadyToWork(UpdateInstallationErrorEvent.EVENT_NAME, callback);
+            return;
+        }
+
+        installUpdate(callback);
+    }
+
+    private void sendPluginNotReadyToWork(String eventName, CallbackContext callback) {
+        PluginResult pluginResult = PluginResultHelper.createPluginResult(eventName, null, ChcpError.ASSETS_FOLDER_IN_NOT_YET_INSTALLED);
+        callback.sendPluginResult(pluginResult);
     }
 
     /**
@@ -335,6 +349,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
      *                   used, when installation os requested manually from JavaScript
      */
     private void installUpdate(CallbackContext jsCallback) {
+        if (!isPluginReadyForWork) {
+            return;
+        }
+
         if (UpdatesInstaller.isInstalling()) {
             return;
         }

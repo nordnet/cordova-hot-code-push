@@ -17,6 +17,6 @@ public class UpdateInstalledEvent extends WorkerEvent {
      * @param config application config that was used for installation
      */
     public UpdateInstalledEvent(ApplicationConfig config) {
-        super(EVENT_NAME, null, null, config);
+        super(EVENT_NAME, null, config);
     }
 }

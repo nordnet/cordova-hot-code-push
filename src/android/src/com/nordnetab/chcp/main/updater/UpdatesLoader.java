@@ -16,7 +16,17 @@ public class UpdatesLoader {
     private static boolean isExecuting;
 
     /**
-     * Add update download task to queue. It will be executed as fast as possible.
+     * Check if download currently in progress
+     *
+     * @return <code>true</code> if download in progress; <code>false</code> otherwise
+     */
+    public static boolean isExecuting() {
+        return isExecuting;
+    }
+
+    /**
+     * Request update download.
+     * Download performed in background. Events are dispatched to notify us about the result.
      *
      * @param context        application context
      * @param configURL      url from which we should download application config
@@ -40,15 +50,6 @@ public class UpdatesLoader {
         executeTask(task);
 
         return true;
-    }
-
-    /**
-     * Check if download currently in progress
-     *
-     * @return <code>true</code> if download in progress; <code>false</code> otherwise
-     */
-    public static boolean isExecuting() {
-        return isExecuting;
     }
 
     private static void executeTask(final WorkerTask task) {

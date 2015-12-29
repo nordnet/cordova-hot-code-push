@@ -17,12 +17,12 @@ import java.io.IOException;
  */
 public class PluginInternalPreferences {
 
+    // json keys of the preference
     private static final String APPLICATION_BUILD_VERSION = "app_build_version";
     private static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
     private static final String PREVIOUS_RELEASE_VERSION_NAME = "previous_release_version_name";
     private static final String CURRENT_RELEASE_VERSION_NAME = "current_release_version_name";
     private static final String READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = "ready_for_installation_release_version_name";
-
 
     private int appBuildVersion;
     private boolean wwwFolderInstalled;
@@ -67,7 +67,13 @@ public class PluginInternalPreferences {
     private PluginInternalPreferences() {
     }
 
-    public static PluginInternalPreferences createDefault(Context context) {
+    /**
+     * Create default preferences.
+     *
+     * @param context application context
+     * @return default plugin internal preferences
+     */
+    public static PluginInternalPreferences createDefault(final Context context) {
         final PluginInternalPreferences pluginPrefs = new PluginInternalPreferences();
         pluginPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
         pluginPrefs.setWwwFolderInstalled(false);
@@ -75,6 +81,7 @@ public class PluginInternalPreferences {
         pluginPrefs.setReadyForInstallationReleaseVersionName("");
         pluginPrefs.setCurrentReleaseVersionName("");
 
+        // read app config from assets to get current release version
         final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context);
         if (appConfig != null) {
             pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
@@ -120,26 +127,56 @@ public class PluginInternalPreferences {
         wwwFolderInstalled = isWwwFolderInstalled;
     }
 
+    /**
+     * Getter for current release version name.
+     *
+     * @return current release version name
+     */
     public String getCurrentReleaseVersionName() {
         return currentReleaseVersionName;
     }
 
-    public void setCurrentReleaseVersionName(String currentReleaseVersionName) {
+    /**
+     * Setter for current release version name.
+     *
+     * @param currentReleaseVersionName current release version
+     */
+    public void setCurrentReleaseVersionName(final String currentReleaseVersionName) {
         this.currentReleaseVersionName = currentReleaseVersionName;
     }
 
+    /**
+     * Getter for previous release version name.
+     *
+     * @return previous release version name
+     */
     public String getPreviousReleaseVersionName() {
         return previousReleaseVersionName;
     }
 
+    /**
+     * Setter for previous release version name.
+     *
+     * @param previousReleaseVersionName previous release version name
+     */
     public void setPreviousReleaseVersionName(String previousReleaseVersionName) {
         this.previousReleaseVersionName = previousReleaseVersionName;
     }
 
+    /**
+     * Getter for version, that is ready for installation.
+     *
+     * @return version to install
+     */
     public String getReadyForInstallationReleaseVersionName() {
         return readyForInstallationReleaseVersionName;
     }
 
+    /**
+     * Setter for version, that is ready for installation.
+     *
+     * @param readyForInstallationReleaseVersionName version to install
+     */
     public void setReadyForInstallationReleaseVersionName(String readyForInstallationReleaseVersionName) {
         this.readyForInstallationReleaseVersionName = readyForInstallationReleaseVersionName;
     }

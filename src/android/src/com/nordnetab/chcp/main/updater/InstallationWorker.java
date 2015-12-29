@@ -28,10 +28,6 @@ import java.util.List;
  * During the installation process events are dispatched to notify the subscribers about the progress.
  * <p/>
  * Used internally.
- *
- * @see UpdatesInstaller
- * @see UpdateInstallationErrorEvent
- * @see UpdateInstalledEvent
  */
 class InstallationWorker implements WorkerTask {
 
@@ -44,7 +40,11 @@ class InstallationWorker implements WorkerTask {
     private WorkerEvent resultEvent;
 
     /**
-     * Class constructor.
+     * Constructor.
+     *
+     * @param context        application context
+     * @param newVersion     version to install
+     * @param currentVersion current content version
      */
     public InstallationWorker(final Context context, final String newVersion, final String currentVersion) {
         newReleaseFS = new PluginFilesStructure(context, newVersion);
@@ -60,13 +60,13 @@ class InstallationWorker implements WorkerTask {
 
         // validate update
         if (!isUpdateValid(newReleaseFS.getDownloadFolder(), manifestDiff)) {
-            dispatchErrorEvent(ChcpError.UPDATE_IS_INVALID);
+            setResultForError(ChcpError.UPDATE_IS_INVALID);
             return;
         }
 
-        // backup before installing
+        // copy content from the current release to the new release folder
         if (!copyFilesFromCurrentReleaseToNewRelease()) {
-            dispatchErrorEvent(ChcpError.FAILED_TO_CREATE_BACKUP);
+            setResultForError(ChcpError.FAILED_TO_COPY_FILES_FROM_PREVIOUS_RELEASE);
             return;
         }
 
@@ -77,7 +77,7 @@ class InstallationWorker implements WorkerTask {
         boolean isInstalled = moveFilesFromInstallationFolderToWwwFodler();
         if (!isInstalled) {
             cleanUpOnFailure();
-            dispatchErrorEvent(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
+            setResultForError(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
             return;
         }
 
@@ -85,7 +85,7 @@ class InstallationWorker implements WorkerTask {
         cleanUpOnSuccess();
 
         // send notification, that we finished
-        dispatchSuccessEvent();
+        setSuccessResult();
     }
 
     /**
@@ -95,25 +95,25 @@ class InstallationWorker implements WorkerTask {
      */
     private boolean init() {
         // loaded application config
-        IObjectFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage(newReleaseFS);
+        IObjectFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage();
         newAppConfig = appConfigStorage.loadFromFolder(newReleaseFS.getDownloadFolder());
         if (newAppConfig == null) {
-            dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND);
+            setResultForError(ChcpError.LOADED_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND);
             return false;
         }
 
         // old manifest file
-        IObjectFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage(currentReleaseFS);
+        IObjectFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage();
         ContentManifest oldManifest = manifestStorage.loadFromFolder(currentReleaseFS.getWwwFolder());
         if (oldManifest == null) {
-            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND);
+            setResultForError(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND);
             return false;
         }
 
         // loaded manifest file
         ContentManifest newManifest = manifestStorage.loadFromFolder(newReleaseFS.getDownloadFolder());
         if (newManifest == null) {
-            dispatchErrorEvent(ChcpError.LOADED_VERSION_OF_MANIFEST_NOT_FOUND);
+            setResultForError(ChcpError.LOADED_VERSION_OF_MANIFEST_NOT_FOUND);
             return false;
         }
 
@@ -123,6 +123,11 @@ class InstallationWorker implements WorkerTask {
         return true;
     }
 
+    /**
+     * Copy all files from the previous release folder to the new release folder.
+     *
+     * @return <code>true</code> if files are copied; <code>false</code> - otherwise.
+     */
     private boolean copyFilesFromCurrentReleaseToNewRelease() {
         boolean result = true;
         File currentWwwFolder = new File(currentReleaseFS.getWwwFolder());
@@ -137,10 +142,16 @@ class InstallationWorker implements WorkerTask {
         return result;
     }
 
+    /**
+     * Perform cleaning when we failed to install the update.
+     */
     private void cleanUpOnFailure() {
         FilesUtility.delete(newReleaseFS.getContentFolder());
     }
 
+    /**
+     * Perform cleaning when update is installed.
+     */
     private void cleanUpOnSuccess() {
         FilesUtility.delete(newReleaseFS.getDownloadFolder());
     }
@@ -155,8 +166,6 @@ class InstallationWorker implements WorkerTask {
             FilesUtility.delete(fileToDelete);
         }
     }
-
-    //
 
     /**
      * Copy downloaded files into www folder
@@ -213,16 +222,12 @@ class InstallationWorker implements WorkerTask {
 
     // region Events
 
-    private void dispatchErrorEvent(ChcpError error) {
+    private void setResultForError(final ChcpError error) {
         resultEvent = new UpdateInstallationErrorEvent(error, newAppConfig);
     }
 
-    private void dispatchSuccessEvent() {
+    private void setSuccessResult() {
         resultEvent = new UpdateInstalledEvent(newAppConfig);
-    }
-
-    private void dispatchNothingToInstallEvent() {
-        resultEvent = new NothingToInstallEvent(newAppConfig);
     }
 
     @Override

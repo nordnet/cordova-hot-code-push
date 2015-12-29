@@ -18,6 +18,6 @@ public class NothingToInstallEvent extends WorkerEvent {
      * @param config Application config that was used for installation.
      */
     public NothingToInstallEvent(ApplicationConfig config) {
-        super(EVENT_NAME, ChcpError.NOTHING_TO_INSTALL, null, config);
+        super(EVENT_NAME, ChcpError.NOTHING_TO_INSTALL, config);
     }
 }

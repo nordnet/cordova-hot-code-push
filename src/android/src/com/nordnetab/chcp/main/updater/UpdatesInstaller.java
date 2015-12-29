@@ -20,9 +20,21 @@ public class UpdatesInstaller {
     private static boolean isInstalling;
 
     /**
+     * Check if we are currently doing some installation.
+     *
+     * @return <code>true</code> - installation is in progress; <code>false</code> - otherwise
+     */
+    public static boolean isInstalling() {
+        return isInstalling;
+    }
+
+    /**
      * Request update installation.
      * Installation performed in background. Events are dispatched to notify us about the result.
      *
+     * @param context        application context
+     * @param newVersion     version to install
+     * @param currentVersion current content version
      * @return <code>true</code> if installation has started; <code>false</code> - otherwise
      * @see NothingToInstallEvent
      * @see com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent
@@ -53,15 +65,6 @@ public class UpdatesInstaller {
         return true;
     }
 
-    /**
-     * Check if we are currently doing some installation.
-     *
-     * @return <code>true</code> - installation is in progress; <code>false</code> - otherwise
-     */
-    public static boolean isInstalling() {
-        return isInstalling;
-    }
-
     private static void execute(final WorkerTask task) {
         isInstalling = true;
         new Thread(new Runnable() {
@@ -70,6 +73,7 @@ public class UpdatesInstaller {
                 task.run();
                 isInstalling = false;
 
+                // dispatch resulting event
                 EventBus.getDefault().post(task.result());
             }
         }).start();

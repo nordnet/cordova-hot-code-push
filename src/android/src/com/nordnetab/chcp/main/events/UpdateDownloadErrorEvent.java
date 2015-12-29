@@ -15,11 +15,10 @@ public class UpdateDownloadErrorEvent extends WorkerEvent {
     /**
      * Class constructor.
      *
-     * @param taskId identifier of the current download task
      * @param error  error information
      * @param config application config that was used for update download
      */
-    public UpdateDownloadErrorEvent(String taskId, ChcpError error, ApplicationConfig config) {
-        super(EVENT_NAME, error, taskId, config);
+    public UpdateDownloadErrorEvent(ChcpError error, ApplicationConfig config) {
+        super(EVENT_NAME, error, config);
     }
 }

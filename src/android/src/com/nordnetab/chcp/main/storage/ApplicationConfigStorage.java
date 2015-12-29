@@ -18,11 +18,9 @@ public class ApplicationConfigStorage extends FileStorageAbs<ApplicationConfig> 
 
     /**
      * Class constructor
-     *
-     * @param filesStructure structure of plugins directories
      */
-    public ApplicationConfigStorage(PluginFilesStructure filesStructure) {
-        fileName = filesStructure.configFileName();
+    public ApplicationConfigStorage() {
+        fileName = PluginFilesStructure.CONFIG_FILE_NAME;
     }
 
     @Override

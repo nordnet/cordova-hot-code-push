@@ -1,9 +1,5 @@
 package com.nordnetab.chcp.main;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,6 +18,7 @@ import com.nordnetab.chcp.main.events.UpdateInstalledEvent;
 import com.nordnetab.chcp.main.events.UpdateIsReadyToInstallEvent;
 import com.nordnetab.chcp.main.js.JSAction;
 import com.nordnetab.chcp.main.js.PluginResultHelper;
+import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
 import com.nordnetab.chcp.main.model.UpdateTime;
 import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
@@ -34,8 +31,6 @@ import com.nordnetab.chcp.main.utils.AssetsHelper;
 import com.nordnetab.chcp.main.utils.CleanUpHelper;
 import com.nordnetab.chcp.main.utils.Paths;
 import com.nordnetab.chcp.main.utils.VersionHelper;
-
-import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.view.AppUpdateRequestDialog;
 
 import org.apache.cordova.CallbackContext;
@@ -49,8 +44,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.greenrobot.event.EventBus;
 
@@ -99,7 +92,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
 
-        appConfigStorage = new ApplicationConfigStorage(fileStructure);
+        appConfigStorage = new ApplicationConfigStorage();
     }
 
     @Override

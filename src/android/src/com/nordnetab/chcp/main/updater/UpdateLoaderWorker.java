@@ -35,18 +35,12 @@ import java.util.List;
  * During the download process events are dispatched to notify the subscribers about the progress.
  * <p/>
  * Used internally.
- *
- * @see UpdatesLoader
- * @see UpdateDownloadErrorEvent
- * @see UpdateIsReadyToInstallEvent
- * @see NothingToUpdateEvent
  */
 class UpdateLoaderWorker implements WorkerTask {
 
     private final String applicationConfigUrl;
     private final int appBuildVersion;
     private final PluginFilesStructure filesStructure;
-    private final String workerId;
 
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
     private IObjectFileStorage<ContentManifest> manifestStorage;
@@ -56,25 +50,22 @@ class UpdateLoaderWorker implements WorkerTask {
 
     private WorkerEvent resultEvent;
 
+    /**
+     * Constructor.
+     *
+     * @param context        application context
+     * @param configUrl      application config url
+     * @param currentVersion current version of the content
+     */
     public UpdateLoaderWorker(Context context, final String configUrl, final String currentVersion) {
-        this.workerId = generateId();
-
         filesStructure = new PluginFilesStructure(context, currentVersion);
         applicationConfigUrl = configUrl;
         appBuildVersion = VersionHelper.applicationVersionCode(context);
     }
 
-    private String generateId() {
-        return System.currentTimeMillis() + "";
-    }
-
-    public String getWorkerId() {
-        return workerId;
-    }
-
     @Override
     public void run() {
-        Log.d("CHCP", "Starting loader worker " + getWorkerId());
+        Log.d("CHCP", "Starting loader worker ");
         // initialize before running
         if (!init()) {
             return;
@@ -83,26 +74,26 @@ class UpdateLoaderWorker implements WorkerTask {
         // download new application config
         ApplicationConfig newAppConfig = downloadApplicationConfig();
         if (newAppConfig == null) {
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG, null);
+            setErrorResult(ChcpError.FAILED_TO_DOWNLOAD_APPLICATION_CONFIG, null);
             return;
         }
 
         // check if there is a new content version available
         if (newAppConfig.getContentConfig().getReleaseVersion().equals(oldAppConfig.getContentConfig().getReleaseVersion())) {
-            dispatchNothingToUpdateEvent(newAppConfig);
+            setNothingToUpdateResult(newAppConfig);
             return;
         }
 
         // check if current native version supports new content
         if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appBuildVersion) {
-            dispatchErrorEvent(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW, newAppConfig);
+            setErrorResult(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW, newAppConfig);
             return;
         }
 
         // download new content manifest
         ContentManifest newContentManifest = downloadContentManifest(newAppConfig);
         if (newContentManifest == null) {
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST, newAppConfig);
+            setErrorResult(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST, newAppConfig);
             return;
         }
 
@@ -111,7 +102,7 @@ class UpdateLoaderWorker implements WorkerTask {
         if (diff.isEmpty()) {
             manifestStorage.storeInFolder(newContentManifest, filesStructure.getWwwFolder());
             appConfigStorage.storeInFolder(newAppConfig, filesStructure.getWwwFolder());
-            dispatchNothingToUpdateEvent(newAppConfig);
+            setNothingToUpdateResult(newAppConfig);
 
             return;
         }
@@ -125,7 +116,7 @@ class UpdateLoaderWorker implements WorkerTask {
         boolean isDownloaded = downloadNewAndChangedFiles(newAppConfig, diff);
         if (!isDownloaded) {
             cleanUp();
-            dispatchErrorEvent(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES, newAppConfig);
+            setErrorResult(ChcpError.FAILED_TO_DOWNLOAD_UPDATE_FILES, newAppConfig);
             return;
         }
 
@@ -134,9 +125,9 @@ class UpdateLoaderWorker implements WorkerTask {
         appConfigStorage.storeInFolder(newAppConfig, filesStructure.getDownloadFolder());
 
         // notify that we are done
-        dispatchSuccessEvent(newAppConfig);
+        setSuccessResult(newAppConfig);
 
-        Log.d("CHCP", "Loader worker " + getWorkerId() + " has finished");
+        Log.d("CHCP", "Loader worker has finished");
     }
 
     /**
@@ -145,20 +136,20 @@ class UpdateLoaderWorker implements WorkerTask {
      * @return <code>true</code> if we are good to go, <code>false</code> - failed to initialize
      */
     private boolean init() {
-        manifestStorage = new ContentManifestStorage(filesStructure);
-        appConfigStorage = new ApplicationConfigStorage(filesStructure);
+        manifestStorage = new ContentManifestStorage();
+        appConfigStorage = new ApplicationConfigStorage();
 
         // load current application config
         oldAppConfig = appConfigStorage.loadFromFolder(filesStructure.getWwwFolder());
         if (oldAppConfig == null) {
-            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
+            setErrorResult(ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND, null);
             return false;
         }
 
         // load current content manifest
         oldManifest = manifestStorage.loadFromFolder(filesStructure.getWwwFolder());
         if (oldManifest == null) {
-            dispatchErrorEvent(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
+            setErrorResult(ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND, null);
             return false;
         }
 
@@ -194,7 +185,7 @@ class UpdateLoaderWorker implements WorkerTask {
             return null;
         }
 
-        final String url = URLUtility.construct(contentUrl, filesStructure.manifestFileName());
+        final String url = URLUtility.construct(contentUrl, PluginFilesStructure.MANIFEST_FILE_NAME);
         DownloadResult<ContentManifest> downloadResult = new ContentManifestDownloader(url).download();
         if (downloadResult.error != null) {
             Log.d("CHCP", "Failed to download content manifest");
@@ -250,16 +241,16 @@ class UpdateLoaderWorker implements WorkerTask {
 
     // region Events
 
-    private void dispatchErrorEvent(ChcpError error, ApplicationConfig newAppConfig) {
-        resultEvent = new UpdateDownloadErrorEvent(getWorkerId(), error, newAppConfig);
+    private void setErrorResult(ChcpError error, ApplicationConfig newAppConfig) {
+        resultEvent = new UpdateDownloadErrorEvent(error, newAppConfig);
     }
 
-    private void dispatchSuccessEvent(ApplicationConfig newAppConfig) {
-        resultEvent = new UpdateIsReadyToInstallEvent(getWorkerId(), newAppConfig);
+    private void setSuccessResult(ApplicationConfig newAppConfig) {
+        resultEvent = new UpdateIsReadyToInstallEvent(newAppConfig);
     }
 
-    private void dispatchNothingToUpdateEvent(ApplicationConfig newAppConfig) {
-        resultEvent = new NothingToUpdateEvent(getWorkerId(), newAppConfig);
+    private void setNothingToUpdateResult(ApplicationConfig newAppConfig) {
+        resultEvent = new NothingToUpdateEvent(newAppConfig);
     }
 
     @Override

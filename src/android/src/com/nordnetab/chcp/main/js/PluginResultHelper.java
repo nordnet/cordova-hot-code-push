@@ -19,6 +19,8 @@ import java.util.Set;
  */
 public class PluginResultHelper {
 
+    // TODO: migrate to JSONObject
+
     // keywords for JSON string, that is send to JavaScript side
     private static class JsParams {
         private static class General {

@@ -14,10 +14,9 @@ public class UpdateIsReadyToInstallEvent extends WorkerEvent {
     /**
      * Class constructor
      *
-     * @param taskId download task identifier
      * @param config application config that was used for update download
      */
-    public UpdateIsReadyToInstallEvent(String taskId, ApplicationConfig config) {
-        super(EVENT_NAME, null, taskId, config);
+    public UpdateIsReadyToInstallEvent(ApplicationConfig config) {
+        super(EVENT_NAME, null, config);
     }
 }

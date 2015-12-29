@@ -15,11 +15,10 @@ public class NothingToUpdateEvent extends WorkerEvent {
     /**
      * Class constructor.
      *
-     * @param taskId identifier of the current download task
      * @param config application config that was used for update download
      */
-    public NothingToUpdateEvent(String taskId, ApplicationConfig config) {
-        super(EVENT_NAME, ChcpError.NOTHING_TO_UPDATE, taskId, config);
+    public NothingToUpdateEvent(ApplicationConfig config) {
+        super(EVENT_NAME, ChcpError.NOTHING_TO_UPDATE, config);
     }
 
 }

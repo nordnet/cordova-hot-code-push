@@ -17,12 +17,10 @@ public class ContentManifestStorage extends FileStorageAbs<ContentManifest> {
     private final String fileName;
 
     /**
-     * Class constructor
-     *
-     * @param filesStructure structure of plugins directories
+     * Constructor.
      */
-    public ContentManifestStorage(PluginFilesStructure filesStructure) {
-        fileName = filesStructure.manifestFileName();
+    public ContentManifestStorage() {
+        fileName = PluginFilesStructure.MANIFEST_FILE_NAME;
     }
 
     @Override

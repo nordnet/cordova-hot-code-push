@@ -19,6 +19,6 @@ public class UpdateInstallationErrorEvent extends WorkerEvent {
      * @param config application config that was used for installation process
      */
     public UpdateInstallationErrorEvent(ChcpError error, ApplicationConfig config) {
-        super(EVENT_NAME, error, null, config);
+        super(EVENT_NAME, error, config);
     }
 }

@@ -208,10 +208,9 @@
 
     <!-- sources for package: com.nordnetab.chcp.model -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/model/ChcpError.java" target-dir="src/com/nordnetab/chcp/main/model"/>
-    <source-file src="src/android/src/com/nordnetab/chcp/main/model/IPluginFilesStructure.java" target-dir="src/com/nordnetab/chcp/main/model"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/model/PluginFilesStructure.java" target-dir="src/com/nordnetab/chcp/main/model"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/model/ManifestDiff.java" target-dir="src/com/nordnetab/chcp/main/model"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/model/ManifestFile.java" target-dir="src/com/nordnetab/chcp/main/model"/>
-    <source-file src="src/android/src/com/nordnetab/chcp/main/model/PluginFilesStructureImpl.java" target-dir="src/com/nordnetab/chcp/main/model"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/model/UpdateTime.java" target-dir="src/com/nordnetab/chcp/main/model"/>
 
     <!-- sources for package: com.nordnetab.chcp.utils -->
@@ -227,10 +226,14 @@
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdateLoaderWorker.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesInstaller.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesLoader.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/updater/WorkerTask.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
 
     <!-- sources for package: com.nordnetab.chcp.js -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/js/PluginResultHelper.java" target-dir="src/com/nordnetab/chcp/main/js"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/js/JSAction.java" target-dir="src/com/nordnetab/chcp/main/js"/>
+
+    <!-- sources for package: com.nordnetab.chcp.view -->
+    <source-file src="src/android/src/com/nordnetab/chcp/main/view/AppUpdateRequestDialog.java" target-dir="src/com/nordnetab/chcp/main/view"/>
 
     <!-- sources for package: com.nordnetab.chcp -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/HotCodePushPlugin.java" target-dir="src/com/nordnetab/chcp/main"/>

@@ -256,6 +256,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Check for update.
+     * Method is called from JS side.
+     *
+     * @param callback js callback
+     */
     private void jsFetchUpdate(CallbackContext callback) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork(UpdateDownloadErrorEvent.EVENT_NAME, callback);
@@ -265,6 +271,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
         fetchUpdate(callback);
     }
 
+    /**
+     * Install the update.
+     * Method is called from JS side.
+     *
+     * @param callback js callback
+     */
     private void jsInstallUpdate(CallbackContext callback) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork(UpdateInstallationErrorEvent.EVENT_NAME, callback);
@@ -274,6 +286,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
         installUpdate(callback);
     }
 
+    /**
+     * Send to JS side event with message, that plugin is installing assets on the external storage and not yet ready for work.
+     * That happens only on the first launch.
+     *
+     * @param eventName event name, that is send to JS side
+     * @param callback  JS callback
+     */
     private void sendPluginNotReadyToWork(String eventName, CallbackContext callback) {
         PluginResult pluginResult = PluginResultHelper.createPluginResult(eventName, null, ChcpError.ASSETS_FOLDER_IN_NOT_YET_INSTALLED);
         callback.sendPluginResult(pluginResult);
@@ -332,7 +351,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     /**
      * Perform update availability check.
-     * Basically, queue update task.
      *
      * @param jsCallback callback where to send the result;
      *                   used, when update is requested manually from JavaScript
@@ -388,9 +406,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     /**
      * Check if plugin can perform it's duties.
-     * Basically, we will check 2 main things:
-     * 1. if www folder installed
-     * 2. if application has been updated through the Goolge Play from the last launch.
      *
      * @return <code>true</code> - plugin is ready; otherwise - <code>false</code>
      */
@@ -697,6 +712,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // endregion
 
+    // region Rollback process
+
+    /**
+     * Rollback to the previous/bundle version, if this is needed.
+     *
+     * @param error error, based on which we will decide
+     */
     private void rollbackIfCorrupted(ChcpError error) {
         if (error != ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND &&
                 error != ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND) {
@@ -712,6 +734,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
     }
 
+    /**
+     * Rollback to the previously installed version of the web content.
+     */
     private void rollbackToPreviousRelease() {
         pluginInternalPrefs.setCurrentReleaseVersionName(pluginInternalPrefs.getPreviousReleaseVersionName());
         pluginInternalPrefs.setPreviousReleaseVersionName("");
@@ -727,4 +752,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
             }
         });
     }
+
+    // endregion
 }

@@ -286,6 +286,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @param callback  callback where to send result
      */
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
+        if (!isPluginReadyForWork) {
+            sendPluginNotReadyToWork("", callback);
+            return;
+        }
+
         try {
             JSONObject jsonObject = (JSONObject) arguments.get(0);
             chcpXmlConfig.mergeOptionsFromJs(jsonObject);
@@ -304,6 +309,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @param callback  callback where to send result
      */
     private void jsRequestAppUpdate(final CordovaArgs arguments, final CallbackContext callback) {
+        if (!isPluginReadyForWork) {
+            sendPluginNotReadyToWork("", callback);
+            return;
+        }
+
         String msg = null;
         try {
             msg = (String) arguments.get(0);
@@ -332,8 +342,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        boolean isLaunched = UpdatesLoader.downloadUpdate(cordova.getActivity(), chcpXmlConfig.getConfigUrl(), pluginInternalPrefs.getCurrentReleaseVersionName());
-        if (!isLaunched) {
+        ChcpError error = UpdatesLoader.downloadUpdate(cordova.getActivity(), chcpXmlConfig.getConfigUrl(), pluginInternalPrefs.getCurrentReleaseVersionName());
+        if (error != ChcpError.NONE) {
+            if (jsCallback != null) {
+                PluginResult errorResult = PluginResultHelper.createPluginResult(UpdateDownloadErrorEvent.EVENT_NAME, null, error);
+                jsCallback.sendPluginResult(errorResult);
+            }
             return;
         }
 
@@ -353,14 +367,18 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        if (UpdatesInstaller.isInstalling()) {
+        ChcpError error = UpdatesInstaller.install(cordova.getActivity(), pluginInternalPrefs.getReadyForInstallationReleaseVersionName(), pluginInternalPrefs.getCurrentReleaseVersionName());
+        if (error != ChcpError.NONE) {
+            if (jsCallback != null) {
+                PluginResult errorResult = PluginResultHelper.createPluginResult(UpdateInstallationErrorEvent.EVENT_NAME, null, error);
+                jsCallback.sendPluginResult(errorResult);
+            }
+
             return;
         }
 
-        if (UpdatesInstaller.install(cordova.getActivity(), pluginInternalPrefs.getReadyForInstallationReleaseVersionName(), pluginInternalPrefs.getCurrentReleaseVersionName())) {
-            if (jsCallback != null) {
-                installJsCallback = jsCallback;
-            }
+        if (jsCallback != null) {
+            installJsCallback = jsCallback;
         }
     }
 

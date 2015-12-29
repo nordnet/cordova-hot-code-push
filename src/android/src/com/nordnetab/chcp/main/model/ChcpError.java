@@ -7,6 +7,8 @@ package com.nordnetab.chcp.main.model;
  */
 public enum ChcpError {
 
+    NONE(0, ""),
+
     // region Actual errors
 
     FAILED_TO_DOWNLOAD_APPLICATION_CONFIG(-1, "Failed to download application configuration file"),

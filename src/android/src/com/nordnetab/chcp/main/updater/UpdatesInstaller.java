@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
+import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
 import java.io.File;
@@ -35,34 +36,31 @@ public class UpdatesInstaller {
      * @param context        application context
      * @param newVersion     version to install
      * @param currentVersion current content version
-     * @return <code>true</code> if installation has started; <code>false</code> - otherwise
+     * @return <code>ChcpError.NONE</code> if installation started; otherwise - error details
      * @see NothingToInstallEvent
      * @see com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent
      * @see com.nordnetab.chcp.main.events.UpdateInstalledEvent
      */
-    public static boolean install(final Context context, final String newVersion, final String currentVersion) {
+    public static ChcpError install(final Context context, final String newVersion, final String currentVersion) {
         // if we already installing - exit
         if (isInstalling) {
-            Log.d("CHCP", "Installation is in progress");
-            return false;
+            return ChcpError.INSTALLATION_ALREADY_IN_PROGRESS;
         }
 
         // if we are loading update - exit
         if (UpdatesLoader.isExecuting()) {
-            Log.d("CHCP", "Loading is in progress");
-            return false;
+            return ChcpError.CANT_INSTALL_WHILE_DOWNLOAD_IN_PROGRESS;
         }
 
         final PluginFilesStructure newReleaseFS = new PluginFilesStructure(context, newVersion);
         if (!new File(newReleaseFS.getDownloadFolder()).exists()) {
-            EventBus.getDefault().post(new NothingToInstallEvent(null));
-            return false;
+            return ChcpError.NOTHING_TO_INSTALL;
         }
 
         final WorkerTask task = new InstallationWorker(context, newVersion, currentVersion);
         execute(task);
 
-        return true;
+        return ChcpError.NONE;
     }
 
     private static void execute(final WorkerTask task) {

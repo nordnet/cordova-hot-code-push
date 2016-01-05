@@ -25,6 +25,7 @@ More information can be found on https://github.com/nordnet/cordova-hot-code-pus
 var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
   chcpConfigXmlReader = require('./lib/chcpConfigXmlReader.js'),
   chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
+  iosBackwardsCapability = require('./lib/iosBackwardsCapabilitySupport.js'),
   BUILD_OPTION_PREFIX = 'chcp-',
   RELEASE_BUILD_FLAG = '--release';
 
@@ -136,45 +137,6 @@ function prepareWithCustomBuildOption(ctx, optionName) {
   return true;
 }
 
-// ==============================
-
-function defineCordovaVersion(ctx) {
-  var path = require('path');
-  var fs = require('fs');
-
-  var platformsJson = require(path.join(ctx.opts.projectRoot, 'platforms', 'platforms.json'));
-  if (!platformsJson.hasOwnProperty('ios')) {
-    return;
-  }
-
-  var ver = parseInt(platformsJson.ios);
-
-  var pathToHeader = path.join(ctx.opts.projectRoot, 'platforms', 'ios', getProjectName(ctx, ctx.opts.projectRoot), 'Plugins', 'cordova-hot-code-push-plugin', 'HCPPlugin.h');
-
-  var headerContent = fs.readFileSync(pathToHeader, 'utf8');
-  headerContent = headerContent.replace(/#define HCP_CORDOVA_VERSION [0-9]+/ig, '#define HCP_CORDOVA_VERSION ' + ver);
-
-  fs.writeFileSync(pathToHeader, headerContent, 'utf8');
-}
-
-function getProjectName(ctx, projectRoot) {
-  var cordova_util = ctx.requireCordovaModule('cordova-lib/src/cordova/util'),
-    xml = cordova_util.projectConfig(projectRoot),
-    ConfigParser;
-
-  // If we are running Cordova 5.4 or abova - use parser from cordova-common.
-  // Otherwise - from cordova-lib.
-  try {
-    ConfigParser = ctx.requireCordovaModule('cordova-common/src/ConfigParser/ConfigParser');
-  } catch (e) {
-    ConfigParser = ctx.requireCordovaModule('cordova-lib/src/configparser/ConfigParser')
-  }
-
-  return new ConfigParser(xml).name();
-}
-
-// =====================
-
 module.exports = function(ctx) {
   var buildConfig,
     chcpXmlOptions;
@@ -183,7 +145,7 @@ module.exports = function(ctx) {
 
   // if we are building for iOS - apply backwards capability hack
   if (ctx.opts.platforms.indexOf('ios') !== -1) {
-    defineCordovaVersion(ctx);
+    iosBackwardsCapability.setCordovaVersionMacro(ctx);
   }
 
   // if we are running build with --release option - do nothing

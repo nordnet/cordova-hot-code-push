@@ -46,15 +46,24 @@ public class PluginInternalPreferences {
             config.setWwwFolderInstalled(
                     jsonNode.get(WWW_FOLDER_INSTALLED_FLAG).asBoolean()
             );
-            config.setCurrentReleaseVersionName(
-                    jsonNode.get(CURRENT_RELEASE_VERSION_NAME).asText()
-            );
-            config.setPreviousReleaseVersionName(
-                    jsonNode.get(PREVIOUS_RELEASE_VERSION_NAME).asText()
-            );
-            config.setReadyForInstallationReleaseVersionName(
-                    jsonNode.get(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME).asText()
-            );
+
+            if (jsonNode.has(CURRENT_RELEASE_VERSION_NAME)) {
+                config.setCurrentReleaseVersionName(
+                        jsonNode.get(CURRENT_RELEASE_VERSION_NAME).asText()
+                );
+            }
+
+            if (jsonNode.has(PREVIOUS_RELEASE_VERSION_NAME)) {
+                config.setPreviousReleaseVersionName(
+                        jsonNode.get(PREVIOUS_RELEASE_VERSION_NAME).asText()
+                );
+            }
+
+            if (jsonNode.has(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME)) {
+                config.setReadyForInstallationReleaseVersionName(
+                        jsonNode.get(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME).asText()
+                );
+            }
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -65,6 +74,9 @@ public class PluginInternalPreferences {
     }
 
     private PluginInternalPreferences() {
+        currentReleaseVersionName = "";
+        previousReleaseVersionName = "";
+        readyForInstallationReleaseVersionName = "";
     }
 
     /**

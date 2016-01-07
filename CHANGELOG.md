@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.2.1 (2016-01-07)
+
+**Bug fixes:**
+
+- Fixed application crash when we install new app with v1.2.0 on the device with the previous version of the plugin.
+
 ## 1.2.0 (2016-01-07)
 
 You can find full list of changes below. But in short, this update brings two main things.

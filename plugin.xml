@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin id="cordova-hot-code-push-plugin" version="1.2.0" xmlns="http://apache.org/cordova/ns/plugins/1.0">
+<plugin id="cordova-hot-code-push-plugin" version="1.2.1" xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
   <name>Hot Code Push Plugin</name>
   <description>Cordova plugin to perform code updates on the fly</description>

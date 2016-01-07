@@ -137,7 +137,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // load plugin internal preferences
     _pluginInternalPrefs = [HCPPluginInternalPreferences loadFromUserDefaults];
-    if (_pluginInternalPrefs == nil) {
+    if (_pluginInternalPrefs == nil || _pluginInternalPrefs.currentReleaseVersionName.length == 0) {
         _pluginInternalPrefs = [HCPPluginInternalPreferences defaultConfig];
         [_pluginInternalPrefs saveToUserDefaults];
     }

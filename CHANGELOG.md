@@ -1,24 +1,56 @@
 # Change Log
 
+## 1.2.0 (2016-01-07)
+
+You can find full list of changes below. But in short, this update brings two main things.
+
+First of all, plugin now supports Cordova iOS platform v4, and can still be used on v3. This is achieved by the hook, that is executed when you build your project. It reads `platforms/package.json` and depending on the `ios` version - set's native macro in the plugin sources, which will switch the used API.
+
+Second one is aimed to make updates more stable and more bulletproof, plus fix files caching on iOS. This was achieved by changing the way on how project files are stored on the external storage. From now on each release has it's own `www` folder. You can read about this in more details in the `How web project files are stored and updated` section of the readme.
+
+**Bug fixes:**
+
+- Fixed [issue #47](https://github.com/nordnet/cordova-hot-code-push/issues/47). Changed the way the files are stored on the external storage. As a result, webview cache is now flushed automatically.
+- Fixed [issue #64](https://github.com/nordnet/cordova-hot-code-push/issues/64). Plugin now supports Cordova iOS platform v4, and also backwards compatible.
+- Fixed [issue #70](https://github.com/nordnet/cordova-hot-code-push/issues/70). Empty `<chcp />` tag in `plugin.xml` could sometimes lead to the build failures. Thanks to [@alexbuijs](https://github.com/alexbuijs) for the pull request.
+- Fixed [issue #72](https://github.com/nordnet/cordova-hot-code-push/issues/72). On Android `auto-download` preference from the `config.xml` is not ignored any more.
+- Fixed [issue #73](https://github.com/nordnet/cordova-hot-code-push/issues/73). `chcp.configure` callback is now gets called.
+- Fixed [issue #77](https://github.com/nordnet/cordova-hot-code-push/issues/77). On iOS `chcp.configure` now works the same way, as on Android: it accepts an object as an options, not a string.
+- Fixed potential rushing conditions on update download/installations. Right now there can be only one running update task.
+
+**Enchancements:**
+
+- Changed the way on how web files are stored on the external storage. That made updates more stable, plus fixes the caching issue.
+- Merged [pull request #67](https://github.com/nordnet/cordova-hot-code-push/pull/67). If code version of the application has changed (incresed or decreased) - it is considered as updated and `www` folder is reinstalled on the external storage. Thanks to [@hassellof](https://github.com/hassellof).
+- Merged [pull request #71](https://github.com/nordnet/cordova-hot-code-push/pull/71). Removed empty `<chcp />` tag from the `plugin.xml` config. Thanks to [@alexbuijs](https://github.com/alexbuijs).
+- Added `chcp.error` object in JS module of the plugin, so you could use it to match the errors by names instead of codes.
+
+**Docs:**
+
+- Updated `Ionic quick start guide` section.
+- Updated `How web project files are stored and updated` section.
+- Updated `Change plugin preferences on runtime` section.
+- Updated `Error codes` section.
+
 ## 1.1.2 (2015-12-2)
 
 **Bug fixes:**
 
-* Android. Fixed [issue #43](https://github.com/nordnet/cordova-hot-code-push/issues/43). Merged [pull request #44](https://github.com/nordnet/cordova-hot-code-push/pull/44). Thanks to [@andreialecu](https://github.com/andreialecu) for helping to fix that problem.
-* iOS. Fixed [issue #53](https://github.com/nordnet/cordova-hot-code-push/issues/53).
-* iOS. Fixed rollback procedure, if update installation has failed.
-* iOS. Fixed issue, when update failed to install if it contained unexisting folders. Thanks to [@legege](https://github.com/legege) for providing [pull request #50](https://github.com/nordnet/cordova-hot-code-push/pull/50).
-* Fixed [issue #49](https://github.com/nordnet/cordova-hot-code-push/issues/49) and [issue #48](https://github.com/nordnet/cordova-hot-code-push/issues/48). Added support for Cordova v5.4.
-* Other fixes for both platforms, that aimed to make update procedure safer for the user.
+- Android. Fixed [issue #43](https://github.com/nordnet/cordova-hot-code-push/issues/43). Merged [pull request #44](https://github.com/nordnet/cordova-hot-code-push/pull/44). Thanks to [@andreialecu](https://github.com/andreialecu) for helping to fix that problem.
+- iOS. Fixed [issue #53](https://github.com/nordnet/cordova-hot-code-push/issues/53).
+- iOS. Fixed rollback procedure, if update installation has failed.
+- iOS. Fixed issue, when update failed to install if it contained unexisting folders. Thanks to [@legege](https://github.com/legege) for providing [pull request #50](https://github.com/nordnet/cordova-hot-code-push/pull/50).
+- Fixed [issue #49](https://github.com/nordnet/cordova-hot-code-push/issues/49) and [issue #48](https://github.com/nordnet/cordova-hot-code-push/issues/48). Added support for Cordova v5.4.
+- Other fixes for both platforms, that aimed to make update procedure safer for the user.
 
 **Enchancements:**
 
-* Merged [pull request #40](https://github.com/nordnet/cordova-hot-code-push/pull/40). Preparation to add auth headers to the network requests. Thanks to [@davidovich](https://github.com/davidovich).
-* Merged [pull request #52](https://github.com/nordnet/cordova-hot-code-push/pull/52). Thanks to [@legege](https://github.com/legege).
+- Merged [pull request #40](https://github.com/nordnet/cordova-hot-code-push/pull/40). Preparation to add auth headers to the network requests. Thanks to [@davidovich](https://github.com/davidovich).
+- Merged [pull request #52](https://github.com/nordnet/cordova-hot-code-push/pull/52). Thanks to [@legege](https://github.com/legege).
 
 **Docs:**
 
-* Documentation updates regarding `min_native_interface` for Android. Thanks to [@andreialecu](https://github.com/andreialecu) for providing [pull request #46](https://github.com/nordnet/cordova-hot-code-push/pull/46).
+- Documentation updates regarding `min_native_interface` for Android. Thanks to [@andreialecu](https://github.com/andreialecu) for providing [pull request #46](https://github.com/nordnet/cordova-hot-code-push/pull/46).
 
 ## 1.1.1 (2015-11-12)
 

@@ -49,8 +49,6 @@ It is also possible to install via repo url directly (__unstable__)
 cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
 ```
 
-**Note: Be aware, that at the moment github version of the plugin is not compatible with iOS Cordova versions below 4.0.0. So, please install the latest ios cordova platform: `cordova platform add ios@4.0.0`. Same goes for Ionic projects: `ionic platform add ios@4.0.0`.**
-
 At the end of the installation plugin will recommend you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
 - easily generate necessary configuration files;
 - launch local server to listen for any changes in the web project and deploy new version immediately on the app.
@@ -157,33 +155,25 @@ In this guide we will show how quickly you can test this plugin and start using 
   ```
   Or use the existing one.
 
-2. Build project for the first time before adding plugin to it.
-
-  ```sh
-  ionic build
-  ```
-
-  This is required mainly for iOS, because in some cases Ionic creates iOS project with the wrong name (`HelloCordova`) instead the one that is specified in the `config.xml`. But after the `build` it becomes the correct one.
-
-3. Add plugin:
+2. Add plugin:
 
   ```sh
   ionic plugin add cordova-hot-code-push-plugin
   ```
 
-4. Add plugin for local development:
+3. Add plugin for local development:
 
   ```sh
   ionic plugin add cordova-hot-code-push-local-dev-addon
   ```
 
-5. Install Cordova Hot Code Push CLI client:
+4. Install Cordova Hot Code Push CLI client:
 
   ```sh
   npm install -g cordova-hot-code-push-cli
   ```
 
-6. Start local server by executing:
+5. Start local server by executing:
 
   ```sh
   cordova-hcp server
@@ -200,7 +190,7 @@ In this guide we will show how quickly you can test this plugin and start using 
   cordova-hcp public server available at: https://5027caf9.ngrok.com
   ```
 
-7. Open new console window, go to the project root and launch the app:
+6. Open new console window, go to the project root and launch the app:
 
   ```sh
   ionic run
@@ -208,7 +198,7 @@ In this guide we will show how quickly you can test this plugin and start using 
 
   Wait until application is launched for both platforms.
 
-8. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+7. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
@@ -235,17 +225,46 @@ Every Cordova project has a `www` folder, where all your web files are stored. W
 - For Android: `platforms/android/assets/www`.
 - For iOS: `platforms/ios/www`.
 
-And they are packed with the application. We can't update them, since they have a read-only access. For this reason on the first startup those files are copied to the external storage. From this point, index page is loaded from the external folder, and not from the packed one.
-
-When new update arrives - we are changing files in the external folder and refreshing the web page.
+And they are packed with the application. We can't update them, since they have a read-only access. For this reason on the first startup those files are copied to the external storage. Since we don't want to block user while content is copied - we display an index page from the bundled resources. But on every next launch/update - we will load an index page from the external storage.
 
 If your update includes additional plugins or some native code - you need to publish new version of the app on the store. And for that - increase build version of the app (that is mandatory anyway for every new release on the App Store or Google Play). On the next launch plugin checks if build version has changed, and if so - it will reinstall `www` folder on the external folder.
 
-When you are developing your app - you can get confused: why you made some changes, launched it - but they are not applied. Now you know why: because plugin is using version of the web project from the external storage. To reset the cache you can do one of the following:
+When you are developing your app - you might get confused: done some changes, launched the app - but see the old stuff. Now you know the reason: plugin is using version of the web project from the external storage. To reset the cache you can do one of the following:
 
 - Manually uninstall the app, and then execute `cordova run`.
 - Increase build version of your app to force the plugin to reinstall the `www` folder. You can do it by setting `android-versionCode` and `ios-CFBundleVersion` in `config.xml`.
 - Install [local development add-on](#local-development-add-on) and let him handle folder reset for you. It will increase the build version of the app on each build, so you don't have to do it manually.
+
+That was a short intro, so you could get the general idea. Now lets dig into more details.
+
+As you will read in [Configuration files](#configuration-files) section - there is an application config, called `chcp.json`. In it there is a `release` preference, which defines version of your web content. It is a required preference and should be unique for every release. It is constructed by the CLI client like so: `yyyy.MM.dd-HH.mm.ss` (i.e., `2015.09.01-13.30.35`).
+
+For each release plugin creates a folder with this name on the external storage, and puts in it all your web files. It is a base url for your project. This approach helps to solve several problems:
+
+- Files caching issue. For example, on iOS css files are cached by the UIWebView, and even if we reload the index page - new styles were not applied. You had to kill the app in the task manager to flush it, or do some hacks to change the url of the css file.
+- Less chances that update will corrupt the existing content, since we are using totally different folders for each release.
+- But if it is corrupted - we can rollback to the previous version.
+
+For example, lets say that currently in the app we are running version `2015.12.01-12.01.33`. That means the following:
+- All web files are stored in `/sdcard/some_path/2015.12.01-12.01.33/www/`. Including Cordova specific.
+- Index page, that is displayed to the user is `/sdcard/some_path/2015.12.01-12.01.33/www/index.html`.
+
+At some moment of time we release a new version: `2016.01.03-10.45.01`. At first, plugin need to load it on the device, and that's what happens:
+
+1. A new folder with the release version name is created on the external storage: `/sdcard/some_path/2016.01.03-10.45.01/`.
+2. Inside it - `update` folder is created: `/sdcard/some_path/2016.01.03-10.45.01/update/`.
+3. All new/changed files from the `chcp.manifest` are loaded to this `update` folder.
+4. New `chcp.manifest` and `chcp.json` files are placed in the `update` folder.
+5. Saving internally, that particular release is loaded and prepared for installation.
+
+When it's time to install the update:
+
+1. Plugin copies `www` folder from the current version (the one, that is displayed to the user) to the new release folder. In the terms of our example: copy everything from `/sdcard/some_path/2015.12.01-12.01.33/www/` into `/sdcard/some_path/2016.01.03-10.45.01/www/`.
+2. Copy new/updated files and configs from the `update` folder into `www` folder: `/sdcard/some_path/2016.01.03-10.45.01/update/` -> `/sdcard/some_path/2016.01.03-10.45.01/www/`.
+3. Remove `/sdcard/some_path/2016.01.03-10.45.01/update/` folder since we don't need it anymore.
+4. Load index page from the new release: `/sdcard/some_path/2016.01.03-10.45.01/www/index.html`.
+
+From this moment forward plugin will load index page from the new release folder, and the previous one will stay as a backup just in case.
 
 ### Cordova Hot Code Push CLI client
 

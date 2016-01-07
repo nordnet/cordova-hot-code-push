@@ -183,7 +183,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         pluginInternalPrefsStorage = new PluginInternalPreferencesStorage(cordova.getActivity());
         PluginInternalPreferences config = pluginInternalPrefsStorage.loadFromPreference();
-        if (config == null) {
+        if (config == null || TextUtils.isEmpty(config.getCurrentReleaseVersionName())) {
             config = PluginInternalPreferences.createDefault(cordova.getActivity());
             pluginInternalPrefsStorage.storeInPreference(config);
         }

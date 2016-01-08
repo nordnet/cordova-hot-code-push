@@ -65,13 +65,13 @@
     // iterate over them and delete ones that are not in ignore list
     for (NSURL *releaseFolderURL in releases) {
         BOOL shouldIgnore = NO;
+        NSString *releaseFolder = [releaseFolderURL lastPathComponent];
         for (NSString *ignorePath in ignoreList) {
             if (ignorePath.length == 0) {
                 continue;
             }
             
-            NSURL *ignoreURL = [rootFolder URLByAppendingPathComponent:ignorePath];
-            if ([releaseFolderURL.path isEqualToString:ignoreURL.path]) {
+            if ([releaseFolder isEqualToString:ignorePath]) {
                 shouldIgnore = YES;
                 break;
             }

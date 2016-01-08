@@ -254,7 +254,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     NSRange r = [indexPageStripped rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"?#"] options:0];
     if (r.location != NSNotFound) {
-        indexPageStripped = [indexPageStripped substringWithRange:NSMakeRange(0, indexPageStripped.length-r.location)];
+        indexPageStripped = [indexPageStripped substringWithRange:NSMakeRange(0, indexPageStripped.length-r.location-1)];
     }
     
     NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:indexPageStripped];

@@ -33,7 +33,7 @@
     HCPXmlConfig *_pluginXmlConfig;
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
-    NSString *_indexPagePath;
+    NSString *_indexPage;
 }
 
 @end
@@ -232,12 +232,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @param url url to load
  */
-- (void)loadURL:(NSURL *)url {
+- (void)loadURL:(NSString *)url {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:YES];
-        NSString *path = components.path;
-        NSURL *loadURL = [NSURL fileURLWithPath:path];
-        
+        NSURL *loadURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", _filesStructure.wwwFolder.absoluteString, url]];
         NSURLRequest *request = [NSURLRequest requestWithURL:loadURL
                                                  cachePolicy:NSURLRequestReloadIgnoringCacheData
                                              timeoutInterval:10000];
@@ -253,14 +250,21 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Redirect user to the index page that is located on the external storage.
  */
 - (void)resetIndexPageToExternalStorage {
-    NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
+    NSString *indexPageStripped = [self indexPageFromConfigXml];
+    
+    NSRange r = [indexPageStripped rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"?#"] options:0];
+    if (r.location != NSNotFound) {
+        indexPageStripped = [indexPageStripped substringWithRange:NSMakeRange(0, indexPageStripped.length-r.location)];
+    }
+    
+    NSURL *indexPageExternalURL = [self appendWwwFolderPathToPath:indexPageStripped];
     if (![[NSFileManager defaultManager] fileExistsAtPath:indexPageExternalURL.path]) {
         return;
     }
     
-    // rewrite starting page: should load from external storage
+    // rewrite starting page www folder path: should load from external storage
     if ([self.viewController isKindOfClass:[CDVViewController class]]) {
-        ((CDVViewController *)self.viewController).startPage = indexPageExternalURL.absoluteString;
+        ((CDVViewController *)self.viewController).wwwFolderName = _filesStructure.wwwFolder.absoluteString;
     } else {
         NSLog(@"HotCodePushError: Can't make starting page to be from external storage. Main controller should be of type CDVViewController.");
     }
@@ -286,9 +290,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @return index page of the application
  */
-- (NSString *)getStartingPagePath {
-    if (_indexPagePath) {
-        return _indexPagePath;
+- (NSString *)indexPageFromConfigXml {
+    if (_indexPage) {
+        return _indexPage;
     }
     
     CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
@@ -301,12 +305,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [configParser parse];
     
     if (delegate.startPage) {
-        _indexPagePath = delegate.startPage;
+        _indexPage = delegate.startPage;
     } else {
-        _indexPagePath = DEFAULT_STARTING_PAGE;
+        _indexPage = DEFAULT_STARTING_PAGE;
     }
     
-    return _indexPagePath;
+    return _indexPage;
 }
 
 /**
@@ -577,8 +581,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     
-    // path to index page of the new release
-    NSURL *startingPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
     CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
     // send notification to the caller from the JavaScript side of there was any
@@ -591,7 +593,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self invokeDefaultCallbackWithMessage:pluginResult];
     
     // reload application to the index page
-    [self loadURL:startingPageURL];
+    [self loadURL:[self indexPageFromConfigXml]];
 }
 
 #pragma mark Rollback process
@@ -611,8 +613,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self loadApplicationConfig];
     }
     
-    NSURL *indexPageURL = [self appendWwwFolderPathToPath:[self getStartingPagePath]];
-    [self loadURL:indexPageURL];
+    [self loadURL:[self indexPageFromConfigXml]];
 }
 
 /**

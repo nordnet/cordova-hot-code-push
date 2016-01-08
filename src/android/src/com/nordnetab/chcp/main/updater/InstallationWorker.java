@@ -130,9 +130,14 @@ class InstallationWorker implements WorkerTask {
      */
     private boolean copyFilesFromCurrentReleaseToNewRelease() {
         boolean result = true;
-        File currentWwwFolder = new File(currentReleaseFS.getWwwFolder());
-        File newWwwFolder = new File(newReleaseFS.getWwwFolder());
+        final File currentWwwFolder = new File(currentReleaseFS.getWwwFolder());
+        final File newWwwFolder = new File(newReleaseFS.getWwwFolder());
         try {
+            // just in case if www folder already exists - remove it
+            if (newWwwFolder.exists()) {
+                FilesUtility.delete(newWwwFolder);
+            }
+
             FilesUtility.copy(currentWwwFolder, newWwwFolder);
         } catch (Exception e) {
             e.printStackTrace();

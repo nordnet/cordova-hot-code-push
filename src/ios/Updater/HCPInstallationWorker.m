@@ -182,8 +182,14 @@
 - (BOOL)copyFilesFromCurrentReleaseToNewRelease:(NSError **)error {
     *error = nil;
     
+    // just in case check if previous www folder exists; if it does - remove it before copying new stuff
+    if ([_fileManager fileExistsAtPath:_newReleaseFS.wwwFolder.path]) {
+        [_fileManager removeItemAtURL:_newReleaseFS.wwwFolder error:nil];
+    }
+    
     // copy items from current www folder to the new www folder
     if (![_fileManager copyItemAtURL:_currentReleaseFS.wwwFolder toURL:_newReleaseFS.wwwFolder error:error]) {
+        NSLog(@"Installation error! Failed to copy files from %@ to %@", _currentReleaseFS.wwwFolder.path, _newReleaseFS.wwwFolder.path);
         *error = [NSError errorWithCode:kHCPFailedToCopyFilesFromPreviousReleaseErrorCode descriptionFromError:*error];
         return NO;
     }

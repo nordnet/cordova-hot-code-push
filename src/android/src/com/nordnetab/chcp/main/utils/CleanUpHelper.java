@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.main.utils;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
@@ -59,6 +60,10 @@ public class CleanUpHelper {
         for (File file : files) {
             boolean isIgnored = false;
             for (String excludedReleaseName : excludedReleases) {
+                if (TextUtils.isEmpty(excludedReleaseName)) {
+                    continue;
+                }
+
                 if (file.getName().equals(excludedReleaseName)) {
                     isIgnored = true;
                     break;

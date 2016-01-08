@@ -66,6 +66,10 @@
     for (NSURL *releaseFolderURL in releases) {
         BOOL shouldIgnore = NO;
         for (NSString *ignorePath in ignoreList) {
+            if (ignorePath.length == 0) {
+                continue;
+            }
+            
             NSURL *ignoreURL = [rootFolder URLByAppendingPathComponent:ignorePath];
             if ([releaseFolderURL.path isEqualToString:ignoreURL.path]) {
                 shouldIgnore = YES;

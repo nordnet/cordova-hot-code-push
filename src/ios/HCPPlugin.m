@@ -57,9 +57,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     // cleanup file system: remove older releases, except current and the previous one
-    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
-                                                   _pluginInternalPrefs.previousReleaseVersionName,
-                                                   _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
+    if (_pluginInternalPrefs.currentReleaseVersionName.length > 0) {
+        [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
+                                                       _pluginInternalPrefs.previousReleaseVersionName,
+                                                       _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
+    }
     
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];
@@ -142,6 +144,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [_pluginInternalPrefs saveToUserDefaults];
     }
     
+    NSLog(@"Currently running release version %@", _pluginInternalPrefs.currentReleaseVersionName);
+    
     // init file structure for www files
     _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
 }
@@ -206,7 +210,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
             [self onNothingToInstallEvent:notification];
         } else {
             if (callbackID) {
-                CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateInstallationErrorEvent applicationConfig:nil error:error];
+                CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateInstallationErrorEvent
+                                                                         applicationConfig:nil
+                                                                                     error:error];
                 [self.commandDelegate sendPluginResult:errorResult callbackId:callbackID];
             }
         }
@@ -218,7 +224,6 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         _installationCallback = callbackID;
     }
 
-    
     return YES;
 }
 
@@ -484,10 +489,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @param notification captured notification with event details
  */
 - (void)onUpdateIsReadyForInstallation:(NSNotification *)notification {
-    NSLog(@"Update is ready for installation");
-    
     // new application config from server
     HCPApplicationConfig *newConfig = notification.userInfo[kHCPEventUserInfoApplicationConfigKey];
+    
+    NSLog(@"Update is ready for installation: %@", newConfig.contentConfig.releaseVersion);
     
     // store, that we are ready for installation
     _pluginInternalPrefs.readyForInstallationReleaseVersionName = newConfig.contentConfig.releaseVersion;

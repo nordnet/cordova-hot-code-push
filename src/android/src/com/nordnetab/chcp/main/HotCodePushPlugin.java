@@ -81,13 +81,17 @@ public class HotCodePushPlugin extends CordovaPlugin {
         parseCordovaConfigXml();
         loadPluginInternalPreferences();
 
+        Log.d("CHCP", "Currently running release version " + pluginInternalPrefs.getCurrentReleaseVersionName());
+
         // clean up file system
-        CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
-                new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
-                        pluginInternalPrefs.getPreviousReleaseVersionName(),
-                        pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
-                }
-        );
+        if (!TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
+            CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
+                    new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
+                            pluginInternalPrefs.getPreviousReleaseVersionName(),
+                            pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
+                    }
+            );
+        }
 
         handler = new Handler();
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
@@ -545,9 +549,9 @@ public class HotCodePushPlugin extends CordovaPlugin {
      */
     @SuppressWarnings("unused")
     public void onEvent(UpdateIsReadyToInstallEvent event) {
-        Log.d("CHCP", "Update is ready for installation");
-
         final ContentConfig newContentConfig = event.applicationConfig().getContentConfig();
+        Log.d("CHCP", "Update is ready for installation: " + newContentConfig.getReleaseVersion());
+
         pluginInternalPrefs.setReadyForInstallationReleaseVersionName(newContentConfig.getReleaseVersion());
         pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
 

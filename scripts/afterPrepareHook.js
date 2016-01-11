@@ -79,6 +79,10 @@ function processConsoleOptions_cordova_53(consoleOptions) {
   return parsedOptions;
 }
 
+function isString(s) {
+  return typeof(s) === 'string' || s instanceof String;
+}
+
 function processConsoleOptions_cordova_54(consoleOptions) {
   // For now it's like this for backwards capability.
   // Will be simplified later, when Cordova 5.4.x will be used more wide.
@@ -96,8 +100,8 @@ function processConsoleOptions_cordova_54(consoleOptions) {
   // search for plugin specific build options
   var arguments = consoleOptions.argv;
   for (var idx in arguments) {
-    var arg = arguments[idx];
-    if (!(arg instanceof String)) {
+    var opt = arguments[idx];
+    if (!isString(opt)) {
       continue;
     }
 
@@ -106,6 +110,7 @@ function processConsoleOptions_cordova_54(consoleOptions) {
     }
 
     parsedOptions.buildOption = opt.replace(BUILD_OPTION_PREFIX, '');
+
     break;
   }
 

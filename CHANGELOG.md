@@ -1,5 +1,12 @@
 # Change Log
 
+# 1.2.2 (2016-01-11)
+
+**Bug fixes:**
+
+- Fixed the issue, where plugin failed to update, when there was a `#` or `?` in the index page. For example `<content src="index.html#/tabs/dash/" />`
+- Fixed deletion of the old releases.
+
 ## 1.2.1 (2016-01-07)
 
 **Bug fixes:**

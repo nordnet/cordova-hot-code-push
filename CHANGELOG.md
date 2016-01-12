@@ -1,5 +1,12 @@
 # Change Log
 
+# 1.2.3 (2016-01-12)
+
+**Bug fixes:**
+
+- Fixed [issue #83](https://github.com/nordnet/cordova-hot-code-push/issues/83).
+- Fixed Cordova 5.4 warnings in the hooks.
+
 # 1.2.2 (2016-01-11)
 
 **Bug fixes:**

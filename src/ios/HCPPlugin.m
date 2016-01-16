@@ -278,7 +278,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  @return resulting path
  */
 - (NSURL *)appendWwwFolderPathToPath:(NSString *)pagePath {
-    if ([pagePath containsString:_filesStructure.wwwFolder.absoluteString]) {
+    if ([pagePath hasPrefix:_filesStructure.wwwFolder.absoluteString]) {
         return [NSURL URLWithString:pagePath];
     }
     

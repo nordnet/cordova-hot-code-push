@@ -35,7 +35,7 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
     }
     
     if (_storeUrl == nil) {
-        if ([self.storeIdentifier containsString:@"http://"] || [self.storeIdentifier containsString:@"https://"]) {
+        if ([self.storeIdentifier hasPrefix:@"http://"] || [self.storeIdentifier hasPrefix:@"https://"]) {
             _storeUrl = self.storeIdentifier;
         } else {
             _storeUrl = [NSString stringWithFormat:STORE_URL_TEMPLATE, self.storeIdentifier];

@@ -55,11 +55,12 @@ public class ApplicationConfig {
             } else {
                 config.setStoreIdentifier("");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        config.jsonString = jsonString;
+            config.jsonString = jsonString;
+        } catch (Exception e) {
+            Log.d("CHCP", "Failed to convert json string into application config" , e);
+            config = null;
+        }
 
         return config;
     }

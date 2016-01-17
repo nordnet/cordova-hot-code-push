@@ -1,5 +1,11 @@
 # Change Log
 
+# 1.2.4 (2016-01-17)
+
+- Fixed [issue #84](https://github.com/nordnet/cordova-hot-code-push/issues/84).
+- Fixed [issue #88](https://github.com/nordnet/cordova-hot-code-push/issues/88).
+- Fixed [issue #90](https://github.com/nordnet/cordova-hot-code-push/issues/90).
+
 # 1.2.3 (2016-01-12)
 
 **Bug fixes:**

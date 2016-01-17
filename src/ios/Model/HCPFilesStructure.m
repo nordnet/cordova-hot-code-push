@@ -37,8 +37,29 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 }
 
 + (NSURL *)pluginRootFolder {
-    NSURL *supportDir = [[NSFileManager defaultManager] applicationSupportDirectory];
-    return [supportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
+    // static decleration gets executed only once
+    static NSURL *_pluginRootFolder = nil;
+    if (_pluginRootFolder != nil) {
+        return _pluginRootFolder;
+    }
+
+    // construct path to the folder, where we will store our plugin's files
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSURL *supportDir = [fileManager applicationSupportDirectory];
+    _pluginRootFolder = [supportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
+    if (![fileManager fileExistsAtPath:_pluginRootFolder.path]) {
+        [fileManager createDirectoryAtURL:_pluginRootFolder withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
+    // we need to exclude plugin's root folder from the iCloud backup, or it can become too big and Apple will reject the app.
+    // https://developer.apple.com/library/ios/qa/qa1719/_index.html
+    NSError *error = nil;
+    BOOL success = [_pluginRootFolder setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:&error];
+    if (!success) {
+        NSLog(@"Error excluding %@ from backup %@", [_pluginRootFolder lastPathComponent], error);
+    }
+    
+    return _pluginRootFolder;
 }
 
 - (void)localInitWithReleaseVersion:(NSString *)releaseVersion {

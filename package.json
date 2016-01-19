@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Steffaan/cordova-hot-code-push.git"
+    "url": "git+https://github.com/nordnet/cordova-hot-code-push.git"
   },
   "keywords": [
     "cordova",

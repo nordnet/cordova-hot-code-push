@@ -7,8 +7,8 @@
   <license>MIT</license>
   <keywords>cordova,code,update</keywords>
 
-  <repo>https://github.com/Steffaan/cordova-hot-code-push</repo>
-  <issue>https://github.com/Steffaan/cordova-hot-code-push/issues</issue>
+  <repo>https://github.com/nordnet/cordova-hot-code-push</repo>
+  <issue>https://github.com/nordnet/cordova-hot-code-push/issues</issue>
 
   <engines>
     <engine name="cordova-ios" version=">=3.8"></engine>

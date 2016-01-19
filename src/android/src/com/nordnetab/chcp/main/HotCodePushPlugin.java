@@ -103,15 +103,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onStart() {
         super.onStart();
         
-        Log.d("CHCP", "Log before EventBus.getDefault().register(this); ");
-
         EventBus eventBus = EventBus.getDefault();
         if (!eventBus.isRegistered(this)) {
-            Log.d("CHCP", "!eventBus.isRegistered(this) NOW GOING TO REGISTER THIS ");
             eventBus.register(this);
         }
-
-        Log.d("CHCP", "Log AFTER EventBus.getDefault().register(this); ");
         
         // ensure that www folder installed on external storage;
         // if not - install it

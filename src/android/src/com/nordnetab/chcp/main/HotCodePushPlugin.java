@@ -46,6 +46,7 @@ import org.json.JSONObject;
 import java.io.File;
 
 import de.greenrobot.event.EventBus;
+import de.greenrobot.event.Subscribe;
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.
@@ -104,7 +105,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
         
         Log.d("CHCP", "Log before EventBus.getDefault().register(this); ");
 
-        EventBus.getDefault().register(this);
+        EventBus eventBus = EventBus.getDefault();
+        if (!eventBus.isRegistered(this)) {
+            Log.d("CHCP", "!eventBus.isRegistered(this) NOW GOING TO REGISTER THIS ");
+            eventBus.register(this);
+        }
 
         Log.d("CHCP", "Log AFTER EventBus.getDefault().register(this); ");
         
@@ -525,6 +530,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see EventBus
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(AssetsInstalledEvent event) {
         // update stored application version
         pluginInternalPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
@@ -552,6 +558,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see EventBus
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(AssetsInstallationErrorEvent event) {
         Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
 
@@ -572,6 +579,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see UpdatesLoader
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(UpdateIsReadyToInstallEvent event) {
         final ContentConfig newContentConfig = event.applicationConfig().getContentConfig();
         Log.d("CHCP", "Update is ready for installation: " + newContentConfig.getReleaseVersion());
@@ -605,6 +613,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see UpdatesLoader
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(NothingToUpdateEvent event) {
         Log.d("CHCP", "Nothing to update");
 
@@ -628,6 +637,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see UpdatesLoader
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(UpdateDownloadErrorEvent event) {
         Log.d("CHCP", "Failed to update");
 
@@ -663,6 +673,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see UpdatesInstaller
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(UpdateInstalledEvent event) {
         Log.d("CHCP", "Update is installed");
 
@@ -703,6 +714,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see UpdatesInstaller
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(UpdateInstallationErrorEvent event) {
         Log.d("CHCP", "Failed to install");
 
@@ -728,6 +740,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @see EventBus
      */
     @SuppressWarnings("unused")
+    @Subscribe
     public void onEvent(NothingToInstallEvent event) {
         Log.d("CHCP", "Nothing to install");
 

@@ -72,6 +72,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     private Handler handler;
     private boolean isPluginReadyForWork;
+    private boolean dontReloadOnStart;
 
     // region Plugin lifecycle
 
@@ -103,7 +104,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     public void onStart() {
         super.onStart();
         
-        EventBus eventBus = EventBus.getDefault();
+        final EventBus eventBus = EventBus.getDefault();
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this);
         }
@@ -112,11 +113,15 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // if not - install it
         isPluginReadyForWork = isPluginReadyForWork();
         if (!isPluginReadyForWork) {
+            dontReloadOnStart = true;
             installWwwFolder();
             return;
         }
 
-        redirectToLocalStorageIndexPage();
+        // reload only if we on local storage
+        if (!dontReloadOnStart && webView.getUrl().startsWith(LOCAL_ASSETS_FOLDER)) {
+            redirectToLocalStorageIndexPage();
+        }
 
         // install update if there is anything to install
         if (chcpXmlConfig.isAutoInstallIsAllowed() &&

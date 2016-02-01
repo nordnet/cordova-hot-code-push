@@ -119,7 +119,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         // reload only if we on local storage
-        if (!dontReloadOnStart && webView.getUrl().startsWith(LOCAL_ASSETS_FOLDER)) {
+        if (!dontReloadOnStart) {
+            dontReloadOnStart = true;
             redirectToLocalStorageIndexPage();
         }
 

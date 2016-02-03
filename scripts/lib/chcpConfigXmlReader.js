@@ -24,7 +24,7 @@ Helper class to read plugin-specific options from the config.xml.
    */
   function readOptions(ctx) {
     var configFilePath = path.join(ctx.opts.projectRoot, 'config.xml'),
-      configXmlContent = xmlHelper.readXmlAsJson(configFilePath);
+      configXmlContent = xmlHelper.readXmlAsJson(configFilePath, true);
 
     return parseConfig(configXmlContent);
   }
@@ -40,22 +40,11 @@ Helper class to read plugin-specific options from the config.xml.
    * @return {Object} plugin preferences
    */
   function parseConfig(configXmlContent) {
-    var rootContent = configXmlContent['widget'],
-      parsedData = {
-        'config-file': ''
-      };
-
-    // if no <chcp> tag is found - return empty preferences
-    if (rootContent['chcp'] == null) {
-      return parsedData;
+    if (!configXmlContent.chcp) {
+      return {};
     }
 
-    var chcpContent = rootContent.chcp[0];
-    if (chcpContent['config-file']) {
-      parsedData['config-file'] = chcpContent['config-file'][0]['$']['url'];
-    }
-
-    return parsedData;
+    return configXmlContent.chcp;
   }
 
   // endregion

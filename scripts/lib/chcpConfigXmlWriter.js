@@ -128,38 +128,29 @@ We will use it to inject plugin-specific options.
         return;
       }
 
-      // if config.xml already has chcp preferences - read them
-      var chcpConfig = {};
-      if (configData.widget.hasOwnProperty('chcp') && configData.widget.chcp.lenght > 0) {
-        chcpConfig = configData.widget.chcp[0];
-      } else {
-        configData.widget['chcp'] = [];
+      // inject new options
+      var chcpXmlConfig = {};
+      for (var preferenceName in options) {
+        injectPreference(chcpXmlConfig, preferenceName, options[preferenceName]);
       }
 
-      // inject new options
-      injectConfigUrl(chcpConfig, options);
-
       // write them back to config.xml
-      configData.widget.chcp[0] = chcpConfig;
+      configData.widget['chcp'] = [];
+      configData.widget.chcp.push(chcpXmlConfig);
       xmlHelper.writeJsonAsXml(configData, configXmlFilePath);
     });
   }
 
   /**
-   * Inject config-file preference if any is set in provided options.
+   * Inject preference into xml.
    *
-   * @param {Object} xml - config.xml data
-   * @param {Object} options - plugin options to inject
+   * @param {Object} xml - current xml preferences for the plugin
+   * @param {String} preferenceName - preference name
+   * @param {Object} preferenceAttributes - preference attributes
    */
-  function injectConfigUrl(xml, options) {
-    if (!options.hasOwnProperty('config-file')) {
-      return;
-    }
-
-    xml['config-file'] = [{
-      '$': {
-        'url': options['config-file']
-      }
+  function injectPreference(xml, preferenceName, preferenceAttributes) {
+    xml[preferenceName] = [{
+      '$': preferenceAttributes
     }];
   }
 

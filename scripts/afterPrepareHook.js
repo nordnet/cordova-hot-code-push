@@ -124,7 +124,7 @@ function processConsoleOptions_cordova_54(consoleOptions) {
  * @param {String} optionName - build option name from console; will be mapped to configuration from chcpbuild.options file
  * @return {boolean} true - if build option is found and we successfully injected it into config.xml; otherwise - false
  */
-function prepareWithCustomBuildOption(ctx, optionName) {
+function prepareWithCustomBuildOption(ctx, optionName, chcpXmlOptions) {
   if (optionName.length == 0) {
     return false;
   }
@@ -137,9 +137,21 @@ function prepareWithCustomBuildOption(ctx, optionName) {
 
   console.log('Using config from chcp.options:');
   console.log(JSON.stringify(buildConfig, null, 2));
-  chcpConfigXmlWriter.writeOptions(ctx, buildConfig);
+
+  mergeBuildOptions(chcpXmlOptions, buildConfig);
+
+  console.log('Resulting config will contain the following preferences:');
+  console.log(JSON.stringify(chcpXmlOptions, null, 2));
+
+  chcpConfigXmlWriter.writeOptions(ctx, chcpXmlOptions);
 
   return true;
+}
+
+function mergeBuildOptions(currentXmlOptions, buildConfig) {
+  for (var key in buildConfig) {
+    currentXmlOptions[key] = buildConfig[key];
+  }
 }
 
 module.exports = function(ctx) {
@@ -160,18 +172,18 @@ module.exports = function(ctx) {
     return;
   }
 
-  // if any build option is provided in console - try to map it with chcpbuild.options
-  if (prepareWithCustomBuildOption(ctx, consoleOptions.buildOption)) {
-    return;
-  }
-
   // read plugin preferences from config.xml
   chcpXmlOptions = chcpConfigXmlReader.readOptions(ctx);
+
+  // if any build option is provided in console - try to map it with chcpbuild.options
+  if (prepareWithCustomBuildOption(ctx, consoleOptions.buildOption, chcpXmlOptions)) {
+    return;
+  }
 
   // if none of the above
   if (chcpXmlOptions['config-file'].length == 0) {
     printLog('config-file preference is not set.');
   } else {
-    printLog('config-file set to ' + chcpXmlOptions['config-file']);
+    printLog('config-file set to ' + chcpXmlOptions['config-file']['url']);
   }
 };

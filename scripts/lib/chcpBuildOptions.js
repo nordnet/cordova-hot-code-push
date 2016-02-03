@@ -25,7 +25,18 @@ Those options then injected into platform-specific config.xml.
       return null;
     }
 
-    return chcpBuildOptions[buildName];
+    var resultConfig = chcpBuildOptions[buildName];
+
+    // backwards capability
+    // TODO: remove this in the next versions
+    if (resultConfig['config-file'] && !resultConfig['config-file']['url']) {
+      var url = resultConfig['config-file'];
+      resultConfig['config-file'] = {
+        'url' : url
+      };
+    }
+
+    return resultConfig;
   }
 
   // endregion
@@ -53,7 +64,7 @@ Those options then injected into platform-specific config.xml.
 
     return objData;
   }
-  
+
   // endregion
 
 })();

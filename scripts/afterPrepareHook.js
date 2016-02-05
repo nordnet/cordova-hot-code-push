@@ -148,6 +148,12 @@ function prepareWithCustomBuildOption(ctx, optionName, chcpXmlOptions) {
   return true;
 }
 
+/**
+ * Merge build options into current config.xml preferences.
+ *
+ * @param {Object} currentXmlOptions - current plugin preferences from config.xml
+ * @param {Object} buildConfig - build config preferences
+ */
 function mergeBuildOptions(currentXmlOptions, buildConfig) {
   for (var key in buildConfig) {
     currentXmlOptions[key] = buildConfig[key];

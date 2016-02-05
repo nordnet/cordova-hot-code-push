@@ -16,6 +16,7 @@ Small helper class to read/write from/to xml file.
    * Read data from the xml file as JSON object.
    *
    * @param {String} filePath - absolute path to xml file
+   * @param {Boolean} simplify - if set to true - cleanup resulting json
    * @return {Object} JSON object with the contents of the xml file
    */
   function readXmlAsJson(filePath, simplify) {

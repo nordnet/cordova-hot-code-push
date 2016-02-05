@@ -4,7 +4,8 @@ Those options then injected into platform-specific config.xml.
 */
 (function() {
   var fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    OPTIONS_FILE_NAME = 'chcpbuild.options';
 
   module.exports = {
     getBuildConfigurationByName: getBuildConfigurationByName
@@ -26,6 +27,9 @@ Those options then injected into platform-specific config.xml.
     }
 
     var resultConfig = chcpBuildOptions[buildName];
+    if (!resultConfig) {
+      return null;
+    }
 
     // backwards capability
     // TODO: remove this in the next versions
@@ -49,7 +53,7 @@ Those options then injected into platform-specific config.xml.
    * @return {Object} options from chcpbuild.options file
    */
   function getBuildOptionsFromConfig(ctx) {
-    var chcpBuildOptionsFilePath = path.join(ctx.opts.projectRoot, 'chcpbuild.options');
+    var chcpBuildOptionsFilePath = path.join(ctx.opts.projectRoot, OPTIONS_FILE_NAME);
 
     return readObjectFromFile(chcpBuildOptionsFilePath);
   };

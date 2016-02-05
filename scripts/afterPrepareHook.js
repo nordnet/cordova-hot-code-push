@@ -181,7 +181,7 @@ module.exports = function(ctx) {
   }
 
   // if none of the above
-  if (chcpXmlOptions['config-file'].length == 0) {
+  if (!chcpXmlOptions['config-file']) {
     printLog('config-file preference is not set.');
   } else {
     printLog('config-file set to ' + chcpXmlOptions['config-file']['url']);

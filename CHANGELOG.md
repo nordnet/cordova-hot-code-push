@@ -1,6 +1,17 @@
 # Change Log
 
+# 1.2.5 (2016-02-05)
+
+**Bug fixes:**
+
+- Fixed [issue #91](https://github.com/nordnet/cordova-hot-code-push/issues/91). Build options now will be merged into existing preferences from the `config.xml` instead of changing them all.
+- Fixed [issue #93](https://github.com/nordnet/cordova-hot-code-push/issues/93). Plugin will not reload Android application to index page, when app is resumed from the background state.
+- Fixed [issue #97](https://github.com/nordnet/cordova-hot-code-push/issues/97).
+- Merged [PR #94](https://github.com/nordnet/cordova-hot-code-push/pull/94). Android version of the plugin should now be compatible with other plugins, that are using EventBus. Thanks to [@Steffaan](https://github.com/Steffaan).
+
 # 1.2.4 (2016-01-17)
+
+**Bug fixes:**
 
 - Fixed [issue #84](https://github.com/nordnet/cordova-hot-code-push/issues/84).
 - Fixed [issue #88](https://github.com/nordnet/cordova-hot-code-push/issues/88).

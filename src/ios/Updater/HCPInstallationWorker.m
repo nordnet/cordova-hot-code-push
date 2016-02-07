@@ -47,6 +47,8 @@
 }
 
 - (void)runWithComplitionBlock:(void (^)(void))updateInstallationComplitionBlock {
+    [self dispatchBeforeInstallEvent];
+
     NSError *error = nil;
     if (![self initBeforeRun:&error] ||
         ![self isUpdateValid:&error] ||
@@ -66,6 +68,17 @@
 }
 
 #pragma mark Private API
+
+/**
+ *  Send event that update is about to begin
+ */
+- (void)dispatchBeforeInstallEvent {
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPBeforeInstallEvent
+                                                 applicationConfig:_newConfig
+                                                            taskId:self.workerId];
+    
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+}
 
 /**
  *  Send update installation failure event with error details.

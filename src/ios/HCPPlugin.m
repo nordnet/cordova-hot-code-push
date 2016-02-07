@@ -384,6 +384,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                                name:kHCPUpdateInstallationErrorEvent
                              object:nil];
     [notificationCenter addObserver:self
+                           selector:@selector(onBeforeInstallEvent:)
+                               name:kHCPBeforeInstallEvent
+                             object:nil];
+    [notificationCenter addObserver:self
                            selector:@selector(onUpdateInstalledEvent:)
                                name:kHCPUpdateIsInstalledEvent
                              object:nil];
@@ -536,6 +540,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self.commandDelegate sendPluginResult:pluginResult callbackId:_installationCallback];
         _installationCallback = nil;
     }
+    
+    // send notification to the default callback
+    [self invokeDefaultCallbackWithMessage:pluginResult];
+}
+
+/**
+ *  Method is called when installation is about to begin
+ *
+ *  @param notification captured notification with the event details
+ */
+- (void)onBeforeInstallEvent:(NSNotification *)notification {
+    CDVPluginResult *pluginResult = [CDVPluginResult pluginResultForNotification:notification];
     
     // send notification to the default callback
     [self invokeDefaultCallbackWithMessage:pluginResult];

@@ -23,6 +23,7 @@ var exec = require('cordova/exec'),
     'chcp_updateLoadFailed': true,
     'chcp_nothingToUpdate': true,
     'chcp_updateIsReadyToInstall': true,
+    'chcp_beforeInstall': true,
     'chcp_updateInstallFailed': true,
     'chcp_updateInstalled': true,
     'chcp_nothingToInstall': true
@@ -153,7 +154,7 @@ var chcp = {
   error: {
     NOTHING_TO_INSTALL: 1,
     NOTHING_TO_UPDATE: 2,
-    
+
     FAILED_TO_DOWNLOAD_APPLICATION_CONFIG: -1,
     APPLICATION_BUILD_VERSION_TOO_LOW: -2,
     FAILED_TO_DOWNLOAD_CONTENT_MANIFEST: -3,

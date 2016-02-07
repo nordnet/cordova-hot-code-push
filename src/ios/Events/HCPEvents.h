@@ -24,6 +24,11 @@ extern NSString *const kHCPNothingToUpdateEvent;
 extern NSString *const kHCPUpdateIsReadyForInstallationEvent;
 
 /**
+ *  Event is dispatched when installation is about to begin
+ */
+extern NSString *const kHCPBeforeInstallEvent;
+
+/**
  *  Event is dispatched we failed to install the update.
  */
 extern NSString *const kHCPUpdateInstallationErrorEvent;

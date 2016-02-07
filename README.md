@@ -592,6 +592,7 @@ Available events are:
 - `chcp_updateIsReadyToInstall` - send when new release was successfully loaded and ready to be installed.
 - `chcp_updateLoadFailed` - send when plugin couldn't load update from the server. Error details are attached to the event.
 - `chcp_nothingToUpdate` - send when we successfully loaded application config from the server, but there is nothing new is available.
+- `chcp_beforeInstall` - sent when an update is about to be installed.
 - `chcp_updateInstalled` - send when update was successfully installed.
 - `chcp_updateInstallFailed` - send when update installation failed. Error details are attached to the event.
 - `chcp_nothingToInstall` - send when there is nothing to install. Probably, nothing was loaded before that.

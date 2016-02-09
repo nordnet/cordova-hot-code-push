@@ -10,6 +10,7 @@ import com.nordnetab.chcp.main.config.ContentConfig;
 import com.nordnetab.chcp.main.config.PluginInternalPreferences;
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
+import com.nordnetab.chcp.main.events.BeforeInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.main.events.UpdateDownloadErrorEvent;
@@ -625,6 +626,24 @@ public class HotCodePushPlugin extends CordovaPlugin {
             downloadJsCallback.sendPluginResult(jsResult);
             downloadJsCallback = null;
         }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    /**
+     * Listener for event that an update is about to begin
+     *
+     * @param event event information
+     * @see EventBus
+     * @see BeforeInstallEvent
+     * @see UpdatesLoader
+     */
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onEvent(BeforeInstallEvent event) {
+        Log.d("CHCP", "Before install");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
         sendMessageToDefaultCallback(jsResult);
     }

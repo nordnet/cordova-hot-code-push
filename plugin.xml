@@ -181,6 +181,7 @@
     <!-- sources for package: com.nordnetab.chcp.events -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstallationErrorEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/events/AssetsInstalledEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/events/BeforeInstallEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/events/IPluginEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/events/NothingToInstallEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/events/NothingToUpdateEvent.java" target-dir="src/com/nordnetab/chcp/main/events"/>

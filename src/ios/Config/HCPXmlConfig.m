@@ -16,6 +16,7 @@
         _allowUpdatesAutoDownload = YES;
         _allowUpdatesAutoInstallation = YES;
         _configUrl = nil;
+        _nativeInterfaceVersion = 1;
     }
     
     return self;

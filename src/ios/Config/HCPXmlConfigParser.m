@@ -64,6 +64,8 @@
         [self parseAutoDownloadOptions:attributeDict];
     } else if ([elementName isEqualToString:kHCPAutoInstallXmlTag]) {
         [self parseAutoInstallOptions:attributeDict];
+    } else if ([elementName isEqualToString:kHCPNativeInterfaceXmlTag]) {
+        [self parseNativeInterfaceOptions:attributeDict];
     }
 }
 
@@ -90,6 +92,10 @@
 
 - (void)parseAutoInstallOptions:(NSDictionary *)attributeDict {
     _xmlConfig.allowUpdatesAutoInstallation = [(NSNumber *)attributeDict[kHCPAutoInstallEnabledXmlAttribute] boolValue];
+}
+
+- (void)parseNativeInterfaceOptions:(NSDictionary *)attributeDict {
+    _xmlConfig.nativeInterfaceVersion = [(NSString *)attributeDict[kHCPNativeInterfaceVersionXmlAttribute] integerValue];
 }
 
 @end

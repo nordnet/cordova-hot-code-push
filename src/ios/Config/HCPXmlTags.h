@@ -20,6 +20,9 @@ extern NSString *const kHCPAutoDownloadEnabledXmlAttribute;
 extern NSString *const kHCPAutoInstallXmlTag;
 extern NSString *const kHCPAutoInstallEnabledXmlAttribute;
 
+extern NSString *const kHCPNativeInterfaceXmlTag;
+extern NSString *const kHCPNativeInterfaceVersionXmlAttribute;
+
 @interface HCPXmlTags : NSObject
 
 @end

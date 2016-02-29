@@ -1,9 +1,7 @@
 //
 //  HCPXmlTags.m
-//  TestProject
 //
 //  Created by Nikolay Demyankov on 03.09.15.
-//
 //
 
 #import "HCPXmlTags.h"
@@ -21,6 +19,10 @@ NSString *const kHCPAutoDownloadEnabledXmlAttribute = @"enabled";
 // Keys for processing auto install options
 NSString *const kHCPAutoInstallXmlTag = @"auto-install";
 NSString *const kHCPAutoInstallEnabledXmlAttribute = @"enabled";
+
+// Keys for processing native interface version
+NSString *const kHCPNativeInterfaceXmlTag = @"native-interface";
+NSString *const kHCPNativeInterfaceVersionXmlAttribute = @"version";
 
 @implementation HCPXmlTags
 

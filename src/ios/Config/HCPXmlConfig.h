@@ -32,6 +32,11 @@
 @property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
 
 /**
+ *  Current native interface version of the application.
+ */
+@property (nonatomic) NSUInteger nativeInterfaceVersion;
+
+/**
  *  Apply and save options that has been send from the web page.
  *  Using this we can change plugin config from JavaScript.
  *

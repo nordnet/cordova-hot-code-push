@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
 import com.nordnetab.chcp.main.utils.VersionHelper;
 
 import java.io.IOException;
@@ -94,7 +95,7 @@ public class PluginInternalPreferences {
         pluginPrefs.setCurrentReleaseVersionName("");
 
         // read app config from assets to get current release version
-        final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context);
+        final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context, PluginFilesStructure.CONFIG_FILE_NAME);
         if (appConfig != null) {
             pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
         }

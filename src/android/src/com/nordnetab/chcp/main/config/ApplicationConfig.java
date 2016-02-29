@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
+import com.nordnetab.chcp.main.utils.Paths;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -21,8 +23,6 @@ import java.io.InputStreamReader;
 public class ApplicationConfig {
 
     private static final String MARKET_URL_FORMAT = "market://details?id=%s";
-
-    private static final String APPLICATION_CONFIG_IN_ASSETS = "www/chcp.json";
 
     private static class JsonKeys {
         public static final String STORE_PACKAGE_IDENTIFIER = "android_identifier";
@@ -71,12 +71,13 @@ public class ApplicationConfig {
      * @param context application context
      * @return application config from assets
      */
-    public static ApplicationConfig configFromAssets(final Context context) {
+    public static ApplicationConfig configFromAssets(final Context context, final String configFileName) {
         final AssetManager assetManager = context.getResources().getAssets();
         final StringBuilder returnString = new StringBuilder();
+        final String configFilePath = "www/" + configFileName;
         BufferedReader reader = null;
         try {
-            InputStreamReader isr = new InputStreamReader(assetManager.open(APPLICATION_CONFIG_IN_ASSETS));
+            InputStreamReader isr = new InputStreamReader(assetManager.open(configFilePath));
             reader = new BufferedReader(isr);
             String line;
             while ((line = reader.readLine()) != null) {

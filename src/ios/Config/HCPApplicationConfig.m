@@ -45,6 +45,25 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
     return _storeUrl;
 }
 
++ (instancetype)configFromBundle:(NSString *)configFileName {
+    NSURL *wwwFolderURL = [NSURL fileURLWithPath:[NSBundle pathToWwwFolder] isDirectory:YES];
+    NSURL *chcpJsonFileURLFromBundle = [wwwFolderURL URLByAppendingPathComponent:configFileName];
+    
+    NSData *jsonData = [NSData dataWithContentsOfURL:chcpJsonFileURLFromBundle];
+    if (jsonData == nil) {
+        return nil;
+    }
+    
+    NSError *error = nil;
+    id json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&error];
+    if (error) {
+        NSLog(@"Can't read application config from bundle. %@", [error underlyingErrorLocalizedDesription]);
+        return nil;
+    }
+    
+    return [HCPApplicationConfig instanceFromJsonObject:json];
+}
+
 #pragma mark HCPJsonConvertable implementation
 
 - (id)toJson {
@@ -75,25 +94,6 @@ static NSString *const STORE_URL_TEMPLATE = @"https://itunes.apple.com/app/%@";
     appConfig.contentConfig = [HCPContentConfig instanceFromJsonObject:jsonObject];
     
     return appConfig;
-}
-
-+ (instancetype)configFromBundle {
-    NSURL *wwwFolderURL = [NSURL fileURLWithPath:[NSBundle pathToWwwFolder] isDirectory:YES];
-    NSURL *chcpJsonFileURLFromBundle = [wwwFolderURL URLByAppendingPathComponent:@"chcp.json"];
-    
-    NSData *jsonData = [NSData dataWithContentsOfURL:chcpJsonFileURLFromBundle];
-    if (jsonData == nil) {
-        return nil;
-    }
-    
-    NSError *error = nil;
-    id json = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&error];
-    if (error) {
-        NSLog(@"Can't read chcp.json config from bundle. %@", [error underlyingErrorLocalizedDesription]);
-        return nil;
-    }
-    
-    return [HCPApplicationConfig instanceFromJsonObject:json];
 }
 
 @end

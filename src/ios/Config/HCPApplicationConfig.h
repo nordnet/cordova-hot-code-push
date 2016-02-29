@@ -25,6 +25,13 @@
  */
 @property (nonatomic, strong, readonly) HCPContentConfig *contentConfig;
 
-+ (instancetype)configFromBundle;
+/**
+ *  Create instance of the application config from the configuration file in assets.
+ *
+ *  @param configFileName name of the configuration file
+ *
+ *  @return config instance
+ */
++ (instancetype)configFromBundle:(NSString *)configFileName;
 
 @end

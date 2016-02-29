@@ -58,4 +58,20 @@
  */
 + (NSURL *)pluginRootFolder;
 
+/**
+ *  Default application config file name.
+ *  Should be equal to the config name, that is bundled with the app.
+ *
+ *  @return default application config file name.
+ */
++ (NSString *)defaultConfigFileName;
+
+/**
+ *  Default name of the manifest file.
+ *  Should be equal to the manifest name, that is bundled with the app.
+ *
+ *  @return default manifest file name.
+ */
++ (NSString *)defaultManifestFileName;
+
 @end

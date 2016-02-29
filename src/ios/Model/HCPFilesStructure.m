@@ -91,4 +91,12 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     return CHCP_MANIFEST_FILE_PATH;
 }
 
++ (NSString *)defaultConfigFileName {
+    return CHCP_JSON_FILE_PATH;
+}
+
++ (NSString *)defaultManifestFileName {
+    return CHCP_MANIFEST_FILE_PATH;
+}
+
 @end

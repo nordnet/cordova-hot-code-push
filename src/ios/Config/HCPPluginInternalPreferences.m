@@ -7,6 +7,7 @@
 #import "HCPPluginInternalPreferences.h"
 #import "NSBundle+HCPExtension.h"
 #import "HCPApplicationConfig.h"
+#import "HCPFilesStructure.h"
 
 #pragma mark JSON keys for plugin options
 
@@ -27,7 +28,7 @@ static NSString *const READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = @"ready_for
     pluginConfig.previousReleaseVersionName = @"";
     pluginConfig.readyForInstallationReleaseVersionName = @"";
     
-    HCPApplicationConfig *config = [HCPApplicationConfig configFromBundle];
+    HCPApplicationConfig *config = [HCPApplicationConfig configFromBundle:[HCPFilesStructure defaultConfigFileName]];
     pluginConfig.currentReleaseVersionName = config.contentConfig.releaseVersion;
     
     return pluginConfig;

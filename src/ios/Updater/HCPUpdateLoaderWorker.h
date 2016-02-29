@@ -24,6 +24,6 @@
  *  @return instance of the object
  *  @see HCPFilesStructure
  */
-- (instancetype)initWithConfigUrl:(NSURL *)configURL currentVersion:(NSString *)currentVersion;
+- (instancetype)initWithConfigUrl:(NSURL *)configURL currentWebVersion:(NSString *)currentWebVersion nativeInterfaceVersion:(NSUInteger)currentNativeVersion;
 
 @end

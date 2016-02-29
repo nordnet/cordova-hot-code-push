@@ -6,7 +6,6 @@
 
 #import "HCPUpdateLoaderWorker.h"
 #import "NSJSONSerialization+HCPExtension.h"
-#import "NSBundle+HCPExtension.h"
 #import "HCPManifestDiff.h"
 #import "HCPManifestFile.h"
 #import "HCPApplicationConfigStorage.h"
@@ -20,6 +19,7 @@
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
     HCPFilesStructure *_pluginFiles;
+    NSUInteger _nativeInterfaceVersion;
     
     id<HCPConfigFileStorage> _appConfigStorage;
     id<HCPConfigFileStorage> _manifestStorage;
@@ -38,12 +38,13 @@
 
 #pragma mark Public API
 
-- (instancetype)initWithConfigUrl:(NSURL *)configURL currentVersion:(NSString *)currentVersion {
+- (instancetype)initWithConfigUrl:(NSURL *)configURL currentWebVersion:(NSString *)currentWebVersion nativeInterfaceVersion:(NSUInteger)currentNativeVersion {
     self = [super init];
     if (self) {
         _configURL = configURL;
+        _nativeInterfaceVersion = currentNativeVersion;
         _workerId = [self generateWorkerId];
-        _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:currentVersion];
+        _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:currentWebVersion];
         _appConfigStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_pluginFiles];
         _manifestStorage = [[HCPContentManifestStorage alloc] initWithFileStructure:_pluginFiles];
     }
@@ -85,7 +86,7 @@
         }
         
         // check if current native version supports new content
-        if (newAppConfig.contentConfig.minimumNativeVersion > [NSBundle applicationBuildVersion]) {
+        if (newAppConfig.contentConfig.minimumNativeVersion > _nativeInterfaceVersion) {
             [self notifyWithError:[NSError errorWithCode:kHCPApplicationBuildVersionTooLowErrorCode
                                              description:@"Application build version is too low for this update"]
                 applicationConfig:newAppConfig];

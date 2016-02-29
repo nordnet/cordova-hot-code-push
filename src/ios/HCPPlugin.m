@@ -164,7 +164,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     NSError *error = nil;
     [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
-                                                   currentVersion:_pluginInternalPrefs.currentReleaseVersionName
+                                                currentWebVersion:_pluginInternalPrefs.currentReleaseVersionName
+                                             currentNativeVersion:_pluginXmlConfig.nativeInterfaceVersion
                                                             error:&error];
     if (error) {
         if (callbackId) {

@@ -33,7 +33,7 @@
     return _isExecuting;
 }
 
-- (BOOL)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentVersion:(NSString *)currentVersion error:(NSError **)error {
+- (BOOL)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentWebVersion:(NSString *)currentWebVersion currentNativeVersion:(NSUInteger)currentNativeVersion error:(NSError **)error {
     if (_isExecuting) {
         *error = [NSError errorWithCode:kHCPDownloadAlreadyInProgressErrorCode description:@"Download already in progress. Please, wait for it to finish."];
         return NO;
@@ -46,7 +46,9 @@
     }
     
     *error = nil;
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl currentVersion:currentVersion];
+    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl
+                                                        currentWebVersion:currentWebVersion
+                                                   nativeInterfaceVersion:currentNativeVersion];
     [self executeTask:task];
     
     return YES;

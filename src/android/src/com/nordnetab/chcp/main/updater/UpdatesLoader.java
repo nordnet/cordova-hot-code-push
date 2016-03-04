@@ -3,7 +3,7 @@ package com.nordnetab.chcp.main.updater;
 import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.

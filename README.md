@@ -39,7 +39,7 @@ As a result, your application receives updates of the web content as soon as pos
 - [Error codes](#error-codes)
 
 ### Installation
-This requires cordova 5.0+ (current stable 1.2.5)
+This requires cordova 5.0+ (current stable 1.3.0)
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
 ```
@@ -56,6 +56,19 @@ At the end of the installation plugin will recommend you to install [Cordova Hot
 Of course, you can use this plugin without the CLI client, but it will make your life easier.
 
 ### Migrating from previous version
+
+##### From v1.2.x to v1.3.x
+
+If you are not using `min_native_interface` in your `chcp.json` - you can skip the text below. Everyone else - please, keep reading.
+
+In the previous versions of the plugin `min_native_interface` was compared with the code (build) version of the application. But that approach had the two main problems:
+
+1. When building for Android - Cordova manipulates with `versionCode` preference, what could lead to unexpected behaviour.
+2. In iOS `CFBundleVersion` is a string, so you could define it like `1.2.3`, while plugin expects it to be a number.
+
+To avoid these problems in the future - new preference was added to the plugin. It will now use `<native-interface version="some_number" />`, that you define in `config.xml` of your project. As a result, if `chcp.json` has a `min_native_interface` preference - it will be compared with `<native-interface />` from the `config.xml`.
+
+So, if you updating to v1.3.0 and using `min_native_interface` - don't forget to define `<native-interface />` in project's `config.xml`.
 
 ##### From v1.0.x to v1.1.x
 
@@ -317,6 +330,19 @@ Defines URL from which application config should be loaded. URL is declared in t
 
 In the case of the local development mode, if `config-file` is not defined - it is automatically set to the applications config path on the local server.
 
+##### native-interface
+Defines current version of the native side.
+
+```xml
+<chcp>
+    <native-interface version="5" />
+</chcp>
+```
+
+This preference should be used with the conjunction of `min_native_interface` from `chcp.json`. If it's lower then the `min_native_interface` - plugin will not load new update from the server, since native side doesn't support it.
+
+By default it is set to `1`.
+
 #####  auto-download
 Defines if plugin is allowed to download updates. Originally update fetching is performed automatically, but you can disable it and do that manually through the JavaScript module.
 
@@ -338,6 +364,8 @@ To disable updates auto installation add to `config.xml`:
 </chcp>
 ```
 By default preference is set to `true`.
+
+To use it in `chcpbuild.options`
 
 ### Configuration files
 
@@ -374,52 +402,43 @@ Any string that describes your web project version. Should be unique for each re
 **Important:** plugin will compare release values as strings for equality, and if they are not equal - it will decide that new release is available.
 
 ##### min_native_interface
-Minimum required version of the native application. This should be a build/code version of the app, not a version, that is displayed to the users on the App Store / Google Play. It should be a number.
+Minimum version of the native side that is required to run this web content. For example, if you add new plugin to the project - most likely it will require native version to update. In order to prevent user from downloading web content that he can't use right now - you increase the `min_native_interface` value.
 
-In a `config.xml` you usually specify versions like so:
+In the application you define current native version like so:
 ```xml
-<widget id="io.cordova.hellocordova"
-      version="1.0.1"
-      android-versionCode="7"
-      ios-CFBundleVersion="3">
-```
-- `version` - version of the app, that is visible on the store.
-- `android-versionCode` - code version of the Android application. This value should be used for `min_native_interface`.
-- `ios-CFBundleVersion` - code version of the iOS application. This value should be used for `min_native_interface`.
-
-Preference creates dependency between the web and the native versions of the application.
-
-**Important:** Due to [a quirk in cordova](https://issues.apache.org/jira/browse/CB-8976), the version code in your generated `.apk` will be multiplied by 10, resulting in an apk with a version code of 70, 72, or 74, depending on the platform (arm/x86/etc) for the previous example. In order to work around this, we recommend multiplying the iOS version code by `10` for every release, so that a `min_native_interface` of `70` can target both platforms, making your config.xml similar to:
-```xml
-<widget id="io.cordova.hellocordova"
-      version="1.0.1"
-      android-versionCode="7"
-      ios-CFBundleVersion="70">
+<chcp>
+    <native-interface version="some_number" />
+</chcp>
 ```
 
-For example, if you add new plugin to the project - most likely it will require native version to update. In order to prevent user from downloading web content that he can't use right now - you increase the `min_native_interface` value.
+Lets say, that in `config.xml` we set native interface version to 5:
+```xml
+<chcp>
+    <native-interface version="5" />
+</chcp>
+```
 
-Lets say, that inside our app we have the following application config:
+And current application config on the server is:
 ```json
 {
   "content_url": "https://5027caf9.ngrok.com",
   "release": "2015.09.01-13.30.35",
-  "min_native_interface": 10
+  "min_native_interface": 5
 }
 ```
 
-And the build version of our app is `13`.
+In that case plugin will load and install update without any problem, since native side can handle new web content.
 
 At some point we release a new version and publish it on the server with the config:
 ```json
 {
   "content_url": "https://5027caf9.ngrok.com",
   "release": "2015.09.05-12.20.15",
-  "min_native_interface": 15
+  "min_native_interface": 10
 }
 ```
 
-When plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then the current build version of the app - it's not gonna load new release. Instead, it will send `chcp_updateLoadFailed` notification with error, stating that application update is required. In details this is described in [Request application update through the store](#request-application-update-through-the-store) section below.
+When plugin loads that new config from the server and sees, that it's `min_native_interface` is higher then the `<native-interface />` in `config.xml` - it's not gonna load new release. Instead, it will send `chcp_updateLoadFailed` notification with error, stating that application update is required. In details this is described in [Request application update through the store](#request-application-update-through-the-store) section below.
 
 **Note:** right now you can't specify different values for `min_native_interface` for different platforms. But this can be added later, if needed.
 
@@ -551,7 +570,45 @@ cordova build --release
 ```
 In that case `config.xml` is not modified.
 
-If `chcpbuild.options` are not used - then plugin will use preferences from the project's main `config.xml`.
+If `chcpbuild.options` not used - plugin will use preferences from the project's main `config.xml`.
+
+##### config-file url preference
+
+```json
+"config-file": "https://url/to/your/chcp.json"
+```
+
+or
+
+```json
+"config-file": {
+    "url": "https://url/to/your/chcp.json"
+}
+```
+
+##### auto-download preference
+
+```json
+"auto-download": {
+    "enabled": false
+}
+```
+
+##### auto-install preference
+
+```json
+"auto-install": {
+    "enabled": false
+}
+```
+
+##### native-interface preference
+
+```json
+"native-interface": {
+    "version": 5
+}
+```
 
 ### JavaScript module
 

@@ -24,4 +24,8 @@ final class XmlTags {
     public static final String AUTO_INSTALLATION_TAG = "auto-install";
     public static final String AUTO_INSTALLATION_ENABLED_ATTRIBUTE = "enabled";
 
+    // keys for native interface version
+    public static final String NATIVE_INTERFACE_TAG = "native-interface";
+    public static final String NATIVE_INTERFACE_VERSION_ATTRIBUTE = "version";
+
 }

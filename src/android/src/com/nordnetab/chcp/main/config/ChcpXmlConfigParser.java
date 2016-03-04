@@ -28,7 +28,7 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
      * @param chcpConfig config instance to which we will set preferences from config.xml
      * @see ChcpXmlConfig
      */
-    public void parse(Context context, ChcpXmlConfig chcpConfig) {
+    public void parse(final Context context, final ChcpXmlConfig chcpConfig) {
         this.chcpConfig = chcpConfig;
 
         isInsideChcpBlock = false;
@@ -38,13 +38,13 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
     }
 
     @Override
-    public void handleStartTag(XmlPullParser xml) {
+    public void handleStartTag(final XmlPullParser xml) {
         if (didParseChcpBlock) {
-          return;
+            return;
         }
 
         final String name = xml.getName();
-        if (name.equals(XmlTags.MAIN_TAG)) {
+        if (XmlTags.MAIN_TAG.equals(name)) {
             isInsideChcpBlock = true;
             return;
         }
@@ -55,49 +55,62 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         }
 
         // parse configuration file preference
-        if (name.equals(XmlTags.CONFIG_FILE_TAG)) {
+        if (XmlTags.CONFIG_FILE_TAG.equals(name)) {
             processConfigFileBlock(xml);
             return;
         }
 
         // parse auto download preference
-        if (name.equals(XmlTags.AUTO_DOWNLOAD_TAG)) {
+        if (XmlTags.AUTO_DOWNLOAD_TAG.equals(name)) {
             processAutoDownloadBlock(xml);
             return;
         }
 
         // parse auto installation preference
-        if (name.equals(XmlTags.AUTO_INSTALLATION_TAG)) {
+        if (XmlTags.AUTO_INSTALLATION_TAG.equals(name)) {
             processAutoInstallationBlock(xml);
+            return;
+        }
+
+        // parse native navigation interface version
+        if (XmlTags.NATIVE_INTERFACE_TAG.equals(name)) {
+            processNativeInterfaceBlock(xml);
         }
     }
 
-    private void processConfigFileBlock(XmlPullParser xml) {
+    @Override
+    public void handleEndTag(final XmlPullParser xml) {
+        if (didParseChcpBlock) {
+            return;
+        }
+
+        final String name = xml.getName();
+        if (XmlTags.MAIN_TAG.equals(name)) {
+            didParseChcpBlock = true;
+            isInsideChcpBlock = false;
+        }
+    }
+
+    private void processConfigFileBlock(final XmlPullParser xml) {
         String configUrl = xml.getAttributeValue(null, XmlTags.CONFIG_FILE_URL_ATTRIBUTE);
 
         chcpConfig.setConfigUrl(configUrl);
     }
 
-    private void processAutoDownloadBlock(XmlPullParser xml) {
+    private void processAutoDownloadBlock(final XmlPullParser xml) {
         boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_DOWNLOAD_ENABLED_ATTRIBUTE).equals("true");
         chcpConfig.allowUpdatesAutoDownload(isEnabled);
     }
 
-    private void processAutoInstallationBlock(XmlPullParser xml) {
+    private void processAutoInstallationBlock(final XmlPullParser xml) {
         boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_INSTALLATION_ENABLED_ATTRIBUTE).equals("true");
         chcpConfig.allowUpdatesAutoInstall(isEnabled);
     }
 
-    @Override
-    public void handleEndTag(XmlPullParser xml) {
-        if (didParseChcpBlock) {
-            return;
-        }
+    private void processNativeInterfaceBlock(final XmlPullParser xml) {
+        final String nativeVersionStr = xml.getAttributeValue(null, XmlTags.NATIVE_INTERFACE_VERSION_ATTRIBUTE);
+        final int nativeVersion = Integer.parseInt(nativeVersionStr);
 
-        String name = xml.getName();
-        if (name.equals(XmlTags.MAIN_TAG)) {
-            didParseChcpBlock = true;
-            isInsideChcpBlock = false;
-        }
+        chcpConfig.setNativeInterfaceVersion(nativeVersion);
     }
 }

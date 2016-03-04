@@ -16,11 +16,13 @@ public class ChcpXmlConfig {
     private String configUrl;
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
+    private int nativeInterfaceVersion;
 
     private ChcpXmlConfig() {
         configUrl = "";
         allowUpdatesAutoDownload = true;
         allowUpdatesAutoInstall = true;
+        nativeInterfaceVersion = 1;
     }
 
     /**
@@ -81,12 +83,30 @@ public class ChcpXmlConfig {
     }
 
     /**
+     * Getter for current native interface version of the application.
+     *
+     * @return native version
+     * */
+    public int getNativeInterfaceVersion() {
+        return nativeInterfaceVersion;
+    }
+
+    /**
+     * Setter for current native interface version of the application.
+     *
+     * @param version version to set
+     * */
+    void setNativeInterfaceVersion(int version) {
+        nativeInterfaceVersion = version > 0 ? version : 1;
+    }
+
+    /**
      * Load plugins specific preferences from Cordova's config.xml.
      *
      * @param context current context of the activity
      * @return hot-code-push plugin preferences
      */
-    public static ChcpXmlConfig loadFromCordovaConfig(Context context) {
+    public static ChcpXmlConfig loadFromCordovaConfig(final Context context) {
         ChcpXmlConfig chcpConfig = new ChcpXmlConfig();
 
         new ChcpXmlConfigParser().parse(context, chcpConfig);

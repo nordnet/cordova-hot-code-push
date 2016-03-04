@@ -1,8 +1,7 @@
 package com.nordnetab.chcp.main.updater;
 
-import android.content.Context;
-
 import com.nordnetab.chcp.main.model.ChcpError;
+import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
 import de.greenrobot.event.EventBus;
 
@@ -30,12 +29,12 @@ public class UpdatesLoader {
      * Request update download.
      * Download performed in background. Events are dispatched to notify us about the result.
      *
-     * @param context        application context
-     * @param configURL      url from which we should download application config
-     * @param currentVersion current version of the content
+     * @param configURL                   url from which we should download application config
+     * @param currentReleaseFileStructure files structure of the current release
+     * @param currentNativeVersion        current native interface version
      * @return <code>ChcpError.NONE</code> if download has started; otherwise - error details
      */
-    public static ChcpError downloadUpdate(final Context context, final String configURL, final String currentVersion) {
+    public static ChcpError downloadUpdate(final String configURL, final PluginFilesStructure currentReleaseFileStructure, final int currentNativeVersion) {
         // if download already in progress - exit
         if (isExecuting) {
             return ChcpError.DOWNLOAD_ALREADY_IN_PROGRESS;
@@ -48,7 +47,7 @@ public class UpdatesLoader {
 
         isExecuting = true;
 
-        UpdateLoaderWorker task = new UpdateLoaderWorker(context, configURL, currentVersion);
+        final UpdateLoaderWorker task = new UpdateLoaderWorker(configURL, currentReleaseFileStructure, currentNativeVersion);
         executeTask(task);
 
         return ChcpError.NONE;

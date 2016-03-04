@@ -376,7 +376,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        ChcpError error = UpdatesLoader.downloadUpdate(cordova.getActivity(), chcpXmlConfig.getConfigUrl(), pluginInternalPrefs.getCurrentReleaseVersionName());
+        final PluginFilesStructure currentReleaseFS = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
+        final ChcpError error = UpdatesLoader.downloadUpdate(chcpXmlConfig.getConfigUrl(), currentReleaseFS, chcpXmlConfig.getNativeInterfaceVersion());
         if (error != ChcpError.NONE) {
             if (jsCallback != null) {
                 PluginResult errorResult = PluginResultHelper.createPluginResult(UpdateDownloadErrorEvent.EVENT_NAME, null, error);
@@ -641,7 +642,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @SuppressWarnings("unused")
     @Subscribe
     public void onEvent(BeforeInstallEvent event) {
-        Log.d("CHCP", "Before install");
+        Log.d("CHCP", "Dispatching Before install event");
 
         PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 

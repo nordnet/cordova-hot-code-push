@@ -1,6 +1,5 @@
 package com.nordnetab.chcp.main.updater;
 
-import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -23,7 +22,6 @@ import com.nordnetab.chcp.main.storage.ContentManifestStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.utils.FilesUtility;
 import com.nordnetab.chcp.main.utils.URLUtility;
-import com.nordnetab.chcp.main.utils.VersionHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +37,7 @@ import java.util.List;
 class UpdateLoaderWorker implements WorkerTask {
 
     private final String applicationConfigUrl;
-    private final int appBuildVersion;
+    private final int appNativeVersion;
     private final PluginFilesStructure filesStructure;
 
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
@@ -53,14 +51,14 @@ class UpdateLoaderWorker implements WorkerTask {
     /**
      * Constructor.
      *
-     * @param context        application context
-     * @param configUrl      application config url
-     * @param currentVersion current version of the content
+     * @param configUrl                   application config url
+     * @param currentReleaseFileStructure files structure of the current release
+     * @param currentNativeVersion        current native version of the
      */
-    public UpdateLoaderWorker(Context context, final String configUrl, final String currentVersion) {
-        filesStructure = new PluginFilesStructure(context, currentVersion);
+    public UpdateLoaderWorker(final String configUrl, final PluginFilesStructure currentReleaseFileStructure, final int currentNativeVersion) {
+        filesStructure = currentReleaseFileStructure;
         applicationConfigUrl = configUrl;
-        appBuildVersion = VersionHelper.applicationVersionCode(context);
+        appNativeVersion = currentNativeVersion;
     }
 
     @Override
@@ -85,7 +83,7 @@ class UpdateLoaderWorker implements WorkerTask {
         }
 
         // check if current native version supports new content
-        if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appBuildVersion) {
+        if (newAppConfig.getContentConfig().getMinimumNativeVersion() > appNativeVersion) {
             setErrorResult(ChcpError.APPLICATION_BUILD_VERSION_TOO_LOW, newAppConfig);
             return;
         }

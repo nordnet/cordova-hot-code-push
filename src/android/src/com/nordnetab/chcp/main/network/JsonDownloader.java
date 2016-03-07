@@ -68,6 +68,7 @@ abstract class JsonDownloader<T> {
         }
 
         URLConnection urlConnection = url.openConnection();
+        urlConnection.setConnectTimeout(60000);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 
         char data[] = new char[1024];

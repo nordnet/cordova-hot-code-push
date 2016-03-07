@@ -70,6 +70,7 @@ public class FileDownloader {
         }
 
         URLConnection connection = downloadUrl.openConnection();
+        connection.setConnectTimeout(60000);
         connection.connect();
 
         InputStream input = new BufferedInputStream(downloadUrl.openStream());

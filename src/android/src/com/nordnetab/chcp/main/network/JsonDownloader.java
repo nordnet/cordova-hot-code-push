@@ -19,6 +19,12 @@ abstract class JsonDownloader<T> {
 
     private String downloadUrl;
 
+    // connection timeout in milliseconds
+    private static final int CONNECTION_TIMEOUT = 30000;
+
+    // data read timeout in milliseconds
+    private static final int READ_TIMEOUT = 30000;
+
     /**
      * Create instance of the object from json string.
      *
@@ -60,18 +66,21 @@ abstract class JsonDownloader<T> {
     }
 
     private String downloadJson() throws Exception {
-        StringBuilder jsonContent = new StringBuilder();
+        final StringBuilder jsonContent = new StringBuilder();
 
-        URL url = URLUtility.stringToUrl(downloadUrl);
+        final URL url = URLUtility.stringToUrl(downloadUrl);
         if (url == null) {
             throw new Exception("Invalid url format:" + downloadUrl);
         }
 
-        URLConnection urlConnection = url.openConnection();
-        urlConnection.setConnectTimeout(60000);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        final URLConnection urlConnection = url.openConnection();
+        urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+        urlConnection.setReadTimeout(READ_TIMEOUT);
 
-        char data[] = new char[1024];
+        final InputStreamReader streamReader = new InputStreamReader(urlConnection.getInputStream());
+        final BufferedReader bufferedReader = new BufferedReader(streamReader);
+
+        final char data[] = new char[1024];
         int count;
         while ((count = bufferedReader.read(data)) != -1) {
             jsonContent.append(data, 0, count);

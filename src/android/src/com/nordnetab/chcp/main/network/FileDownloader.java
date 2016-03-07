@@ -26,6 +26,12 @@ import java.util.List;
  */
 public class FileDownloader {
 
+    // connection timeout in milliseconds
+    private static final int CONNECTION_TIMEOUT = 30000;
+
+    // data read timeout in milliseconds
+    private static final int READ_TIMEOUT = 30000;
+
     /**
      * Download list of files.
      * Full url to the file is constructed from the contentFolderUrl and ManifestFile#hash (relative path).
@@ -55,28 +61,31 @@ public class FileDownloader {
      * @param checkSum checksum of the file
      * @throws IOException
      */
-    public static void download(String urlFrom, String filePath, String checkSum) throws IOException {
+    public static void download(final String urlFrom, final String filePath, final String checkSum) throws IOException {
         Log.d("CHCP", "Loading file: " + urlFrom);
 
-        File downloadFile = new File(filePath);
+        final File downloadFile = new File(filePath);
         FilesUtility.delete(downloadFile);
         FilesUtility.ensureDirectoryExists(downloadFile.getParentFile());
 
-        MD5 md5 = new MD5();
+        final MD5 md5 = new MD5();
 
-        URL downloadUrl = URLUtility.stringToUrl(urlFrom);
+        final URL downloadUrl = URLUtility.stringToUrl(urlFrom);
         if (downloadUrl == null) {
             throw new IOException("Invalid url format");
         }
 
-        URLConnection connection = downloadUrl.openConnection();
-        connection.setConnectTimeout(60000);
+        // create connection
+        final URLConnection connection = downloadUrl.openConnection();
+        connection.setConnectTimeout(CONNECTION_TIMEOUT);
+        connection.setReadTimeout(READ_TIMEOUT);
         connection.connect();
 
-        InputStream input = new BufferedInputStream(downloadUrl.openStream());
-        OutputStream output = new BufferedOutputStream(new FileOutputStream(filePath, false));
+        // create streams
+        final InputStream input = new BufferedInputStream(downloadUrl.openStream());
+        final OutputStream output = new BufferedOutputStream(new FileOutputStream(filePath, false));
 
-        byte data[] = new byte[1024];
+        final byte data[] = new byte[1024];
         int count;
         while ((count = input.read(data)) != -1) {
             output.write(data, 0, count);
@@ -87,7 +96,7 @@ public class FileDownloader {
         output.close();
         input.close();
 
-        String downloadedFileHash = md5.calculateHash();
+        final String downloadedFileHash = md5.calculateHash();
         if (!downloadedFileHash.equals(checkSum)) {
             throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match hash " + downloadedFileHash + " of the downloaded file");
         }

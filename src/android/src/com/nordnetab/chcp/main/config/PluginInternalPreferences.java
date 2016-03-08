@@ -24,6 +24,8 @@ public class PluginInternalPreferences {
     private static final String CURRENT_RELEASE_VERSION_NAME = "current_release_version_name";
     private static final String READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = "ready_for_installation_release_version_name";
 
+    private static final  String STUB_DEFAULT_RELEASE_VERSION = "default_release_version";
+
     private int appBuildVersion;
     private boolean wwwFolderInstalled;
     private String currentReleaseVersionName;
@@ -85,7 +87,7 @@ public class PluginInternalPreferences {
      * @param context application context
      * @return default plugin internal preferences
      */
-    public static PluginInternalPreferences createDefault(final Context context) {
+    public static PluginInternalPreferences createDefault(final Context context, boolean useConfigurationFromAssets) {
         final PluginInternalPreferences pluginPrefs = new PluginInternalPreferences();
         pluginPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
         pluginPrefs.setWwwFolderInstalled(false);
@@ -93,10 +95,14 @@ public class PluginInternalPreferences {
         pluginPrefs.setReadyForInstallationReleaseVersionName("");
         pluginPrefs.setCurrentReleaseVersionName("");
 
-        // read app config from assets to get current release version
-        final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context);
-        if (appConfig != null) {
-            pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
+        if(useConfigurationFromAssets) {
+            // read app config from assets to get current release version
+            final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context);
+            if (appConfig != null) {
+                pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
+            }
+        } else {
+            pluginPrefs.setCurrentReleaseVersionName(STUB_DEFAULT_RELEASE_VERSION);
         }
 
         return pluginPrefs;

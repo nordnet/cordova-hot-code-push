@@ -4,6 +4,7 @@ import android.content.res.AssetManager;
 
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
+import com.nordnetab.chcp.main.events.BeforeAssetsInstalledEvent;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +42,9 @@ public class AssetsHelper {
             return;
         }
         isWorking = true;
+
+        // notify, that we are starting assets installation
+        EventBus.getDefault().post(new BeforeAssetsInstalledEvent());
 
         new Thread(new Runnable() {
             @Override

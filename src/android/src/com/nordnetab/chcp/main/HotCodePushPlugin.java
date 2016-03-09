@@ -10,6 +10,7 @@ import com.nordnetab.chcp.main.config.ContentConfig;
 import com.nordnetab.chcp.main.config.PluginInternalPreferences;
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
+import com.nordnetab.chcp.main.events.BeforeAssetsInstalledEvent;
 import com.nordnetab.chcp.main.events.BeforeInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
@@ -45,6 +46,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -76,6 +79,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private boolean isPluginReadyForWork;
     private boolean dontReloadOnStart;
 
+    private List<PluginResult> defaultCallbackStoredResults;
+
     // region Plugin lifecycle
 
     @Override
@@ -100,6 +105,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         handler = new Handler();
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
         appConfigStorage = new ApplicationConfigStorage();
+        defaultCallbackStoredResults = new ArrayList<PluginResult>();
     }
 
     @Override
@@ -235,15 +241,36 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Default callback - is a callback that we receive on initialization (device ready).
      * Through it we are broadcasting different events.
      *
+     * If callback is not set yet - message will be stored until it is initialized.
+     *
      * @param message message to send to web side
+     * @return true if message was sent; false - otherwise
      */
-    private void sendMessageToDefaultCallback(PluginResult message) {
+    private boolean sendMessageToDefaultCallback(final PluginResult message) {
         if (jsDefaultCallback == null) {
-            return;
+            defaultCallbackStoredResults.add(message);
+            return false;
         }
 
         message.setKeepCallback(true);
         jsDefaultCallback.sendPluginResult(message);
+
+        return true;
+    }
+
+    /**
+     * Dispatch stored events for the default callback.
+     * */
+    private void dispatchDefaultCallbackStoredResults() {
+        if (defaultCallbackStoredResults.size() == 0 || jsDefaultCallback == null) {
+            return;
+        }
+
+        for (PluginResult result : defaultCallbackStoredResults) {
+            sendMessageToDefaultCallback(result);
+        }
+
+        defaultCallbackStoredResults.clear();
     }
 
     /**
@@ -253,6 +280,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      */
     private void jsInit(CallbackContext callback) {
         jsDefaultCallback = callback;
+        dispatchDefaultCallbackStoredResults();
 
         // Clear web history.
         // In some cases this is necessary, because on the launch we redirect user to the
@@ -524,6 +552,15 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // region Assets installation events
 
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onEvent(final BeforeAssetsInstalledEvent event) {
+        Log.d("CHCP", "Dispatching before assets installed event");
+        final PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
+
+        sendMessageToDefaultCallback(result);
+    }
+
     /**
      * Listener for event that assets folder are now installed on the external storage.
      * From that moment all content will be displayed from it.
@@ -535,7 +572,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      */
     @SuppressWarnings("unused")
     @Subscribe
-    public void onEvent(AssetsInstalledEvent event) {
+    public void onEvent(final AssetsInstalledEvent event) {
         // update stored application version
         pluginInternalPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(cordova.getActivity()));
         pluginInternalPrefs.setWwwFolderInstalled(true);

@@ -1,4 +1,5 @@
 
+
 var exec = require('cordova/exec'),
   channel = require('cordova/channel'),
 
@@ -12,21 +13,6 @@ var exec = require('cordova/exec'),
     INSTALL_UPDATE: 'jsInstallUpdate',
     CONFIGURE: 'jsConfigure',
     REQUEST_APP_UPDATE: 'jsRequestAppUpdate'
-  },
-
-  // List of events, received from native side.
-  // Normally you just don't subscribe for unwanted events,
-  // but if you want to ignore them on module level - set flag to false.
-  pluginEvents = {
-    'chcp_assetsInstallationError': true,
-    'chcp_assetsInstalledOnExternalStorage': true,
-    'chcp_updateLoadFailed': true,
-    'chcp_nothingToUpdate': true,
-    'chcp_updateIsReadyToInstall': true,
-    'chcp_beforeInstall': true,
-    'chcp_updateInstallFailed': true,
-    'chcp_updateInstalled': true,
-    'chcp_nothingToInstall': true
   };
 
 // Called when Cordova is ready for work.
@@ -50,18 +36,7 @@ function nativeCallback(msg) {
     return;
   }
 
-  var eventIsEnabled = pluginEvents[resultObj.action];
-
-  // if event is not supported - ignore it
-  if (eventIsEnabled == undefined || eventIsEnabled == null) {
-    console.warn('Unsupported action: ' + resultObj.action);
-    return;
-  }
-
-  // if event is enabled - broadcast it
-  if (eventIsEnabled) {
-    broadcastEventFromNative(resultObj);
-  }
+  broadcastEventFromNative(resultObj);
 }
 
 /**
@@ -74,9 +49,9 @@ function nativeCallback(msg) {
  * @return {Object} parsed string
  */
 function processMessageFromNative(msg) {
-  var errorContent = null;
-  var dataContent = null;
-  var actionId = null;
+  var errorContent = null,
+    dataContent = null,
+    actionId = null;
 
   try {
     var resultObj = JSON.parse(msg);
@@ -96,6 +71,22 @@ function processMessageFromNative(msg) {
     error: errorContent,
     data: dataContent
   };
+}
+
+function callNativeMethod(methodName, options, callback) {
+  var innerCallback = function(msg) {
+    var resultObj = processMessageFromNative(msg);
+    if (callback !== undefined && callback != null) {
+      callback(resultObj.error, resultObj.data);
+    }
+  };
+
+  var sendArgs = [];
+  if (options !== null && options !== undefined) {
+    sendArgs.push(options);
+  }
+
+  exec(innerCallback, null, PLUGIN_NAME, methodName, sendArgs);
 }
 
 // region Update/Install events
@@ -175,6 +166,22 @@ var chcp = {
     ASSETS_FOLDER_IN_NOT_YET_INSTALLED: -18
   },
 
+  // Plugin events
+  event: {
+    BEFORE_ASSETS_INSTALLATION: 'chcp_beforeAssetsInstalledOnExternalStorage',
+    ASSETS_INSTALLATION_FAILED: 'chcp_assetsInstallationError',
+    ASSETS_INSTALLED: 'chcp_assetsInstalledOnExternalStorage',
+
+    NOTHING_TO_UPDATE: 'chcp_nothingToUpdate',
+    UPDATE_LOAD_FAILED: 'chcp_updateLoadFailed',
+    UPDATE_IS_READY_TO_INSTALL: 'chcp_updateIsReadyToInstall',
+
+    BEFORE_UPDATE_INSTALLATION: 'chcp_beforeInstall',
+    UPDATE_INSTALLATION_FAILED: 'chcp_updateInstallFailed',
+    UPDATE_INSTALLED: 'chcp_updateInstalled',
+    NOTHING_TO_INSTALL: 'chcp_nothingToInstall'
+  },
+
   /**
    * Set plugin options.
    * Options are send to the native side.
@@ -188,14 +195,7 @@ var chcp = {
       return;
     }
 
-    var innerCallback = function(msg) {
-      var resultObj = processMessageFromNative(msg);
-      if (callback !== undefined && callback != null) {
-        callback(resultObj.error);
-      }
-    };
-
-    exec(innerCallback, null, PLUGIN_NAME, pluginNativeMethod.CONFIGURE, [options]);
+    callNativeMethod(pluginNativeMethod.CONFIGURE, options, callback);
   },
 
   /**
@@ -233,14 +233,7 @@ var chcp = {
    * @param {Callback(error, data)} callback - called when native side finished update process
    */
   fetchUpdate: function(callback) {
-    var innerCallback = function(msg) {
-      var resultObj = processMessageFromNative(msg);
-      if (callback !== undefined && callback != null) {
-        callback(resultObj.error, resultObj.data);
-      }
-    };
-
-    exec(innerCallback, null, PLUGIN_NAME, pluginNativeMethod.FETCH_UPDATE, []);
+    callNativeMethod(pluginNativeMethod.FETCH_UPDATE, null, callback);
   },
 
   /**
@@ -249,14 +242,7 @@ var chcp = {
    * @param (Callback(error)) callback - called when native side finishes installation process
    */
   installUpdate: function(callback) {
-    var innerCallback = function(msg) {
-      var resultObj = processMessageFromNative(msg);
-      if (callback != undefined && callback != null) {
-        callback(resultObj.error);
-      }
-    };
-
-    exec(innerCallback, null, PLUGIN_NAME, pluginNativeMethod.INSTALL_UPDATE, []);
+    callNativeMethod(pluginNativeMethod.INSTALL_UPDATE, null, callback);
   }
 };
 

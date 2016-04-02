@@ -1,5 +1,6 @@
 package com.nordnetab.chcp.main.network;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.nordnetab.chcp.main.model.ManifestFile;
@@ -17,7 +18,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -25,26 +36,14 @@ import java.util.List;
  * Helper class to download files.
  */
 public class FileDownloader {
+    private static int sConcurrencyLevel = 1;
 
-    /**
-     * Download list of files.
-     * Full url to the file is constructed from the contentFolderUrl and ManifestFile#hash (relative path).
-     * For each downloaded file we perform check of his hash. If it is different from the one, that provided
-     * if ManifestFile#hash - exception will be thrown.
-     * Download stops on any error.
-     *
-     * @param downloadFolder   absolute path to the folder, where downloaded files should be placed
-     * @param contentFolderUrl root url on the server, where all files are located
-     * @param files            list of files to download
-     * @throws IOException
-     * @see ManifestFile
-     */
-    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ManifestFile> files) throws IOException {
-        for (ManifestFile file : files) {
-            String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
-            String filePath = Paths.get(downloadFolder, file.name);
-            download(fileUrl, filePath, file.hash);
-        }
+    public static int getConcurrencyLevel() {
+        return sConcurrencyLevel;
+    }
+
+    public static void setConcurrencyLevel(int concurrencyLevel) {
+        sConcurrencyLevel = concurrencyLevel;
     }
 
     /**
@@ -69,6 +68,10 @@ public class FileDownloader {
             throw new IOException("Invalid url format");
         }
 
+        // don't use SSLv3 to download files
+        // see https://code.google.com/p/android/issues/detail?id=78187
+        HttpsURLConnection.setDefaultSSLSocketFactory(new NoSSLv3Factory());
+
         URLConnection connection = downloadUrl.openConnection();
         connection.connect();
 
@@ -86,9 +89,90 @@ public class FileDownloader {
         output.close();
         input.close();
 
+        if(TextUtils.isEmpty(checkSum)) {
+            return;
+        }
+
         String downloadedFileHash = md5.calculateHash();
         if (!downloadedFileHash.equals(checkSum)) {
-            throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match hash " + downloadedFileHash + " of the downloaded file");
+            throw new IOException(String.format("File %s is corrupt: checksum %s doesn't match hash %s of the downloaded file", downloadFile.getPath(), checkSum, downloadedFileHash));
+        }
+    }
+
+    /**
+     * Download list of files.
+     * Full url to the file is constructed from the contentFolderUrl and ManifestFile#hash (relative path).
+     * For each downloaded file we perform check of his hash. If it is different from the one, that provided
+     * if ManifestFile#hash - exception will be thrown.
+     * Download stops on any error.
+     *
+     * @param downloadFolder   absolute path to the folder, where downloaded files should be placed
+     * @param contentFolderUrl root url on the server, where all files are located
+     * @param files            list of files to download
+     * @throws IOException
+     * @see ManifestFile
+     */
+    public static void downloadFiles(final String downloadFolder, final String contentFolderUrl, List<ManifestFile> files) throws Exception {
+        List<Callable<Boolean>> downloadFileTasks = createAsyncDownloadTaskList(downloadFolder, contentFolderUrl, files);
+
+        Log.d("CHCP",  String.format("Downloading files using %s thread(s)", sConcurrencyLevel));
+        ExecutorService threadPool = Executors.newFixedThreadPool(sConcurrencyLevel);
+        CompletionService<Boolean> completionService = new ExecutorCompletionService<>(threadPool);
+
+        List<Future<Boolean>> downloadFileFutures = new ArrayList<>();
+
+        long startTime = System.currentTimeMillis();
+
+        for(Callable<Boolean> downloadFileTask : downloadFileTasks) {
+            downloadFileFutures.add(completionService.submit(downloadFileTask));
+        }
+
+        try {
+            for(int i = 0; i < downloadFileFutures.size(); i++) {
+                Future<Boolean> taskResult = completionService.take();
+                taskResult.get();
+            }
+        } catch(InterruptedException ex) {
+        } catch(ExecutionException ex) {
+            cancelAllTasks(downloadFileFutures);
+            throw ex;
+        } finally {
+            threadPool.shutdownNow();
+        }
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        Log.d("CHCP",  String.format("Downloading files finished successfully after %d ms", elapsedTime));
+    }
+
+    private static List<Callable<Boolean>> createAsyncDownloadTaskList(final String downloadFolder, final String contentFolderUrl, List<ManifestFile> files) {
+        List<Callable<Boolean>> downloadFileTasks = new ArrayList<>();
+
+        for (ManifestFile file : files) {
+            final String sourceFileUrl = URLUtility.construct(contentFolderUrl, file.name);
+            final String destinationFileUrl = Paths.get(downloadFolder, file.name);
+            final String filesChecksum = file.hash;
+
+            downloadFileTasks.add(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    // NOTE: the below line make sure that we always check the checksum of files that are downloaded from a manifest file!
+                    if(TextUtils.isEmpty(filesChecksum)) {
+                        throw new IllegalArgumentException("File checksum is missing");
+                    }
+
+                    download(sourceFileUrl, destinationFileUrl, filesChecksum);
+
+                    return Boolean.TRUE;
+                }
+            });
+        }
+
+        return downloadFileTasks;
+    }
+
+    private static void cancelAllTasks(List<Future<Boolean>> downloadTaskFutures) {
+        for(Future<Boolean> downloadTaskFuture : downloadTaskFutures) {
+            downloadTaskFuture.cancel(true);
         }
     }
 }

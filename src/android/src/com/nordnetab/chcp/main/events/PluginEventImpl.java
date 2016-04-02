@@ -12,7 +12,7 @@ import java.util.Map;
  * Also, base class for all plugin specific events.
  * All events are dispatched and captured through EventBus.
  *
- * @see de.greenrobot.event.EventBus
+ * @see org.greenrobot.eventbus.EventBus
  */
 class PluginEventImpl implements IPluginEvent {
 

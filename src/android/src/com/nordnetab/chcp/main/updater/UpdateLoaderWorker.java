@@ -224,7 +224,7 @@ class UpdateLoaderWorker implements WorkerTask {
         boolean isFinishedWithSuccess = true;
         try {
             FileDownloader.downloadFiles(filesStructure.getDownloadFolder(), contentUrl, downloadFiles);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             isFinishedWithSuccess = false;
         }

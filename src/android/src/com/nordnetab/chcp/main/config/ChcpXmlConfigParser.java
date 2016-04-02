@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.main.config;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import org.apache.cordova.ConfigXmlParser;
 import org.xmlpull.v1.XmlPullParser;
@@ -69,6 +70,37 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         // parse auto installation preference
         if (name.equals(XmlTags.AUTO_INSTALLATION_TAG)) {
             processAutoInstallationBlock(xml);
+            return;
+        }
+
+        // parse use initial version from assets preference
+        if (name.equals(XmlTags.USE_INITIAL_VERSION_FROM_ASSETS_TAG)) {
+            processUseInitialVersionFromAssetsBlock(xml);
+            return;
+        }
+
+        // parse auto redirect to start page preference
+        if (name.equals(XmlTags.AUTO_REDIRECT_TO_LOCAL_STORAGE_INDEX_PAGE_TAG)) {
+            processAutoRedirectToLocalStorageIndexPageBlock(xml);
+            return;
+        }
+
+        // parse require fresh install after app update
+        if (name.equals(XmlTags.REQUIRE_FRESH_INSTALL_AFTER_APP_UPDATE_TAG)) {
+            processRequireFreshInstallAfterAppUpdate(xml);
+            return;
+        }
+
+        // parse require file download concurrency
+        if (name.equals(XmlTags.FILE_DOWNLOAD_CONCURRENCY_TAG)) {
+            processFileDownloadConcurrency(xml);
+            return;
+        }
+
+        // parse the assets remote zip url
+        if (name.equals(XmlTags.ASSETS_REMOTE_ZIP_URL_TAG)) {
+            processAssetsRemoteZipUrl(xml);
+            return;
         }
     }
 
@@ -86,6 +118,34 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
     private void processAutoInstallationBlock(XmlPullParser xml) {
         boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_INSTALLATION_ENABLED_ATTRIBUTE).equals("true");
         chcpConfig.allowUpdatesAutoInstall(isEnabled);
+    }
+
+    private void processUseInitialVersionFromAssetsBlock(XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.USE_INITIAL_VERSION_FROM_ASSETS_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.allowUseOfInitialVersionFromAssets(isEnabled);
+    }
+
+    private void processAutoRedirectToLocalStorageIndexPageBlock(XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.AUTO_REDIRECT_TO_LOCAL_STORAGE_INDEX_PAGE_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.allowAutoRedirectToLocalStorageIndexPage(isEnabled);
+    }
+
+    private void processRequireFreshInstallAfterAppUpdate(XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.REQUIRE_FRESH_INSTALL_AFTER_APP_UPDATE_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.setRequireFreshInstallAfterAppUpdate(isEnabled);
+    }
+
+    private void processFileDownloadConcurrency(XmlPullParser xml) {
+        String attributeValue = xml.getAttributeValue(null, XmlTags.FILE_DOWNLOAD_CONCURRENCY_VALUE_ATTRIBUTE);
+        if(!TextUtils.isEmpty(attributeValue)) {
+            int integerValue = Integer.parseInt(attributeValue);
+            chcpConfig.setFileDownloadConcurrency(integerValue);
+        }
+    }
+
+    private void processAssetsRemoteZipUrl(XmlPullParser xml) {
+        String attributeValue = xml.getAttributeValue(null, XmlTags.ASSETSE_REMOTE_ZIP_URL_VALUE_ATTRIBUTE);
+        chcpConfig.setAssetsRemoteZipUrl(attributeValue);
     }
 
     @Override

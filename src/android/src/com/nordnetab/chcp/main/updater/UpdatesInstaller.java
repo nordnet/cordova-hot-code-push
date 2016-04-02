@@ -9,7 +9,7 @@ import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
 import java.io.File;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.

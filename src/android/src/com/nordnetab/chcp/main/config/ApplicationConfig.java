@@ -83,7 +83,7 @@ public class ApplicationConfig {
                 returnString.append(line);
             }
         } catch (Exception e) {
-            Log.d("CHCP", "Failed to read chcp.json from assets", e);
+            Log.d("CHCP", "Failed to read chcp.json from assets");
         } finally {
             try {
                 if (reader != null) {

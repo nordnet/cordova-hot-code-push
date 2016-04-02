@@ -35,7 +35,9 @@ public enum ChcpError {
     // region Kind of warnings
 
     NOTHING_TO_INSTALL(1, "Nothing to install"),
-    NOTHING_TO_UPDATE(2, "Nothing new to load from server");
+    NOTHING_TO_UPDATE(2, "Nothing new to load from server"),
+    AUTO_UPDATE_IS_NOT_ALLOWED(3, "Auto update is not allowed"),
+    AUTO_INSTALL_IS_NOT_ALLOWED(4, "Auto install is not allowed");
 
     // endregion
 

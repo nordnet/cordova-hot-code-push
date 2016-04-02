@@ -15,7 +15,7 @@ import com.nordnetab.chcp.main.model.UpdateTime;
 public class ContentConfig {
 
     // JSON keys to parse chcp.json
-    private static class JsonKeys {
+    public static class JsonKeys {
         public static final String VERSION = "release";
         public static final String MINIMUM_NATIVE_VERSION = "min_native_interface";
         public static final String UPDATE = "update";

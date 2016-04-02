@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by Nikolay Demyankov on 22.07.15.
  * <p/>
@@ -66,6 +68,10 @@ abstract class JsonDownloader<T> {
         if (url == null) {
             throw new Exception("Invalid url format:" + downloadUrl);
         }
+
+        // don't use SSLv3 to download files
+        // see https://code.google.com/p/android/issues/detail?id=78187
+        HttpsURLConnection.setDefaultSSLSocketFactory(new NoSSLv3Factory());
 
         URLConnection urlConnection = url.openConnection();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));

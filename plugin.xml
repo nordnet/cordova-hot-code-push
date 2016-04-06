@@ -146,6 +146,10 @@
     <source-file src="src/ios/Utils/HCPAssetsFolderHelper.m" target-dir="Utils/"/>
     <header-file src="src/ios/Utils/HCPAssetsFolderHelper.h" target-dir="Utils/"/>
 
+    <!-- sources for WKWebViewFix folder -->
+    <source-file src="src/ios/WKWebViewFix/CDVWKWebViewEngine+HCPPlugin_ReadAccessURL.m" target-dir="WKWebViewFix/"/>
+    <header-file src="src/ios/WKWebViewFix/CDVWKWebViewEngine+HCPPlugin_ReadAccessURL.h" target-dir="WKWebViewFix/"/>
+
   </platform>
 
   <platform name="android">

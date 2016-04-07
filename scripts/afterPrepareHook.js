@@ -26,6 +26,7 @@ var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
   chcpConfigXmlReader = require('./lib/chcpConfigXmlReader.js'),
   chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
   iosBackwardsCapability = require('./lib/iosBackwardsCapabilitySupport.js'),
+  iosWKWebViewEngineSupport = require('./lib/iosWKWebViewEngineSupport.js'),
   BUILD_OPTION_PREFIX = 'chcp-',
   RELEASE_BUILD_FLAG = '--release';
 
@@ -166,9 +167,10 @@ module.exports = function(ctx) {
 
   logStart();
 
-  // if we are building for iOS - apply backwards capability hack
+  // apply iOS-specific stuff
   if (ctx.opts.platforms.indexOf('ios') !== -1) {
     iosBackwardsCapability.setCordovaVersionMacro(ctx);
+    iosWKWebViewEngineSupport.setWKWebViewEngineMacro(ctx);
   }
 
   // if we are running build with --release option - do nothing

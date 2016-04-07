@@ -134,8 +134,8 @@ Mainly, it has only two method: to activate and to deactivate swift support in t
 
     for (config in configurations) {
       buildSettings = configurations[config].buildSettings;
-      var preprocessorDefs = buildSettings['GCC_PREPROCESSOR_DEFINITIONS'];
-      if (!preprocessorDefs && !isWkWebViewEngineUsed) {
+      var preprocessorDefs = buildSettings['GCC_PREPROCESSOR_DEFINITIONS'] ? buildSettings['GCC_PREPROCESSOR_DEFINITIONS'] : [];
+      if (!preprocessorDefs.length && !isWkWebViewEngineUsed) {
         continue;
       }
 

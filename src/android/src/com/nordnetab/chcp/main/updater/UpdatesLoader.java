@@ -4,7 +4,8 @@ import android.content.Context;
 
 import com.nordnetab.chcp.main.model.ChcpError;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
+
 
 /**
  * Created by Nikolay Demyankov on 24.07.15.

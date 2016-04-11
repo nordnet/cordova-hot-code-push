@@ -40,13 +40,13 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 
-import de.greenrobot.event.EventBus;
-import de.greenrobot.event.Subscribe;
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.

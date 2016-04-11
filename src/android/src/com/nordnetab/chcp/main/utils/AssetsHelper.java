@@ -5,12 +5,13 @@ import android.content.res.AssetManager;
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import de.greenrobot.event.EventBus;
 
 /**
  * Created by Nikolay Demyankov on 21.07.15.

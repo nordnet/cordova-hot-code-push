@@ -1,5 +1,13 @@
 # Change Log
 
+# 1.2.6 (2016-04-11)
+
+**Bug fixes:**
+
+- Fixed [issue #129](https://github.com/nordnet/cordova-hot-code-push/issues/129). `plugin.xml` was missing scheme for android. Thanks to [@Christianuchermannuc](https://github.com/Christianuchermannuc).
+- Fixed [issue #132](https://github.com/nordnet/cordova-hot-code-push/issues/132). Problem was with the EventBus on Android: package name has changed.
+- In the plugin's header file iOS Cordova platform version is now set to `4` by default. Previously it was `3`.
+
 # 1.2.5 (2016-02-05)
 
 **Bug fixes:**

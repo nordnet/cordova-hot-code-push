@@ -98,7 +98,7 @@ Harder approach - remove Swift support manually. For that you need to open your 
 
 ### Quick start guide for Cordova project
 
-In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on) which requires **Xcode 7**, although hot code push plugin itself can work on the older versions of the Xcode.
+In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on).
 
 1. Create new Cordova project using command line interface and add iOS/Android platforms:
 
@@ -159,7 +159,7 @@ From this point you can do local development, where all the changes are uploaded
 
 ### Quick start guide for Ionic project
 
-In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on) which requires **Xcode 7**, although hot code push plugin itself can work on the older versions of the Xcode.
+In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](#local-development-add-on).
 
 1. Create new Ionic project using command line interface and add iOS/Android platforms:
 
@@ -619,7 +619,8 @@ By default, all update checking->downloading->installation cycle is performed au
 
 It allows you to:
 - subscribe for update related events;
-- check and download new releases from the server;
+- download new releases from the server;
+- check, if update is cached and can be installed;
 - install loaded updates;
 - change plugin preferences;
 - request user to download new version of the app from the store.

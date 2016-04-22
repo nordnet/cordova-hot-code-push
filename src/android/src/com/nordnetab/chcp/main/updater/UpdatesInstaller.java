@@ -1,16 +1,14 @@
 package com.nordnetab.chcp.main.updater;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.nordnetab.chcp.main.events.BeforeInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
-import java.io.File;
-
 import org.greenrobot.eventbus.EventBus;
+import java.io.File;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.

@@ -10,10 +10,12 @@
 - [Issue #102](https://github.com/nordnet/cordova-hot-code-push/issues/102). You can now check from the JS side, if update was loaded on the device and ready to be installed. Later on will be added method to check update availability on the server side.
 - [Issue #45](https://github.com/nordnet/cordova-hot-code-push/issues/45). Added `<native-interface version="" />` tag to define application's native interface version. Plugin will now use it instead of the application's code version.
 - [Issue #85](https://github.com/nordnet/cordova-hot-code-push/issues/85). Adde support for `cordova-plugin-wkwebview-engine` plugin.
+- Dependency node modules are now installed in the plugin's folder, instead of the project's root folder.
 
 **Docs:**
 
 - Added info about migrating to v1.3.0 in `Migrating from previous version` section.
+- Added `Check if update was loaded and ready to be installed` section.
 - Updated `Cordova config preferences` section.
 - Updated `JavaScript module` section.
 

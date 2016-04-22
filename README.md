@@ -781,7 +781,7 @@ var app = {
   },
 
   checkForUpdate: function() {
-    chcp.fetchUpdate(this.fetchUpdateCallback);
+    chcp.fetchUpdate(app.fetchUpdateCallback);
   },
 
   fetchUpdateCallback: function(error, data) {
@@ -836,7 +836,7 @@ var app = {
   },
 
   checkForUpdate: function() {
-    chcp.fetchUpdate(this.fetchUpdateCallback);
+    chcp.fetchUpdate(app.fetchUpdateCallback);
   },
 
   fetchUpdateCallback: function(error, data) {
@@ -847,7 +847,7 @@ var app = {
     }
     console.log('Update is loaded, running the installation');
 
-    chcp.installUpdate(this.installationCallback);
+    chcp.installUpdate(app.installationCallback);
   },
 
   installationCallback: function(error) {
@@ -910,14 +910,14 @@ var app = {
     chcp.isUpdateAvailableForInstallation(function(error, data) {
       if (error) {
         console.log('Nothing to install. Executing fetch.');
-        chcp.fetchUpdate(this.fetchUpdateCallback);
+        chcp.fetchUpdate(app.fetchUpdateCallback);
         return;
       }
 
       // update is in cache and can be installed - install it
       console.log('Current version: ' + data.currentVersion);
       console.log('About to install: ' + data.readyToInstallVersion);
-      chcp.installUpdate(this.installationCallback);
+      chcp.installUpdate(app.installationCallback);
     });
   },
 
@@ -1020,7 +1020,7 @@ Lets say, that we disabled `auto-download` and `auto-install` in the `config.xml
     },
 
     checkForUpdate: function() {
-      chcp.fetchUpdate(this.fetchUpdateCallback);
+      chcp.fetchUpdate(app.fetchUpdateCallback);
     },
 
     fetchUpdateCallback: function(error, data) {
@@ -1031,7 +1031,7 @@ Lets say, that we disabled `auto-download` and `auto-install` in the `config.xml
       }
       console.log('Update is loaded, running the installation');
 
-      chcp.installUpdate(this.installationCallback);
+      chcp.installUpdate(app.installationCallback);
     },
 
     installationCallback: function(error) {

@@ -34,6 +34,7 @@ As a result, your application receives updates of the web content as soon as pos
   - [Listen for update events](#listen-for-update-events)
   - [Fetch update](#fetch-update)
   - [Install update](#install-update)
+  - [Check if update was loaded and ready to be installed](#check-if-update-was-loaded-and-ready-to-be-installed)
   - [Change plugin preferences on runtime](#change-plugin-preferences-on-runtime)
   - [Request application update through the store](#request-application-update-through-the-store)
 - [Error codes](#error-codes)
@@ -648,15 +649,16 @@ function eventCallback(eventData) {
 ```
 
 Available events are:
-- `chcp_updateIsReadyToInstall` - send when new release was successfully loaded and ready to be installed.
-- `chcp_updateLoadFailed` - send when plugin couldn't load update from the server. Error details are attached to the event.
-- `chcp_nothingToUpdate` - send when we successfully loaded application config from the server, but there is nothing new is available.
+- `chcp_updateIsReadyToInstall` - sent when new release was successfully loaded and ready to be installed.
+- `chcp_updateLoadFailed` - sent when plugin couldn't load update from the server. Error details are attached to the event.
+- `chcp_nothingToUpdate` - sent when we successfully loaded application config from the server, but there is nothing new is available.
 - `chcp_beforeInstall` - sent when an update is about to be installed.
-- `chcp_updateInstalled` - send when update was successfully installed.
-- `chcp_updateInstallFailed` - send when update installation failed. Error details are attached to the event.
-- `chcp_nothingToInstall` - send when there is nothing to install. Probably, nothing was loaded before that.
-- `chcp_assetsInstalledOnExternalStorage` - send when plugin successfully copied web project files from bundle onto the external storage. Most likely you will use it for debug purpose only. Or even never.
-- `chcp_assetsInstallationError` - send when plugin couldn't copy files from bundle onto the external storage. If this happens - plugin won't work. Can occur when there is not enough free space on the device. Error details are attached to the event.
+- `chcp_updateInstalled` - sent when update was successfully installed.
+- `chcp_updateInstallFailed` - sent when update installation failed. Error details are attached to the event.
+- `chcp_nothingToInstall` - sent when there is nothing to install. Probably, nothing was loaded before that.
+- `chcp_beforeAssetsInstalledOnExternalStorage` - sent when plugin is about to start installing bundle content on the external storage.
+- `chcp_assetsInstalledOnExternalStorage` - sent when plugin successfully copied web project files from bundle on the external storage. Most likely you will use it for debug purpose only. Or even never.
+- `chcp_assetsInstallationError` - sent when plugin couldn't copy files from bundle on the external storage. If this happens - plugin won't work. Can occur when there is not enough free space on the device. Error details are attached to the event.
 
 Now it is time for small example. Lets say that you have an `index.js` file, which is included in the header of your `index.html` page.
 
@@ -808,7 +810,7 @@ function installationCallback(error) {
 ```
 If installation fails - `error` parameter will have the details of what went wrong. Otherwise - it's `null`.
 
-Lets extends previous example and perform the installation as soon as update is loaded.
+Lets extend previous example and perform the installation as soon as update is loaded.
 
 ```js
 var app = {
@@ -861,6 +863,84 @@ app.initialize();
 ```
 
 **Be advised:** even if you call `installUpdate` method with a callback function - installation related events are still broadcasted.
+
+#### Check if update was loaded and ready to be installed
+
+In some cases you want to control update flow from the JavaScript side. To check, if update was loaded on the device and available for download - use the following method:
+
+```js
+chcp.isUpdateAvailableForInstallation(callbackMethod);
+
+function callbackMethod(error, data) {
+  if (error) {
+    console.log('No update was loaded => nothing to install');
+    return;
+  }
+
+  console.log('Current content version: ' + data.currentVersion);
+  console.log('Ready to be installed:' + data.readyToInstallVersion);
+}
+```
+
+Now small demo on how to use it. First, we disable `auto-install` and `auto-download` in `config.xml`:
+
+```xml
+<chcp>
+  <auto-download enabled="false" />
+  <auto-install enabled="false" />
+</chcp>
+```
+
+Then in JavaScript we will check on startup, if update was previously loaded from the server. If it was - we install it, if not - we download it, so it would be installed next time.
+
+```js
+var app = {
+
+  initialize: function() {
+    this.bindEvents();
+  },
+
+  bindEvents: function() {
+    document.addEventListener('deviceready', this.onDeviceReady, false);
+  },
+
+  onDeviceReady: function() {
+    // check, if update was previously loaded and available for download
+    chcp.isUpdateAvailableForInstallation(function(error, data) {
+      if (error) {
+        console.log('Nothing to install. Executing fetch.');
+        chcp.fetchUpdate(this.fetchUpdateCallback);
+        return;
+      }
+
+      // update is in cache and can be installed - install it
+      console.log('Current version: ' + data.currentVersion);
+      console.log('About to install: ' + data.readyToInstallVersion);
+      chcp.installUpdate(this.installationCallback);
+    });
+  },
+
+  fetchUpdateCallback: function(error, data) {
+    if (error) {
+      console.log('Failed to load the update with error code: ' + error.code);
+      console.log(error.description);
+      return;
+    }
+    console.log('Update is loaded');
+  },
+
+  installationCallback: function(error) {
+    if (error) {
+      console.log('Failed to install the update with error code: ' + error.code);
+      console.log(error.description);
+    } else {
+      console.log('Update installed!');
+    }
+  }
+};
+
+app.initialize();
+```
 
 #### Change plugin preferences on runtime
 

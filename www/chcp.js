@@ -12,7 +12,8 @@ var exec = require('cordova/exec'),
     FETCH_UPDATE: 'jsFetchUpdate',
     INSTALL_UPDATE: 'jsInstallUpdate',
     CONFIGURE: 'jsConfigure',
-    REQUEST_APP_UPDATE: 'jsRequestAppUpdate'
+    REQUEST_APP_UPDATE: 'jsRequestAppUpdate',
+    IS_UPDATE_AVAILABLE_FOR_INSTALLATION: 'jsIsUpdateAvailableForInstallation'
   };
 
 // Called when Cordova is ready for work.
@@ -239,10 +240,22 @@ var chcp = {
   /**
    * Install update if there is anything to install.
    *
-   * @param (Callback(error)) callback - called when native side finishes installation process
+   * @param {Callback(error)} callback - called when native side finishes installation process
    */
   installUpdate: function(callback) {
     callNativeMethod(pluginNativeMethod.INSTALL_UPDATE, null, callback);
+  },
+
+  /**
+   * Check if update was loaded and ready to be installed.
+   * If update was loaded and can be installed - "data" property of the callback will contain the name of the current version and the name of the new
+   * version.
+   * If not - "error" will contain code chcp.error.NOTHING_TO_INSTALL.
+   *
+   * @param {Callback(error, data)} callback - called, when information is retrieved from the native side.
+   */
+  isUpdateAvailableForInstallation: function(callback) {
+    callNativeMethod(pluginNativeMethod.IS_UPDATE_AVAILABLE_FOR_INSTALLATION, null, callback);
   }
 };
 

@@ -751,11 +751,25 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [_appUpdateRequestDialog show];
 }
 
+- (void)jsIsUpdateAvailableForInstallation:(CDVInvokedUrlCommand *)command {
+    NSDictionary *data = nil;
+    NSError *error = nil;
+    if (_pluginInternalPrefs.readyForInstallationReleaseVersionName.length) {
+        data = @{@"currentVersion": _pluginInternalPrefs.currentReleaseVersionName,
+                 @"readyToInstallVersion": _pluginInternalPrefs.readyForInstallationReleaseVersionName};
+    } else {
+        error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
+    }
+    
+    CDVPluginResult *result = [CDVPluginResult pluginResultWithActionName:nil data:data error:error];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 - (void)sendPluginNotReadyToWorkMessageForEvent:(NSString *)eventName callbackID:(NSString *)callbackID {
     NSError *error = [NSError errorWithCode:kHCPAssetsNotYetInstalledErrorCode
                                 description:@"WWW folder from the bundle is not yet installed on the external device. Please, wait for this operation to finish."];
     CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:eventName
-                                                             applicationConfig:nil
+                                                                          data:nil
                                                                          error:error];
     [self.commandDelegate sendPluginResult:errorResult callbackId:callbackID];
 }

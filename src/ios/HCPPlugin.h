@@ -54,4 +54,11 @@
  */
 - (void)jsRequestAppUpdate:(CDVInvokedUrlCommand *)command;
 
+/**
+ *  Check if new version was loaded and can be installed.
+ *
+ *  @param command command with which the method is called
+ */
+- (void)jsIsUpdateAvailableForInstallation:(CDVInvokedUrlCommand *)command;
+
 @end

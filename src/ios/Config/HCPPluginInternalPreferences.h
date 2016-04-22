@@ -23,12 +23,24 @@
  */
 @property (nonatomic) NSInteger appBuildVersion;
 
+/**
+ *  Flag to check, if www folder from the bundle is installed on external storage.
+ */
 @property (nonatomic, getter=isWwwFolderInstalled) BOOL wwwFolderInstalled;
 
+/**
+ *  Previous version of the content. Can be used to rollback.
+ */
 @property (nonatomic, strong) NSString *previousReleaseVersionName;
 
+/**
+ *  Current version of the content, that is displayed to the user.
+ */
 @property (nonatomic, strong) NSString *currentReleaseVersionName;
 
+/**
+ *  Name of the new version, that was loaded and ready to be installed. 
+ */
 @property (nonatomic, strong) NSString *readyForInstallationReleaseVersionName;
 
 /**

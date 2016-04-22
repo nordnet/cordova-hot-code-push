@@ -34,6 +34,7 @@
     HCPApplicationConfig *_appConfig;
     HCPAppUpdateRequestAlertDialog *_appUpdateRequestDialog;
     NSString *_indexPage;
+    NSMutableArray<CDVPluginResult *> *_defaultCallbackStoredResults;
 }
 
 @end
@@ -134,6 +135,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Perform initialization of the plugin variables.
  */
 - (void)doLocalInit {
+    _defaultCallbackStoredResults = [[NSMutableArray alloc] init];
+    
     // init plugin config from xml
     _pluginXmlConfig = [HCPXmlConfig loadFromCordovaConfigXml];
     
@@ -319,14 +322,30 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  For that we will use callback, received on plugin initialization stage.
  *
  *  @param result message to send to web side
+ *  @return YES - result was sent to the web page; NO - otherwise
  */
-- (void)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
-    if (_defaultCallbackID == nil) {
+- (BOOL)invokeDefaultCallbackWithMessage:(CDVPluginResult *)result {
+    if (!_defaultCallbackID) {
+        [_defaultCallbackStoredResults addObject:result];
+        return NO;
+    }
+    
+    [result setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:result callbackId:_defaultCallbackID];
+    
+    return YES;
+}
+
+- (void)dispatchDefaultCallbackStoredResults {
+    if (!_defaultCallbackID || _defaultCallbackStoredResults.count == 0) {
         return;
     }
-    [result setKeepCallbackAsBool:YES];
     
-    [self.commandDelegate sendPluginResult:result callbackId:_defaultCallbackID];
+    for (CDVPluginResult *callResult in _defaultCallbackStoredResults) {
+        [callResult setKeepCallbackAsBool:YES];
+        [self.commandDelegate sendPluginResult:callResult callbackId:_defaultCallbackID];
+    }
+    [_defaultCallbackStoredResults removeAllObjects];
 }
 
 #pragma mark Events
@@ -356,6 +375,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     
     // bundle installation events
+    [notificationCenter addObserver:self
+                           selector:@selector(onBeforeAssetsInstalledOnExternalStorageEvent:)
+                               name:kHCPBeforeBundleAssetsInstalledOnExternalStorageEvent
+                             object:nil];
     [notificationCenter addObserver:self
                            selector:@selector(onAssetsInstalledOnExternalStorageEvent:)
                                name:kHCPBundleAssetsInstalledOnExternalStorageEvent
@@ -409,7 +432,17 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 #pragma mark Bundle installation events
 
 /**
- *  Method is called when we successfully installed www folder from bundle onto the external storage
+ *  Method is called when we about to start installing www folder from bundle onto the external storage.
+ *
+ *  @param notification captured notification with event details
+ */
+- (void)onBeforeAssetsInstalledOnExternalStorageEvent:(NSNotification *)notification {
+    CDVPluginResult *result = [CDVPluginResult pluginResultForNotification:notification];
+    [self invokeDefaultCallbackWithMessage:result];
+}
+
+/**
+ *  Method is called when we successfully installed www folder from bundle onto the external storage.
  *
  *  @param notification captured notification with event details
  */
@@ -656,6 +689,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
     _defaultCallbackID = command.callbackId;
+    [self dispatchDefaultCallbackStoredResults];
     
     if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
         ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&

@@ -27,8 +27,8 @@
     if (helper.isWorking) {
         return;
     }
-    
     helper.isWorking = YES;
+    [helper dispatchBeforeInstallEvent];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         [helper __installWwwFolderToExternalStorageFolder:externalFolderURL];
@@ -96,6 +96,16 @@
  */
 - (void)dispatchSuccessEvent {
     NSNotification *notification = [HCPEvents notificationWithName:kHCPBundleAssetsInstalledOnExternalStorageEvent
+                                                 applicationConfig:nil
+                                                            taskId:nil];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
+}
+
+/**
+ *  Send before assets installed event.
+ */
+- (void)dispatchBeforeInstallEvent {
+    NSNotification *notification = [HCPEvents notificationWithName:kHCPBeforeBundleAssetsInstalledOnExternalStorageEvent
                                                  applicationConfig:nil
                                                             taskId:nil];
     [[NSNotificationCenter defaultCenter] postNotification:notification];

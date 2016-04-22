@@ -15,6 +15,7 @@ NSString *const kHCPBeforeInstallEvent = @"chcp_beforeInstall";
 NSString *const kHCPUpdateInstallationErrorEvent = @"chcp_updateInstallFailed";
 NSString *const kHCPUpdateIsInstalledEvent = @"chcp_updateInstalled";
 NSString *const kHCPNothingToInstallEvent = @"chcp_nothingToInstall";
+NSString *const kHCPBeforeBundleAssetsInstalledOnExternalStorageEvent = @"chcp_beforeAssetsInstalledOnExternalStorage";
 NSString *const kHCPBundleAssetsInstalledOnExternalStorageEvent = @"chcp_assetsInstalledOnExternalStorage";
 NSString *const kHCPBundleAssetsInstallationErrorEvent = @"chcp_assetsInstallationError";
 

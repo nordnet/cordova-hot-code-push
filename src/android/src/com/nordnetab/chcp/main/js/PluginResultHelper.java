@@ -101,7 +101,9 @@ public class PluginResultHelper {
         JsonNodeFactory factory = JsonNodeFactory.instance;
 
         ObjectNode resultObject = factory.objectNode();
-        resultObject.set(JsParams.General.ACTION, factory.textNode(action));
+        if (action != null) {
+            resultObject.set(JsParams.General.ACTION, factory.textNode(action));
+        }
 
         if (data != null) {
             resultObject.set(JsParams.General.DATA, data);

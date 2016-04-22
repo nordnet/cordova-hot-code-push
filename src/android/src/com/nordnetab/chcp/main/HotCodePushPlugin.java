@@ -47,7 +47,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -229,6 +231,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsSetPluginOptions(args, callbackContext);
         } else if (JSAction.REQUEST_APP_UPDATE.equals(action)) {
             jsRequestAppUpdate(args, callbackContext);
+        } else if (JSAction.IS_UPDATE_AVAILABLE_FOR_INSTALLATION.equals(action)) {
+            jsIsUpdateAvailableForInstallation(callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -392,6 +396,27 @@ public class HotCodePushPlugin extends CordovaPlugin {
         final String storeURL = appConfigStorage.loadFromFolder(fileStructure.getWwwFolder()).getStoreUrl();
 
         new AppUpdateRequestDialog(cordova.getActivity(), msg, storeURL, callback).show();
+    }
+
+    /**
+     * Check if new version was loaded and can be installed.
+     *
+     * @param callback callback where to send the result
+     * */
+    private void jsIsUpdateAvailableForInstallation(final CallbackContext callback) {
+        Map<String, Object> data = null;
+        ChcpError error = null;
+        final String readyForInstallationVersionName = pluginInternalPrefs.getReadyForInstallationReleaseVersionName();
+        if (!TextUtils.isEmpty(readyForInstallationVersionName)) {
+            data = new HashMap<String, Object>();
+            data.put("readyToInstallVersion", readyForInstallationVersionName);
+            data.put("currentVersion", pluginInternalPrefs.getCurrentReleaseVersionName());
+        } else {
+            error = ChcpError.NOTHING_TO_INSTALL;
+        }
+
+        PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, error);
+        callback.sendPluginResult(pluginResult);
     }
 
     /**

@@ -33,8 +33,16 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
 }
 
 + (CDVPluginResult *)pluginResultWithActionName:(NSString *)action applicationConfig:(HCPApplicationConfig *)appConfig error:(NSError *)error {
-    NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
+    NSDictionary *data = nil;
+    if (appConfig) {
+        data = @{DATA_USER_INFO_CONFIG: [appConfig toJson]};
+    }
     
+    return [self pluginResultWithActionName:action data:data error:error];
+}
+
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action data:(NSDictionary *)data error:(NSError *)error {
+    NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
     if (action) {
         jsonObject[ACTION_KEY] = action;
     }
@@ -43,8 +51,8 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
         jsonObject[ERROR_KEY] = [self constructErrorBlock:error];
     }
     
-    if (appConfig) {
-        jsonObject[DATA_KEY] = [self constructDataBlock:appConfig];
+    if (data) {
+        jsonObject[DATA_KEY] = data;
     }
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonObject options:kNilOptions error:nil];
@@ -71,24 +79,6 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
     
     return @{ERROR_USER_INFO_CODE: @(error.code),
              ERROR_USER_INFO_DESCRIPTION: errorDesc};
-}
-
-/**
- *  Create data block that is send back to JavaScript.
- *
- *  @param appConfig attached application config
- *
- *  @return JSON dictionary with user data
- */
-+ (NSDictionary *)constructDataBlock:(HCPApplicationConfig *)appConfig {
-    NSMutableDictionary *dataBlockDict = [[NSMutableDictionary alloc] initWithDictionary:@{DATA_USER_INFO_CONFIG: @{}}];
-    
-    id appConfigJsonObject = [appConfig toJson];
-    if (appConfigJsonObject) {
-        return dataBlockDict[DATA_USER_INFO_CONFIG] = appConfigJsonObject;
-    }
-    
-    return dataBlockDict;
 }
 
 @end

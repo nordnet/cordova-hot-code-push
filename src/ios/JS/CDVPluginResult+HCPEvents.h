@@ -26,4 +26,15 @@
 
 + (CDVPluginResult *)pluginResultWithActionName:(NSString *)action applicationConfig:(HCPApplicationConfig *)appConfig error:(NSError *)error;
 
+/**
+ *  Construct plugin result.
+ *
+ *  @param action action name
+ *  @param data   data to send
+ *  @param error  error to send
+ *
+ *  @return plugin result instance
+ */
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action data:(NSDictionary *)data error:(NSError *)error;
+
 @end

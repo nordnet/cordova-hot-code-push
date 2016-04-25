@@ -16,11 +16,11 @@ As a result, your application receives updates of the web content as soon as pos
 ## Supported platforms
 
 - Android 4.0.0 or above.
-- iOS 7.0 or above.
+- iOS 7.0 or above. Xcode 7 is required.
 
 ### Installation
 
-This requires cordova 5.0+ (current stable 1.3.0)
+This requires cordova 5.0+ (current stable 1.3.1)
 
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
@@ -100,4 +100,4 @@ From this point you can do local development, where all the changes are uploaded
 
 ### Documentation
 
-All documentation can be found in details in our [Wiki on GitHub]. If you have some questions/issues - don't hesitate to post an [issue](https://github.com/nordnet/cordova-hot-code-push/issues).
+All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki). If you have some questions/problems - don't hesitate to post an [issue](https://github.com/nordnet/cordova-hot-code-push/issues).

@@ -242,7 +242,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         NSURLRequest *request = [NSURLRequest requestWithURL:loadURL
                                                  cachePolicy:NSURLRequestReloadIgnoringCacheData
                                              timeoutInterval:10000];
-#if HCP_CORDOVA_VERSION >= 4
+#ifdef __CORDOVA_4_0_0
         [self.webViewEngine loadRequest:request];
 #else
         [self.webView loadRequest:request];

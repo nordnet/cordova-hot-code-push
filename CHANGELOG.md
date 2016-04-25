@@ -1,5 +1,20 @@
 # Change Log
 
+# 1.3.1 (2016-04-25)
+
+**Bug Fixes:**
+
+- [Issue #139](https://github.com/nordnet/cordova-hot-code-push/issues/139). If you don't have `cordova-hcp` client - installation will not fail.
+- Fixed typo in `before_plugin_install` hook. If installation failed - it will now throw a correct error.
+
+**Enhancements:**
+
+- iOS. Switched from custom API version check macro to the Cordova's one: `__CORDOVA_4_0_0`. Less JS code in the hooks, more proper API switching in the code.
+
+**Docs:**
+
+- Minified readme file. Moved documentation into [Wiki](https://github.com/nordnet/cordova-hot-code-push/wiki).
+
 # 1.3.0 (2016-04-22)
 
 **Enhancements:**

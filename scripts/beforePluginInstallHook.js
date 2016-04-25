@@ -77,7 +77,7 @@ module.exports = function(ctx) {
 
   var result = spawnSync('npm', ['install', '--production'], { cwd: './plugins/' + ctx.opts.plugin.id });
   if (result.error) {
-    throw error;
+    throw result.error;
   }
 
   createPluginInstalledFlag(ctx);

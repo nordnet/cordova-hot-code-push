@@ -32,7 +32,7 @@ function suggestCliInstallation() {
   console.log('---------CHCP-------------');
   console.log('To make the development process easier for you - we developed a CLI client for our plugin.');
   console.log('To install it, please, use command:');
-  console.log('npm install -g ' + chcpCliPackageName);
+  console.log('npm install -g cordova-hot-code-push-cli');
   console.log('For more information please visit https://github.com/nordnet/cordova-hot-code-push-cli');
   console.log('--------------------------');
 }

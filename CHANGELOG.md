@@ -1,8 +1,14 @@
 # Change Log
 
+# 1.3.2 (2016-04-27)
+
+**Bug fixes:**
+
+- [Issue #137](https://github.com/nordnet/cordova-hot-code-push/issues/137). Fixed installation failure on Windows. Thanks to [@oxiao](https://github.com/oxiao) for providing the fix.
+
 # 1.3.1 (2016-04-25)
 
-**Bug Fixes:**
+**Bug fixes:**
 
 - [Issue #139](https://github.com/nordnet/cordova-hot-code-push/issues/139). If you don't have `cordova-hcp` client - installation will not fail.
 - Fixed typo in `before_plugin_install` hook. If installation failed - it will now throw a correct error.

@@ -1,12 +1,12 @@
 # Change Log
 
-# 1.3.2 (2016-04-27)
+## 1.3.2 (2016-04-27)
 
 **Bug fixes:**
 
 - [Issue #137](https://github.com/nordnet/cordova-hot-code-push/issues/137). Fixed installation failure on Windows. Thanks to [@oxiao](https://github.com/oxiao) for providing the fix.
 
-# 1.3.1 (2016-04-25)
+## 1.3.1 (2016-04-25)
 
 **Bug fixes:**
 
@@ -21,7 +21,7 @@
 
 - Minified readme file. Moved documentation into [Wiki](https://github.com/nordnet/cordova-hot-code-push/wiki).
 
-# 1.3.0 (2016-04-22)
+## 1.3.0 (2016-04-22)
 
 **Enhancements:**
 
@@ -40,7 +40,7 @@
 - Updated `Cordova config preferences` section.
 - Updated `JavaScript module` section.
 
-# 1.2.6 (2016-04-11)
+## 1.2.6 (2016-04-11)
 
 **Bug fixes:**
 
@@ -48,7 +48,7 @@
 - Fixed [issue #132](https://github.com/nordnet/cordova-hot-code-push/issues/132). Problem was with the EventBus on Android: package name has changed.
 - Fixed [issue #109](https://github.com/nordnet/cordova-hot-code-push/issues/109). In the plugin's header file iOS Cordova platform version is now set to `4` by default. Previously it was `3`.
 
-# 1.2.5 (2016-02-05)
+## 1.2.5 (2016-02-05)
 
 **Bug fixes:**
 
@@ -57,7 +57,7 @@
 - Fixed [issue #97](https://github.com/nordnet/cordova-hot-code-push/issues/97).
 - Merged [PR #94](https://github.com/nordnet/cordova-hot-code-push/pull/94). Android version of the plugin should now be compatible with other plugins, that are using EventBus. Thanks to [@Steffaan](https://github.com/Steffaan).
 
-# 1.2.4 (2016-01-17)
+## 1.2.4 (2016-01-17)
 
 **Bug fixes:**
 
@@ -65,14 +65,14 @@
 - Fixed [issue #88](https://github.com/nordnet/cordova-hot-code-push/issues/88).
 - Fixed [issue #90](https://github.com/nordnet/cordova-hot-code-push/issues/90).
 
-# 1.2.3 (2016-01-12)
+## 1.2.3 (2016-01-12)
 
 **Bug fixes:**
 
 - Fixed [issue #83](https://github.com/nordnet/cordova-hot-code-push/issues/83).
 - Fixed Cordova 5.4 warnings in the hooks.
 
-# 1.2.2 (2016-01-11)
+## 1.2.2 (2016-01-11)
 
 **Bug fixes:**
 

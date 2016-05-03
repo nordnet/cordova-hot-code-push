@@ -254,7 +254,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Redirect user to the index page that is located on the external storage.
  */
 - (void)resetIndexPageToExternalStorage {
-    NSString *indexPageStripped = [self indexPageFromConfigXml];
+    NSString *indexPage = [self indexPageFromConfigXml];
+    NSString *indexPageStripped = indexPage;
     
     NSRange r = [indexPageStripped rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"?#"] options:0];
     if (r.location != NSNotFound) {
@@ -268,7 +269,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // rewrite starting page www folder path: should load from external storage
     if ([self.viewController isKindOfClass:[CDVViewController class]]) {
-        ((CDVViewController *)self.viewController).wwwFolderName = _filesStructure.wwwFolder.absoluteString;
+        ((CDVViewController *)self.viewController).startPage = [_filesStructure.wwwFolder URLByAppendingPathComponent:indexPage].absoluteString;
     } else {
         NSLog(@"HotCodePushError: Can't make starting page to be from external storage. Main controller should be of type CDVViewController.");
     }

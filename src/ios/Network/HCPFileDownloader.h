@@ -46,4 +46,7 @@ typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
  */
 - (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block;
 
+// headers to add to the session
+@property (nonatomic, retain) NSDictionary* headers;
+
 @end

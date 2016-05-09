@@ -46,7 +46,7 @@
     }
     
     *error = nil;
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl
+    HCPUpdateLoaderWorker *task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl
                                                         currentWebVersion:currentWebVersion
                                                         nativeInterfaceVersion:currentNativeVersion];
     task.headers = headers;

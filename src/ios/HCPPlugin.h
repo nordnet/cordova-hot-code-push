@@ -57,7 +57,4 @@
  */
 - (void)jsIsUpdateAvailableForInstallation:(CDVInvokedUrlCommand *)command;
 
-
-@property (nonatomic, retain) NSDictionary* headers;
-
 @end

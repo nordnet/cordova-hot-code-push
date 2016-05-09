@@ -22,6 +22,7 @@
 #import "HCPAssetsFolderHelper.h"
 #import "NSError+HCPExtension.h"
 #import "HCPCleanupHelper.h"
+#import "NSDictionary+HCPFetchUpdateOptions.h"
 
 @interface HCPPlugin() {
     HCPFilesStructure *_filesStructure;
@@ -160,17 +161,23 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @return <code>YES</code> if download process started; <code>NO</code> otherwise
  */
-- (BOOL)_fetchUpdate:(NSString *)callbackId {
+- (BOOL)_fetchUpdate:(NSString *)callbackId withOptions:(NSDictionary *)options {
     if (!_isPluginReadyForWork) {
         return NO;
     }
     
+    NSURL *configURL = [options configURL];
+    if (!configURL) {
+        configURL = _pluginXmlConfig.configUrl;
+    }
+    NSDictionary<NSString *, NSString *> *headers = [options requestHeaders];
+    
     NSError *error = nil;
-    [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
+    [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:configURL
                                                 currentWebVersion:_pluginInternalPrefs.currentReleaseVersionName
                                              currentNativeVersion:_pluginXmlConfig.nativeInterfaceVersion
                                                             error:&error
-                                                          headers:self.headers];
+                                                          headers:headers];
     if (error) {
         if (callbackId) {
             CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateDownloadErrorEvent
@@ -465,7 +472,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
         ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
         ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [self _fetchUpdate:nil];
+        [self _fetchUpdate:nil withOptions:nil];
     }
 }
 
@@ -695,7 +702,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
         ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
         ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [self _fetchUpdate:nil];
+        [self _fetchUpdate:nil withOptions:nil];
     }
 }
 
@@ -718,12 +725,9 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
 
-    // headers may be passed as first argument, as a dict
-    if (command.arguments.count == 1) {
-        self.headers = command.arguments[0];
-    }
+    NSDictionary *options = command.arguments.count ? command.arguments[0] : nil;
     
-    [self _fetchUpdate:command.callbackId];
+    [self _fetchUpdate:command.callbackId withOptions:options];
 }
 
 - (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command {

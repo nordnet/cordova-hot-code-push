@@ -232,9 +232,10 @@ var chcp = {
    * Usually this is done automatically by the plugin, but can be triggered at any time from the web page.
    *
    * @param {Callback(error, data)} callback - called when native side finished update process
+   * @param headers - provide optional headers object. This will be used to configure server request
    */
-  fetchUpdate: function(callback) {
-    callNativeMethod(pluginNativeMethod.FETCH_UPDATE, null, callback);
+  fetchUpdate: function(callback, headers) {
+    callNativeMethod(pluginNativeMethod.FETCH_UPDATE, headers, callback);
   },
 
   /**

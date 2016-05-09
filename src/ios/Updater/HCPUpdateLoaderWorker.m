@@ -69,6 +69,7 @@
     }
     
     HCPFileDownloader *configDownloader = [[HCPFileDownloader alloc] init];
+    configDownloader.headers = self.headers;
     
     // download new application config
     [configDownloader downloadDataFromUrl:_configURL completionBlock:^(NSData *data, NSError *error) {
@@ -144,7 +145,9 @@
     
     // download files
     HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
-    // TODO: set credentials on downloader
+    
+    // pass headers (auth or other)
+    downloader.headers = self.headers;
     
     [downloader downloadFiles:updatedFiles
                       fromURL:newAppConfig.contentConfig.contentURL

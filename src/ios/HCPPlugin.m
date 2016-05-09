@@ -716,6 +716,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (!_isPluginReadyForWork) {
         [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
+
+    // headers may be passed as first argument, as a dict
+    if (command.arguments.count == 1) {
+        self.headers = command.arguments[0];
+    }
     
     [self _fetchUpdate:command.callbackId];
 }

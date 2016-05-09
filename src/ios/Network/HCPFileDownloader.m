@@ -16,6 +16,9 @@
 - (void) downloadDataFromUrl:(NSURL*) url completionBlock:(HCPDataDownloadCompletionBlock) block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    if (self.headers) {
+        [configuration setHTTPAdditionalHeaders:self.headers];
+    }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
     NSURLSessionDataTask* dowloadTask = [session dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -28,6 +31,9 @@
 - (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    if (self.headers) {
+        [configuration setHTTPAdditionalHeaders:self.headers];
+    }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
     __block NSMutableSet* startedTasks = [NSMutableSet set];

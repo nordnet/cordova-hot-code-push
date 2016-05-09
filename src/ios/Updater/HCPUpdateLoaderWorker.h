@@ -26,4 +26,5 @@
  */
 - (instancetype)initWithConfigUrl:(NSURL *)configURL currentWebVersion:(NSString *)currentWebVersion nativeInterfaceVersion:(NSUInteger)currentNativeVersion;
 
+@property (nonatomic, retain) NSDictionary* headers;
 @end

@@ -23,4 +23,8 @@
  *  Run the worker logic.
  */
 - (void)runWithComplitionBlock:(void (^)(void))updateLoaderComplitionBlock;
+
+
+@property (nonatomic, retain) NSDictionary* headers;
+
 @end

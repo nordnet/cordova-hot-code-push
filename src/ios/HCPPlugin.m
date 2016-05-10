@@ -169,7 +169,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
                                                 currentWebVersion:_pluginInternalPrefs.currentReleaseVersionName
                                              currentNativeVersion:_pluginXmlConfig.nativeInterfaceVersion
-                                                            error:&error];
+                                                            error:&error
+                                                            headers:self.headers];
     if (error) {
         if (callbackId) {
             CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateDownloadErrorEvent

@@ -22,7 +22,7 @@
 #import "HCPAssetsFolderHelper.h"
 #import "NSError+HCPExtension.h"
 #import "HCPCleanupHelper.h"
-#import "NSDictionary+HCPFetchUpdateOptions.h"
+#import "HCPUpdateRequest.h"
 
 @interface HCPPlugin() {
     HCPFilesStructure *_filesStructure;
@@ -161,23 +161,24 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @return <code>YES</code> if download process started; <code>NO</code> otherwise
  */
-- (BOOL)_fetchUpdate:(NSString *)callbackId withOptions:(NSDictionary *)options {
+- (BOOL)_fetchUpdate:(NSString *)callbackId withOptions:(HCPFetchUpdateOptions *)options {
     if (!_isPluginReadyForWork) {
         return NO;
     }
     
-    NSURL *configURL = [options configURL];
-    if (!configURL) {
-        configURL = _pluginXmlConfig.configUrl;
+    if (!options && self.defaultFetchUpdateOptions) {
+        options = self.defaultFetchUpdateOptions;
     }
-    NSDictionary<NSString *, NSString *> *headers = [options requestHeaders];
+    
+    HCPUpdateRequest *request = [[HCPUpdateRequest alloc] init];
+    request.configURL = options.configFileURL ? options.configFileURL : _pluginXmlConfig.configUrl;
+    request.requestHeaders = options.requestHeaders;
+    request.currentWebVersion = _pluginInternalPrefs.currentReleaseVersionName;
+    request.currentNativeVersion = _pluginXmlConfig.nativeInterfaceVersion;
     
     NSError *error = nil;
-    [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:configURL
-                                                currentWebVersion:_pluginInternalPrefs.currentReleaseVersionName
-                                             currentNativeVersion:_pluginXmlConfig.nativeInterfaceVersion
-                                                            error:&error
-                                                          headers:headers];
+    [[HCPUpdateLoader sharedInstance] executeDownloadRequest:request error:&error];
+    
     if (error) {
         if (callbackId) {
             CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateDownloadErrorEvent
@@ -725,9 +726,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
 
-    NSDictionary *options = command.arguments.count ? command.arguments[0] : nil;
+    NSDictionary *optionsFromJS = command.arguments.count ? command.arguments[0] : nil;
+    HCPFetchUpdateOptions *fetchOptions = [[HCPFetchUpdateOptions alloc] initWithDictionary:optionsFromJS];
     
-    [self _fetchUpdate:command.callbackId withOptions:options];
+    [self _fetchUpdate:command.callbackId withOptions:fetchOptions];
 }
 
 - (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command {

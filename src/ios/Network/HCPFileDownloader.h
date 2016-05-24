@@ -32,7 +32,9 @@ typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
  *  @param url      url to the downloaded file
  *  @param block    data download completion block, called with the data when it is available.
  */
-- (void) downloadDataFromUrl:(NSURL*) url completionBlock:(HCPDataDownloadCompletionBlock) block;
+- (void) downloadDataFromUrl:(NSURL*)url
+              requestHeaders:(NSDictionary *)headers
+             completionBlock:(HCPDataDownloadCompletionBlock) block;
 
 /**
  *  Download list of files asynchronously.
@@ -44,9 +46,10 @@ typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
  *
  *  @see HCPManifestFile
  */
-- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block;
-
-// headers to add to the session
-@property (nonatomic, retain) NSDictionary* headers;
+- (void) downloadFiles:(NSArray *)filesList
+               fromURL:(NSURL *)contentURL
+              toFolder:(NSURL *)folderURL
+        requestHeaders:(NSDictionary *)headers
+       completionBlock:(HCPFileDownloadCompletionBlock)block;
 
 @end

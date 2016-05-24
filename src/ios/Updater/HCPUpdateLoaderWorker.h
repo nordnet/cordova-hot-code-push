@@ -7,6 +7,7 @@
 #import <Foundation/Foundation.h>
 #import "HCPFilesStructure.h"
 #import "HCPWorker.h"
+#import "HCPUpdateRequest.h"
 
 /**
  *  Worker, that implements update download logic.
@@ -16,15 +17,12 @@
 @interface HCPUpdateLoaderWorker : NSObject<HCPWorker>
 
 /**
- *  Worker initializer.
+ *  Constructor.
  *
- *  @param configURL     url to the application config on the server
- *  @param currentVersion current version of the web content
+ *  @param request request parameters
  *
- *  @return instance of the object
- *  @see HCPFilesStructure
+ *  @return object instance
  */
-- (instancetype)initWithConfigUrl:(NSURL *)configURL currentWebVersion:(NSString *)currentWebVersion nativeInterfaceVersion:(NSUInteger)currentNativeVersion;
+- (instancetype)initWithRequest:(HCPUpdateRequest *)request;
 
-@property (nonatomic, retain) NSDictionary* headers;
 @end

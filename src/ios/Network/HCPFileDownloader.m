@@ -13,11 +13,11 @@
 
 #pragma mark Public API
 
-- (void) downloadDataFromUrl:(NSURL*) url completionBlock:(HCPDataDownloadCompletionBlock) block {
+- (void) downloadDataFromUrl:(NSURL*) url requestHeaders:(NSDictionary *)headers completionBlock:(HCPDataDownloadCompletionBlock) block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-    if (self.headers) {
-        [configuration setHTTPAdditionalHeaders:self.headers];
+    if (headers) {
+        [configuration setHTTPAdditionalHeaders:headers];
     }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
@@ -28,11 +28,11 @@
     [dowloadTask resume];
 }
 
-- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block {
+- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL requestHeaders:(NSDictionary *)headers completionBlock:(HCPFileDownloadCompletionBlock)block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-    if (self.headers) {
-        [configuration setHTTPAdditionalHeaders:self.headers];
+    if (headers) {
+        [configuration setHTTPAdditionalHeaders:headers];
     }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     

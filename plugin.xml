@@ -107,6 +107,9 @@
     <header-file src="src/ios/Storage/HCPPluginInternalPreferences+UserDefaults.h" target-dir="Storage/"/>
 
     <!-- sources for Updater folder -->
+    <source-file src="src/ios/Updater/HCPFetchUpdateOptions.m" target-dir="Updater/"/>
+    <header-file src="src/ios/Updater/HCPFetchUpdateOptions.h" target-dir="Updater/"/>
+
     <source-file src="src/ios/Updater/HCPInstallationWorker.m" target-dir="Updater/"/>
     <header-file src="src/ios/Updater/HCPInstallationWorker.h" target-dir="Updater/"/>
 
@@ -118,6 +121,9 @@
 
     <source-file src="src/ios/Updater/HCPUpdateLoaderWorker.m" target-dir="Updater/"/>
     <header-file src="src/ios/Updater/HCPUpdateLoaderWorker.h" target-dir="Updater/"/>
+
+    <source-file src="src/ios/Updater/HCPUpdateRequest.m" target-dir="Updater/"/>
+    <header-file src="src/ios/Updater/HCPUpdateRequest.h" target-dir="Updater/"/>
 
     <header-file src="src/ios/Updater/HCPWorker.h" target-dir="Updater/"/>
 
@@ -145,9 +151,6 @@
 
     <source-file src="src/ios/Utils/HCPAssetsFolderHelper.m" target-dir="Utils/"/>
     <header-file src="src/ios/Utils/HCPAssetsFolderHelper.h" target-dir="Utils/"/>
-
-    <source-file src="src/ios/Utils/NSDictionary+HCPFetchUpdateOptions.m" target-dir="Utils/"/>
-    <header-file src="src/ios/Utils/NSDictionary+HCPFetchUpdateOptions.h" target-dir="Utils/"/>
 
     <!-- sources for WKWebViewFix folder -->
     <source-file src="src/ios/WKWebViewFix/CDVWKWebViewEngine+HCPPlugin_ReadAccessURL.m" target-dir="WKWebViewFix/"/>

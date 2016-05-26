@@ -97,14 +97,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         Log.d("CHCP", "Currently running release version " + pluginInternalPrefs.getCurrentReleaseVersionName());
 
         // clean up file system
-        if (!TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
-            CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
-                    new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
-                            pluginInternalPrefs.getPreviousReleaseVersionName(),
-                            pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
-                    }
-            );
-        }
+        cleanupFileSystemFromOldReleases();
 
         handler = new Handler();
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
@@ -115,12 +108,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @Override
     public void onStart() {
         super.onStart();
-        
+
         final EventBus eventBus = EventBus.getDefault();
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this);
         }
-        
+
         // ensure that www folder installed on external storage;
         // if not - install it
         isPluginReadyForWork = isPluginReadyForWork();
@@ -246,7 +239,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Send message to default plugin callback.
      * Default callback - is a callback that we receive on initialization (device ready).
      * Through it we are broadcasting different events.
-     *
+     * <p/>
      * If callback is not set yet - message will be stored until it is initialized.
      *
      * @param message message to send to web side
@@ -266,7 +259,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     /**
      * Dispatch stored events for the default callback.
-     * */
+     */
     private void dispatchDefaultCallbackStoredResults() {
         if (defaultCallbackStoredResults.size() == 0 || jsDefaultCallback == null) {
             return;
@@ -404,7 +397,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Check if new version was loaded and can be installed.
      *
      * @param callback callback where to send the result
-     * */
+     */
     private void jsIsUpdateAvailableForInstallation(final CallbackContext callback) {
         Map<String, Object> data = null;
         ChcpError error = null;
@@ -789,6 +782,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 HotCodePushPlugin.this.redirectToLocalStorageIndexPage();
             }
         });
+
+        cleanupFileSystemFromOldReleases();
     }
 
     /**
@@ -842,6 +837,23 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     // endregion
+
+    // region Cleanup process
+
+    private void cleanupFileSystemFromOldReleases() {
+        if (TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
+            return;
+        }
+
+        CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
+                new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
+                        pluginInternalPrefs.getPreviousReleaseVersionName(),
+                        pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
+                }
+        );
+    }
+
+    //endregion
 
     // region Rollback process
 

@@ -59,11 +59,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     // cleanup file system: remove older releases, except current and the previous one
-    if (_pluginInternalPrefs.currentReleaseVersionName.length > 0) {
-        [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
-                                                       _pluginInternalPrefs.previousReleaseVersionName,
-                                                       _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
-    }
+    [self cleanupFileSystemFromOldReleases];
     
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];
@@ -653,6 +649,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // reload application to the index page
     [self loadURL:[self indexPageFromConfigXml]];
+    
+    [self cleanupFileSystemFromOldReleases];
 }
 
 #pragma mark Rollback process
@@ -692,6 +690,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         NSLog(@"WWW folder is corrupted, reinstalling it from bundle.");
         [self installWwwFolder];
     }
+}
+
+#pragma mark Cleanup process
+
+- (void)cleanupFileSystemFromOldReleases {
+    if (!_pluginInternalPrefs.currentReleaseVersionName.length) {
+        return;
+    }
+    
+    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
+                                                   _pluginInternalPrefs.previousReleaseVersionName,
+                                                   _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
 }
 
 #pragma mark Methods, invoked from Javascript

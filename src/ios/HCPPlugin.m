@@ -121,7 +121,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] != _pluginInternalPrefs.appBuildVersion;
+    BOOL isApplicationUpdated = ![[NSBundle applicationBuildVersion] isEqualToString:_pluginInternalPrefs.appBuildVersion];
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     BOOL isWWwFolderInstalled = _pluginInternalPrefs.isWwwFolderInstalled;
     

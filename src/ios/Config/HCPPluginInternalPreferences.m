@@ -43,7 +43,7 @@ static NSString *const READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = @"ready_for
     NSDictionary *jsonObject = json;
     
     HCPPluginInternalPreferences *pluginConfig = [[HCPPluginInternalPreferences alloc] init];
-    pluginConfig.appBuildVersion = [(NSNumber *)jsonObject[APPLICATION_BUILD_VERSION] integerValue];
+    pluginConfig.appBuildVersion = (NSString *)jsonObject[APPLICATION_BUILD_VERSION];
     pluginConfig.wwwFolderInstalled = [(NSNumber *)jsonObject[WWW_FOLDER_INSTALLED_FLAG] boolValue];
     pluginConfig.currentReleaseVersionName = (NSString *)jsonObject[CURRENT_RELEASE_VERSION_NAME];
     pluginConfig.previousReleaseVersionName = (NSString *)jsonObject[PREVIOUS_RELEASE_VERSION_NAME];
@@ -54,7 +54,7 @@ static NSString *const READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = @"ready_for
 
 - (id)toJson {
     NSMutableDictionary *jsonObject = [[NSMutableDictionary alloc] init];
-    jsonObject[APPLICATION_BUILD_VERSION] = [NSNumber numberWithInteger:self.appBuildVersion];
+    jsonObject[APPLICATION_BUILD_VERSION] = self.appBuildVersion;
     jsonObject[WWW_FOLDER_INSTALLED_FLAG] = [NSNumber numberWithBool:self.isWwwFolderInstalled];
     jsonObject[PREVIOUS_RELEASE_VERSION_NAME] = self.previousReleaseVersionName;
     jsonObject[CURRENT_RELEASE_VERSION_NAME] = self.currentReleaseVersionName;

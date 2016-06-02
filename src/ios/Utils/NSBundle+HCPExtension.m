@@ -14,14 +14,10 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 
 #pragma mark Public API
 
-+ (NSInteger)applicationBuildVersion {
++ (NSString *)applicationBuildVersion {
     NSBundle *mainBundle = [NSBundle mainBundle];
-    id appBuildVersion = [mainBundle objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
-    if (appBuildVersion == nil) {
-        return 0;
-    }
     
-    return [appBuildVersion integerValue];
+    return [mainBundle objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
 }
 
 + (NSString *)pathToWwwFolder {

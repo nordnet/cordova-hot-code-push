@@ -234,6 +234,7 @@
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/URLUtility.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/VersionHelper.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/CleanUpHelper.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/utils/URLConnectionHelper.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
 
     <!-- sources for package: com.nordnetab.chcp.updater -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/InstallationWorker.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
@@ -241,7 +242,7 @@
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesInstaller.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdatesLoader.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/updater/WorkerTask.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
-    <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdateRequest.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/updater/UpdateDownloadRequest.java" target-dir="src/com/nordnetab/chcp/main/updater"/>
 
     <!-- sources for package: com.nordnetab.chcp.js -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/js/PluginResultHelper.java" target-dir="src/com/nordnetab/chcp/main/js"/>

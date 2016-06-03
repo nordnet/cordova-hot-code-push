@@ -11,7 +11,7 @@ import java.util.Map;
  * <p/>
  * Model for update request parameters.
  */
-public class UpdateRequest {
+public class UpdateDownloadRequest {
 
     private String configURL;
     private PluginFilesStructure currentReleaseFS;
@@ -27,11 +27,11 @@ public class UpdateRequest {
      * @param currentNativeVersion  current native interface version
      * @param requestHeaders        additional request headers, which will be added to all requests
      */
-    public UpdateRequest(final Context context,
-                         final String configURL,
-                         final String currentReleaseVersion,
-                         final int currentNativeVersion,
-                         final Map<String, String> requestHeaders) {
+    public UpdateDownloadRequest(final Context context,
+                                 final String configURL,
+                                 final String currentReleaseVersion,
+                                 final int currentNativeVersion,
+                                 final Map<String, String> requestHeaders) {
         this.configURL = configURL;
         this.currentNativeVersion = currentNativeVersion;
         this.requestHeaders = requestHeaders;
@@ -152,8 +152,8 @@ public class UpdateRequest {
          *
          * @return update request instance
          */
-        public UpdateRequest build() {
-            return new UpdateRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, requestHeaders);
+        public UpdateDownloadRequest build() {
+            return new UpdateDownloadRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, requestHeaders);
         }
     }
 

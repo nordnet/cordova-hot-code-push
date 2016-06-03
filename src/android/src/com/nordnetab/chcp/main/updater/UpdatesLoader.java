@@ -29,12 +29,10 @@ public class UpdatesLoader {
      * Request update download.
      * Download performed in background. Events are dispatched to notify us about the result.
      *
-     * @param configURL                   url from which we should download application config
-     * @param currentReleaseFileStructure files structure of the current release
-     * @param currentNativeVersion        current native interface version
+     * @param request download request
      * @return <code>ChcpError.NONE</code> if download has started; otherwise - error details
      */
-    public static ChcpError downloadUpdate(final String configURL, final PluginFilesStructure currentReleaseFileStructure, final int currentNativeVersion) {
+    public static ChcpError downloadUpdate(final UpdateDownloadRequest request) {
         // if download already in progress - exit
         if (isExecuting) {
             return ChcpError.DOWNLOAD_ALREADY_IN_PROGRESS;
@@ -47,7 +45,7 @@ public class UpdatesLoader {
 
         isExecuting = true;
 
-        final UpdateLoaderWorker task = new UpdateLoaderWorker(configURL, currentReleaseFileStructure, currentNativeVersion);
+        final UpdateLoaderWorker task = new UpdateLoaderWorker(request);
         executeTask(task);
 
         return ChcpError.NONE;

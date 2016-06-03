@@ -27,6 +27,7 @@ import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.storage.IObjectPreferenceStorage;
 import com.nordnetab.chcp.main.storage.PluginInternalPreferencesStorage;
+import com.nordnetab.chcp.main.updater.UpdateDownloadRequest;
 import com.nordnetab.chcp.main.updater.UpdatesInstaller;
 import com.nordnetab.chcp.main.updater.UpdatesLoader;
 import com.nordnetab.chcp.main.utils.AssetsHelper;
@@ -425,8 +426,15 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        final PluginFilesStructure currentReleaseFS = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
-        final ChcpError error = UpdatesLoader.downloadUpdate(chcpXmlConfig.getConfigUrl(), currentReleaseFS, chcpXmlConfig.getNativeInterfaceVersion());
+        // TODO: add JS side support
+        final UpdateDownloadRequest request = UpdateDownloadRequest.builder(cordova.getActivity())
+                .setConfigURL(chcpXmlConfig.getConfigUrl())
+                .setCurrentNativeVersion(chcpXmlConfig.getNativeInterfaceVersion())
+                .setCurrentReleaseVersion(pluginInternalPrefs.getCurrentReleaseVersionName())
+                .setRequestHeaders(null)
+                .build();
+
+        final ChcpError error = UpdatesLoader.downloadUpdate(request);
         if (error != ChcpError.NONE) {
             if (jsCallback != null) {
                 PluginResult errorResult = PluginResultHelper.createPluginResult(UpdateDownloadErrorEvent.EVENT_NAME, null, error);

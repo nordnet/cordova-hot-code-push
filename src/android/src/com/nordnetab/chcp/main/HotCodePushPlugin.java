@@ -7,6 +7,7 @@ import android.util.Log;
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ChcpXmlConfig;
 import com.nordnetab.chcp.main.config.ContentConfig;
+import com.nordnetab.chcp.main.config.FetchUpdateOptions;
 import com.nordnetab.chcp.main.config.PluginInternalPreferences;
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
@@ -53,10 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.
@@ -220,7 +217,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         if (JSAction.INIT.equals(action)) {
             jsInit(callbackContext);
         } else if (JSAction.FETCH_UPDATE.equals(action)) {
-            jsFetchUpdate(callbackContext);
+            jsFetchUpdate(callbackContext, args);
         } else if (JSAction.INSTALL_UPDATE.equals(action)) {
             jsInstallUpdate(callbackContext);
         } else if (JSAction.CONFIGURE.equals(action)) {
@@ -297,7 +294,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // fetch update when we are initialized
         if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
                 !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
-            fetchUpdate(null);
+            fetchUpdate();
         }
     }
 
@@ -307,13 +304,20 @@ public class HotCodePushPlugin extends CordovaPlugin {
      *
      * @param callback js callback
      */
-    private void jsFetchUpdate(CallbackContext callback) {
+    private void jsFetchUpdate(CallbackContext callback, CordovaArgs args) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork(UpdateDownloadErrorEvent.EVENT_NAME, callback);
             return;
         }
 
-        fetchUpdate(callback);
+        FetchUpdateOptions fetchOptions;
+        try {
+            fetchOptions = new FetchUpdateOptions(args.optJSONObject(0));
+        } catch (JSONException e) {
+            fetchOptions = new FetchUpdateOptions();
+        }
+
+        fetchUpdate(callback, fetchOptions);
     }
 
     /**
@@ -349,6 +353,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @param arguments arguments from JavaScript
      * @param callback  callback where to send result
      */
+    @Deprecated
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork("", callback);
@@ -415,23 +420,30 @@ public class HotCodePushPlugin extends CordovaPlugin {
         callback.sendPluginResult(pluginResult);
     }
 
+    // convenience method
+    private void fetchUpdate() {
+        fetchUpdate(null, new FetchUpdateOptions());
+    }
+
     /**
      * Perform update availability check.
      *
      * @param jsCallback callback where to send the result;
      *                   used, when update is requested manually from JavaScript
      */
-    private void fetchUpdate(CallbackContext jsCallback) {
+    private void fetchUpdate(CallbackContext jsCallback, FetchUpdateOptions fetchOptions) {
         if (!isPluginReadyForWork) {
             return;
         }
 
-        // TODO: add JS side support
+        final String optionalConfigURL = fetchOptions.getConfigURL();
+        final String configURL = !TextUtils.isEmpty(optionalConfigURL) ? optionalConfigURL : chcpXmlConfig.getConfigUrl();
+
         final UpdateDownloadRequest request = UpdateDownloadRequest.builder(cordova.getActivity())
-                .setConfigURL(chcpXmlConfig.getConfigUrl())
+                .setConfigURL(configURL)
                 .setCurrentNativeVersion(chcpXmlConfig.getNativeInterfaceVersion())
                 .setCurrentReleaseVersion(pluginInternalPrefs.getCurrentReleaseVersionName())
-                .setRequestHeaders(null)
+                .setRequestHeaders(fetchOptions.getRequestHeaders())
                 .build();
 
         final ChcpError error = UpdatesLoader.downloadUpdate(request);
@@ -613,7 +625,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
                 !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
-            fetchUpdate(null);
+            fetchUpdate();
         }
     }
 

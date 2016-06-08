@@ -1,5 +1,10 @@
 package com.nordnetab.chcp.main.config;
 
+import com.nordnetab.chcp.main.utils.JSONUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Map;
 
 /**
@@ -9,8 +14,29 @@ import java.util.Map;
  */
 public class FetchUpdateOptions {
 
+    private static final String CONFIG_URL_JSON_KEY = "config-file";
+    private static final String REQUEST_HEADERS_JSON_KEY = "request-headers";
+
     private String configURL;
     private Map<String, String> requestHeaders;
+
+    public FetchUpdateOptions() {
+        this(null, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public FetchUpdateOptions(final JSONObject json) throws JSONException {
+        if (json == null) {
+            throw new JSONException("Can't parse null json object");
+        }
+
+        this.configURL = json.optString(CONFIG_URL_JSON_KEY, null);
+
+        final JSONObject requestHeadersJson = (JSONObject) json.opt(REQUEST_HEADERS_JSON_KEY);
+        if (requestHeadersJson != null) {
+            this.requestHeaders = JSONUtils.toFlatStringMap(requestHeadersJson);
+        }
+    }
 
     /**
      * Constructor.

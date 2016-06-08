@@ -16,7 +16,7 @@ Those options then injected into platform-specific config.xml.
   /**
    * Generate build options depending on the options, provided in console.
    *
-   * @param {String} buildName - build identifier
+   * @param {String} buildName - build identifier or falthy to use default
    * @return {Object} build options; null - if none are found
    */
   function getBuildConfigurationByName(ctx, buildName) {
@@ -24,6 +24,19 @@ Those options then injected into platform-specific config.xml.
     var chcpBuildOptions = getBuildOptionsFromConfig(ctx);
     if (chcpBuildOptions == null) {
       return null;
+    }
+
+    if (!buildName) {
+      var identifiers = Object.keys(chcpBuildOptions);
+      for (var i = 0; i < identifiers.length; ++i) {
+        if (chcpBuildOptions[identifiers[i]].default) {
+          if (buildName) {
+            console.error('There are multiple default configuration.')
+            return null;
+          }
+          buildName = identifiers[i];
+        }
+      }
     }
 
     var resultConfig = chcpBuildOptions[buildName];

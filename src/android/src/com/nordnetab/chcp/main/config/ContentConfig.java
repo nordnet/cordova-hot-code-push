@@ -32,8 +32,13 @@ public class ContentConfig {
     static ContentConfig fromJson(JsonNode node) {
         ContentConfig config = new ContentConfig();
         try {
-            config.setReleaseVersion(node.get(JsonKeys.VERSION).asText());
-            config.setContentUrl(node.get(JsonKeys.CONTENT_URL).asText());
+            if (node.has(JsonKeys.VERSION)) {
+                config.setReleaseVersion(node.get(JsonKeys.VERSION).asText());
+            }
+
+            if (node.has(JsonKeys.CONTENT_URL)) {
+                config.setContentUrl(node.get(JsonKeys.CONTENT_URL).asText());
+            }
 
             // minimum native version
             if (node.has(JsonKeys.MINIMUM_NATIVE_VERSION)) {

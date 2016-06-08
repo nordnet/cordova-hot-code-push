@@ -14,12 +14,22 @@
 /**
  *  URL to the config file (chcp.json).
  */
-@property (nonatomic, strong) NSURL *configFileURL;
+@property (nonatomic, strong, readonly) NSURL *configFileURL;
 
 /**
  *  Additional request headers.
  */
-@property (nonatomic, strong) NSDictionary<NSString *, NSString *> *requestHeaders;
+@property (nonatomic, strong, readonly) NSDictionary<NSString *, NSString *> *requestHeaders;
+
+/**
+ *  Constructor.
+ *
+ *  @param configFileURL  config file url
+ *  @param requestHeaders request headers
+ *
+ *  @return object instance
+ */
+- (instancetype)initWithConfigURL:(NSURL *)configFileURL requestHeaders:(NSDictionary<NSString *, NSString *> *)requestHeaders;
 
 /**
  *  Constructor.

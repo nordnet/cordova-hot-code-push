@@ -82,6 +82,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private boolean dontReloadOnStart;
 
     private List<PluginResult> defaultCallbackStoredResults;
+    private FetchUpdateOptions defaultFetchUpdateOptions;
 
     // region Plugin lifecycle
 
@@ -168,6 +169,30 @@ public class HotCodePushPlugin extends CordovaPlugin {
         EventBus.getDefault().unregister(this);
 
         super.onStop();
+    }
+
+    // endregion
+
+    // region Plugin external properties
+
+    /**
+     * Setter for default fetch update options.
+     * If this one is defined and no options has come form JS side - we use them.
+     * If preferences came from JS side - we ignore the default ones.
+     *
+     * @param options options
+     */
+    public void setDefaultFetchUpdateOptions(final FetchUpdateOptions options) {
+        this.defaultFetchUpdateOptions = options;
+    }
+
+    /**
+     * Getter for currently used default fetch update options.
+     *
+     * @return default fetch options
+     */
+    public FetchUpdateOptions getDefaultFetchUpdateOptions() {
+        return defaultFetchUpdateOptions;
     }
 
     // endregion
@@ -310,11 +335,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        FetchUpdateOptions fetchOptions;
+        FetchUpdateOptions fetchOptions = null;
         try {
             fetchOptions = new FetchUpdateOptions(args.optJSONObject(0));
-        } catch (JSONException e) {
-            fetchOptions = new FetchUpdateOptions();
+        } catch (JSONException ignored) {
         }
 
         fetchUpdate(callback, fetchOptions);
@@ -436,14 +460,24 @@ public class HotCodePushPlugin extends CordovaPlugin {
             return;
         }
 
-        final String optionalConfigURL = fetchOptions.getConfigURL();
-        final String configURL = !TextUtils.isEmpty(optionalConfigURL) ? optionalConfigURL : chcpXmlConfig.getConfigUrl();
+        Map<String, String> requestHeaders = null;
+        String configURL = chcpXmlConfig.getConfigUrl();
+        if (fetchOptions == null) {
+            fetchOptions = defaultFetchUpdateOptions;
+        }
+        if (fetchOptions != null) {
+            requestHeaders = fetchOptions.getRequestHeaders();
+            final String optionalConfigURL = fetchOptions.getConfigURL();
+            if (!TextUtils.isEmpty(optionalConfigURL)) {
+                configURL = optionalConfigURL;
+            }
+        }
 
         final UpdateDownloadRequest request = UpdateDownloadRequest.builder(cordova.getActivity())
                 .setConfigURL(configURL)
                 .setCurrentNativeVersion(chcpXmlConfig.getNativeInterfaceVersion())
                 .setCurrentReleaseVersion(pluginInternalPrefs.getCurrentReleaseVersionName())
-                .setRequestHeaders(fetchOptions.getRequestHeaders())
+                .setRequestHeaders(requestHeaders)
                 .build();
 
         final ChcpError error = UpdatesLoader.downloadUpdate(request);

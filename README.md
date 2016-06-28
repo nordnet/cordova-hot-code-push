@@ -100,4 +100,6 @@ From this point you can do local development, where all the changes are uploaded
 
 ### Documentation
 
-All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki). If you have some questions/problems - don't hesitate to post an [issue](https://github.com/nordnet/cordova-hot-code-push/issues).
+All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki).
+
+If you have some questions/problems/suggestions - don't hesitate to post a [thread](https://github.com/nordnet/cordova-hot-code-push/issues). If it's an actual issue - please, follow [this guide](https://github.com/nordnet/cordova-hot-code-push/wiki/Issue-creation-guide) on how to do that properly.

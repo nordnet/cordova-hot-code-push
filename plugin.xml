@@ -229,7 +229,7 @@
     <!-- sources for package: com.nordnetab.chcp.utils -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/AssetsHelper.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/FilesUtility.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
-    <source-file src="src/android/src/com/nordnetab/chcp/main/utils/MD5.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/utils/Hasher.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/Paths.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/URLUtility.java" target-dir="src/com/nordnetab/chcp/main/utils"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/utils/VersionHelper.java" target-dir="src/com/nordnetab/chcp/main/utils"/>

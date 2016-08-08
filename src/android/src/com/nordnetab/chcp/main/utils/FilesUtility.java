@@ -187,35 +187,35 @@ public class FilesUtility {
     }
 
     /**
-     * Calculate MD5 hash of the file at the given path
+     * Calculate hash of the file at the given path
      *
      * @param filePath absolute path to the file
      * @return calculated hash
      * @throws Exception
-     * @see MD5
+     * @see Hasher
      */
-    public static String calculateFileHash(String filePath) throws Exception {
-        return calculateFileHash(new File(filePath));
+    public static String calculateFileHash(String filePath, String hashAlgorithm) throws Exception {
+        return calculateFileHash(new File(filePath), hashAlgorithm);
     }
 
     /**
-     * Calculate MD5 hash of the file
+     * Calculate hash of the file
      *
      * @param file file whose hash we need
      * @return calculated hash
      * @throws Exception
-     * @see MD5
+     * @see Hasher
      */
-    public static String calculateFileHash(File file) throws Exception {
-        MD5 md5 = new MD5();
+    public static String calculateFileHash(File file, String hashAlgorithm) throws Exception {
+        Hasher hasher = new Hasher(hashAlgorithm);
         InputStream in = new BufferedInputStream(new FileInputStream(file));
 
         int len;
         byte[] buff = new byte[8192];
         while ((len = in.read(buff)) > 0) {
-            md5.write(buff, len);
+            hasher.write(buff, len);
         }
 
-        return md5.calculateHash();
+        return hasher.calculateHash();
     }
 }

@@ -11,7 +11,8 @@
 #import "HCPApplicationConfigStorage.h"
 #import "HCPContentManifestStorage.h"
 #import "NSError+HCPExtension.h"
-#import "NSData+HCPMD5.h"
+#import "NSData+HCPHash.h"
+#import "NSString+HCPHash.h"
 #import "HCPEvents.h"
 
 @interface HCPInstallationWorker() {
@@ -178,9 +179,10 @@
             break;
         }
         
-        NSString *fileMD5 = [[NSData dataWithContentsOfURL:fileLocalURL] md5];
-        if (![fileMD5 isEqualToString:updatedFile.md5Hash]) {
-            errorMsg = [NSString stringWithFormat:@"Update validation error! File's %@ hash %@ doesnt match the hash %@ from manifest file", updatedFile.name, fileMD5, updatedFile.md5Hash];
+        NSString *fileChecksum = updatedFile.md5Hash;
+        NSString *fileMD5 = [[NSData dataWithContentsOfURL:fileLocalURL] hashWithAlgorithm:[fileChecksum getHashAlgorithm]];
+        if (![fileMD5 isEqualToString:fileChecksum]) {
+            errorMsg = [NSString stringWithFormat:@"Update validation error! File's %@ hash %@ doesnt match the hash %@ from manifest file", updatedFile.name, fileMD5, fileChecksum];
             break;
         }
     }

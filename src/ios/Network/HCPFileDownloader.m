@@ -6,7 +6,8 @@
 
 #import "HCPFileDownloader.h"
 #import "HCPManifestFile.h"
-#import "NSData+HCPMD5.h"
+#import "NSData+HCPHash.h"
+#import "NSString+HCPHash.h"
 #import "NSError+HCPExtension.h"
 
 @implementation HCPFileDownloader
@@ -82,8 +83,8 @@
  */
 - (BOOL)isDataCorrupted:(NSData *)data forFile:(HCPManifestFile *)file error:(NSError **)error {
     *error = nil;
-    NSString *dataHash = [data md5];
     NSString *fileChecksum = file.md5Hash;
+    NSString *dataHash = [data hashWithAlgorithm:[fileChecksum getHashAlgorithm]];
     if ([dataHash isEqualToString:fileChecksum]) {
         return NO;
     }

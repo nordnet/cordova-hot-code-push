@@ -477,6 +477,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 .setConfigURL(configURL)
                 .setCurrentNativeVersion(chcpXmlConfig.getNativeInterfaceVersion())
                 .setCurrentReleaseVersion(pluginInternalPrefs.getCurrentReleaseVersionName())
+                .setCheckUpdateSigning(chcpXmlConfig.getCheckUpdateSigning())
+                .setUpdateSigningPubkey(chcpXmlConfig.getUpdateSigningPubkey())
                 .setRequestHeaders(requestHeaders)
                 .build();
 

@@ -6,6 +6,7 @@ import android.util.Log;
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ContentConfig;
 import com.nordnetab.chcp.main.config.ContentManifest;
+import com.nordnetab.chcp.main.config.ManifestSignature;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.main.events.UpdateDownloadErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateIsReadyToInstallEvent;
@@ -16,6 +17,7 @@ import com.nordnetab.chcp.main.model.ManifestFile;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
 import com.nordnetab.chcp.main.network.ApplicationConfigDownloader;
 import com.nordnetab.chcp.main.network.ContentManifestDownloader;
+import com.nordnetab.chcp.main.network.ManifestSignatureDownloader;
 import com.nordnetab.chcp.main.network.DownloadResult;
 import com.nordnetab.chcp.main.network.FileDownloader;
 import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
@@ -41,6 +43,8 @@ class UpdateLoaderWorker implements WorkerTask {
     private final String applicationConfigUrl;
     private final int appNativeVersion;
     private final PluginFilesStructure filesStructure;
+    private boolean checkUpdateSigning;
+    private String updateSigningPubkey;
     private final Map<String, String> requestHeaders;
 
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
@@ -61,6 +65,8 @@ class UpdateLoaderWorker implements WorkerTask {
         appNativeVersion = request.getCurrentNativeVersion();
         filesStructure = request.getCurrentReleaseFileStructure();
         requestHeaders = request.getRequestHeaders();
+        checkUpdateSigning = request.getCheckUpdateSigning();
+        updateSigningPubkey = request.getUpdateSigningPubkey();
     }
 
     @Override
@@ -100,6 +106,15 @@ class UpdateLoaderWorker implements WorkerTask {
         if (newContentManifest == null) {
             setErrorResult(ChcpError.FAILED_TO_DOWNLOAD_CONTENT_MANIFEST, newAppConfig);
             return;
+        }
+
+        // check content manifest signature
+        if(checkUpdateSigning) {
+            final ManifestSignature signature = downloadManifestSignature(newContentConfig.getContentUrl());
+            if(signature == null || !signature.isContentManifestValid(newContentManifest, updateSigningPubkey)) {
+                setErrorResult(ChcpError.CONTENT_MANIFEST_SIGNATURE_INVALID, newAppConfig);
+                return;
+            }
         }
 
         // find files that were updated
@@ -189,6 +204,24 @@ class UpdateLoaderWorker implements WorkerTask {
         final String url = URLUtility.construct(contentUrl, PluginFilesStructure.MANIFEST_FILE_NAME);
         final ContentManifestDownloader downloader = new ContentManifestDownloader(url, requestHeaders);
         final DownloadResult<ContentManifest> downloadResult = downloader.download();
+        if (downloadResult.error != null) {
+            Log.d("CHCP", "Failed to download content manifest");
+            return null;
+        }
+
+        return downloadResult.value;
+    }
+
+    /**
+     * Download content manifest signature from server.
+     *
+     * @param contentUrl url where our content lies
+     * @return content manifest signature; <code>null</code> when failed to download
+     */
+    private ManifestSignature downloadManifestSignature(final String contentUrl) {
+        final String url = URLUtility.construct(contentUrl, PluginFilesStructure.MANIFEST_SIGNATURE_FILE_NAME);
+        final ManifestSignatureDownloader downloader = new ManifestSignatureDownloader(url, requestHeaders);
+        final DownloadResult<ManifestSignature> downloadResult = downloader.download();
         if (downloadResult.error != null) {
             Log.d("CHCP", "Failed to download content manifest");
             return null;

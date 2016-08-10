@@ -30,6 +30,7 @@ public enum ChcpError {
     DOWNLOAD_ALREADY_IN_PROGRESS(-17, "Download already in progress"),
     ASSETS_FOLDER_IN_NOT_YET_INSTALLED(-18, "API requests are ignored until assets are installed. Please, wait."),
     NEW_APPLICATION_CONFIG_IS_INVALID(-19, "Downloaded new application config, but it is not valid"),
+    CONTENT_MANIFEST_SIGNATURE_INVALID(-20, "Downloaded content manifest, but it's signature is not valid"),
     // endregion
 
     // region Kind of warnings

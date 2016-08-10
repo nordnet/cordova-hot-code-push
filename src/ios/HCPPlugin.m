@@ -22,6 +22,7 @@
 #import "HCPAssetsFolderHelper.h"
 #import "NSError+HCPExtension.h"
 #import "HCPCleanupHelper.h"
+#import "HCPUpdateRequest.h"
 
 @interface HCPPlugin() {
     HCPFilesStructure *_filesStructure;
@@ -58,11 +59,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
     
     // cleanup file system: remove older releases, except current and the previous one
-    if (_pluginInternalPrefs.currentReleaseVersionName.length > 0) {
-        [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
-                                                       _pluginInternalPrefs.previousReleaseVersionName,
-                                                       _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
-    }
+    [self cleanupFileSystemFromOldReleases];
     
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];
@@ -124,7 +121,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  */
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    BOOL isApplicationUpdated = [NSBundle applicationBuildVersion] != _pluginInternalPrefs.appBuildVersion;
+    BOOL isApplicationUpdated = ![[NSBundle applicationBuildVersion] isEqualToString:_pluginInternalPrefs.appBuildVersion];
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     BOOL isWWwFolderInstalled = _pluginInternalPrefs.isWwwFolderInstalled;
     
@@ -160,16 +157,24 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *
  *  @return <code>YES</code> if download process started; <code>NO</code> otherwise
  */
-- (BOOL)_fetchUpdate:(NSString *)callbackId {
+- (BOOL)_fetchUpdate:(NSString *)callbackId withOptions:(HCPFetchUpdateOptions *)options {
     if (!_isPluginReadyForWork) {
         return NO;
     }
     
+    if (!options && self.defaultFetchUpdateOptions) {
+        options = self.defaultFetchUpdateOptions;
+    }
+    
+    HCPUpdateRequest *request = [[HCPUpdateRequest alloc] init];
+    request.configURL = options.configFileURL ? options.configFileURL : _pluginXmlConfig.configUrl;
+    request.requestHeaders = options.requestHeaders;
+    request.currentWebVersion = _pluginInternalPrefs.currentReleaseVersionName;
+    request.currentNativeVersion = _pluginXmlConfig.nativeInterfaceVersion;
+    
     NSError *error = nil;
-    [[HCPUpdateLoader sharedInstance] downloadUpdateWithConfigUrl:_pluginXmlConfig.configUrl
-                                                currentWebVersion:_pluginInternalPrefs.currentReleaseVersionName
-                                             currentNativeVersion:_pluginXmlConfig.nativeInterfaceVersion
-                                                            error:&error];
+    [[HCPUpdateLoader sharedInstance] executeDownloadRequest:request error:&error];
+    
     if (error) {
         if (callbackId) {
             CDVPluginResult *errorResult = [CDVPluginResult pluginResultWithActionName:kHCPUpdateDownloadErrorEvent
@@ -465,7 +470,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
         ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
         ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [self _fetchUpdate:nil];
+        [self _fetchUpdate:nil withOptions:nil];
     }
 }
 
@@ -645,6 +650,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     
     // reload application to the index page
     [self loadURL:[self indexPageFromConfigXml]];
+    
+    [self cleanupFileSystemFromOldReleases];
 }
 
 #pragma mark Rollback process
@@ -686,6 +693,18 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     }
 }
 
+#pragma mark Cleanup process
+
+- (void)cleanupFileSystemFromOldReleases {
+    if (!_pluginInternalPrefs.currentReleaseVersionName.length) {
+        return;
+    }
+    
+    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
+                                                   _pluginInternalPrefs.previousReleaseVersionName,
+                                                   _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
+}
+
 #pragma mark Methods, invoked from Javascript
 
 - (void)jsInitPlugin:(CDVInvokedUrlCommand *)command {
@@ -695,7 +714,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (_pluginXmlConfig.isUpdatesAutoDownloadAllowed &&
         ![HCPUpdateLoader sharedInstance].isDownloadInProgress &&
         ![HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        [self _fetchUpdate:nil];
+        [self _fetchUpdate:nil withOptions:nil];
     }
 }
 
@@ -717,8 +736,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (!_isPluginReadyForWork) {
         [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
+
+    NSDictionary *optionsFromJS = command.arguments.count ? command.arguments[0] : nil;
+    HCPFetchUpdateOptions *fetchOptions = [[HCPFetchUpdateOptions alloc] initWithDictionary:optionsFromJS];
     
-    [self _fetchUpdate:command.callbackId];
+    [self _fetchUpdate:command.callbackId withOptions:fetchOptions];
 }
 
 - (void)jsInstallUpdate:(CDVInvokedUrlCommand *)command {

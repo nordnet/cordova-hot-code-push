@@ -21,7 +21,7 @@
  *  Build version of the app which was detected on the last launch.
  *  Using it we can determine if application has been updated through the App Store.
  */
-@property (nonatomic) NSInteger appBuildVersion;
+@property (nonatomic, strong) NSString *appBuildVersion;
 
 /**
  *  Flag to check, if www folder from the bundle is installed on external storage.

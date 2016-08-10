@@ -1,11 +1,13 @@
 package com.nordnetab.chcp.main.network;
 
+import com.nordnetab.chcp.main.utils.URLConnectionHelper;
 import com.nordnetab.chcp.main.utils.URLUtility;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Map;
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -17,13 +19,8 @@ import java.net.URLConnection;
  */
 abstract class JsonDownloader<T> {
 
-    private String downloadUrl;
-
-    // connection timeout in milliseconds
-    private static final int CONNECTION_TIMEOUT = 30000;
-
-    // data read timeout in milliseconds
-    private static final int READ_TIMEOUT = 30000;
+    private final String downloadUrl;
+    private final Map<String, String> requestHeaders;
 
     /**
      * Create instance of the object from json string.
@@ -38,8 +35,9 @@ abstract class JsonDownloader<T> {
      *
      * @param url url from which JSON should be loaded
      */
-    public JsonDownloader(String url) {
+    public JsonDownloader(final String url, final Map<String, String> requestHeaders) {
         this.downloadUrl = url;
+        this.requestHeaders = requestHeaders;
     }
 
     /**
@@ -68,15 +66,7 @@ abstract class JsonDownloader<T> {
     private String downloadJson() throws Exception {
         final StringBuilder jsonContent = new StringBuilder();
 
-        final URL url = URLUtility.stringToUrl(downloadUrl);
-        if (url == null) {
-            throw new Exception("Invalid url format:" + downloadUrl);
-        }
-
-        final URLConnection urlConnection = url.openConnection();
-        urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
-        urlConnection.setReadTimeout(READ_TIMEOUT);
-
+        final URLConnection urlConnection = URLConnectionHelper.createConnectionToURL(downloadUrl, requestHeaders);
         final InputStreamReader streamReader = new InputStreamReader(urlConnection.getInputStream());
         final BufferedReader bufferedReader = new BufferedReader(streamReader);
 

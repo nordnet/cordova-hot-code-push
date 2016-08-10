@@ -6,13 +6,22 @@
 
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDV.h>
+#import "HCPFetchUpdateOptions.h"
 
 /**
  *  Plugin main class
  */
 @interface HCPPlugin : CDVPlugin
 
-// methods, invoked from JavaScript
+#pragma mark Properties
+
+/**
+ *  Fetch update preferences. Used by default if none provided from JS side.
+ *  Can be used to controll plugin's workflow from the native side.
+ */
+@property (nonatomic, strong) HCPFetchUpdateOptions *defaultFetchUpdateOptions;
+
+#pragma mark Methods, invoked from JavaScript
 
 /**
  *  Initialize application with callback from web side.

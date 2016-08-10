@@ -184,6 +184,11 @@ var chcp = {
   },
 
   /**
+   * DEPRECATED! WILL BE REMOVED EVENTUALLY!
+   *
+   * If you want to set config-url - use chcp.fetchUpdate(callback, options).
+   * If you want to set auto-download/auto-install preference - do it in config.xml instead of this method.
+   *
    * Set plugin options.
    * Options are send to the native side.
    * As soon as they are processed - callback is called.
@@ -232,9 +237,10 @@ var chcp = {
    * Usually this is done automatically by the plugin, but can be triggered at any time from the web page.
    *
    * @param {Callback(error, data)} callback - called when native side finished update process
+   * @param {Object} options - additional options, such as "config-url" and additional http headers.
    */
-  fetchUpdate: function(callback) {
-    callNativeMethod(pluginNativeMethod.FETCH_UPDATE, null, callback);
+  fetchUpdate: function(callback, options) {
+    callNativeMethod(pluginNativeMethod.FETCH_UPDATE, options, callback);
   },
 
   /**

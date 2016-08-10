@@ -7,11 +7,11 @@ When you publish your application on the store - you pack in it all your web con
 1. Publish new version of the app on the store. But it takes time, especially with the App Store.
 2. Sacrifice the offline feature and load all the pages online. But as soon as Internet connection goes down - application won't work.
 
-This plugin is intended to fix all that. When user starts the app for the first time - it copies all the web files onto the external storage. From this moment all pages are loaded from the external folder and not from the packed bundle. On every launch plugin connects to your server and checks if the new version of web project is available for download. If so - it loads it on the device and installs on the next launch.
+This plugin is intended to fix all that. When user starts the app for the first time - it copies all the web files onto the external storage. From this moment all pages are loaded from the external folder and not from the packed bundle. On every launch plugin connects to your server (with optional authentication, see fetchUpdate() below) and checks if the new version of web project is available for download. If so - it loads it on the device and installs on the next launch.
 
 As a result, your application receives updates of the web content as soon as possible, and still can work in offline mode. Also, plugin allows you to specify dependency between the web release and the native version to make sure, that new release will work on the older versions of the application.
 
-**Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for. If your application should be a calculator, but after the update becomes an audio player - you will be banned.
+**Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for and you don't ask user to click some button to update the web content. For more details please refer to [this wiki page](https://github.com/nordnet/cordova-hot-code-push/wiki/App-Store-FAQ).
 
 ## Supported platforms
 
@@ -20,7 +20,7 @@ As a result, your application receives updates of the web content as soon as pos
 
 ### Installation
 
-This requires cordova 5.0+ (current stable 1.3.2)
+This requires cordova 5.0+ (current stable 1.4.0)
 
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
@@ -100,4 +100,6 @@ From this point you can do local development, where all the changes are uploaded
 
 ### Documentation
 
-All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki). If you have some questions/problems - don't hesitate to post an [issue](https://github.com/nordnet/cordova-hot-code-push/issues).
+All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki).
+
+If you have some questions/problems/suggestions - don't hesitate to post a [thread](https://github.com/nordnet/cordova-hot-code-push/issues). If it's an actual issue - please, follow [this guide](https://github.com/nordnet/cordova-hot-code-push/wiki/Issue-creation-guide) on how to do that properly.

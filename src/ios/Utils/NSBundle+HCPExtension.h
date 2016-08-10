@@ -16,7 +16,7 @@
  *
  *  @return build version of the app
  */
-+ (NSInteger)applicationBuildVersion;
++ (NSString *)applicationBuildVersion;
 
 /**
  *  Path to the www folder in the application bundle.

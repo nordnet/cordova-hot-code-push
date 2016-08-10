@@ -7,6 +7,7 @@ import android.util.Log;
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ChcpXmlConfig;
 import com.nordnetab.chcp.main.config.ContentConfig;
+import com.nordnetab.chcp.main.config.FetchUpdateOptions;
 import com.nordnetab.chcp.main.config.PluginInternalPreferences;
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
@@ -27,6 +28,7 @@ import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.storage.IObjectPreferenceStorage;
 import com.nordnetab.chcp.main.storage.PluginInternalPreferencesStorage;
+import com.nordnetab.chcp.main.updater.UpdateDownloadRequest;
 import com.nordnetab.chcp.main.updater.UpdatesInstaller;
 import com.nordnetab.chcp.main.updater.UpdatesLoader;
 import com.nordnetab.chcp.main.utils.AssetsHelper;
@@ -52,10 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-
 
 /**
  * Created by Nikolay Demyankov on 23.07.15.
@@ -84,6 +82,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     private boolean dontReloadOnStart;
 
     private List<PluginResult> defaultCallbackStoredResults;
+    private FetchUpdateOptions defaultFetchUpdateOptions;
 
     // region Plugin lifecycle
 
@@ -97,14 +96,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         Log.d("CHCP", "Currently running release version " + pluginInternalPrefs.getCurrentReleaseVersionName());
 
         // clean up file system
-        if (!TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
-            CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
-                    new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
-                            pluginInternalPrefs.getPreviousReleaseVersionName(),
-                            pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
-                    }
-            );
-        }
+        cleanupFileSystemFromOldReleases();
 
         handler = new Handler();
         fileStructure = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
@@ -115,12 +107,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
     @Override
     public void onStart() {
         super.onStart();
-        
+
         final EventBus eventBus = EventBus.getDefault();
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this);
         }
-        
+
         // ensure that www folder installed on external storage;
         // if not - install it
         isPluginReadyForWork = isPluginReadyForWork();
@@ -181,6 +173,30 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // endregion
 
+    // region Plugin external properties
+
+    /**
+     * Setter for default fetch update options.
+     * If this one is defined and no options has come form JS side - we use them.
+     * If preferences came from JS side - we ignore the default ones.
+     *
+     * @param options options
+     */
+    public void setDefaultFetchUpdateOptions(final FetchUpdateOptions options) {
+        this.defaultFetchUpdateOptions = options;
+    }
+
+    /**
+     * Getter for currently used default fetch update options.
+     *
+     * @return default fetch options
+     */
+    public FetchUpdateOptions getDefaultFetchUpdateOptions() {
+        return defaultFetchUpdateOptions;
+    }
+
+    // endregion
+
     // region Config loaders and initialization
 
     /**
@@ -226,7 +242,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         if (JSAction.INIT.equals(action)) {
             jsInit(callbackContext);
         } else if (JSAction.FETCH_UPDATE.equals(action)) {
-            jsFetchUpdate(callbackContext);
+            jsFetchUpdate(callbackContext, args);
         } else if (JSAction.INSTALL_UPDATE.equals(action)) {
             jsInstallUpdate(callbackContext);
         } else if (JSAction.CONFIGURE.equals(action)) {
@@ -246,7 +262,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Send message to default plugin callback.
      * Default callback - is a callback that we receive on initialization (device ready).
      * Through it we are broadcasting different events.
-     *
+     * <p/>
      * If callback is not set yet - message will be stored until it is initialized.
      *
      * @param message message to send to web side
@@ -266,7 +282,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     /**
      * Dispatch stored events for the default callback.
-     * */
+     */
     private void dispatchDefaultCallbackStoredResults() {
         if (defaultCallbackStoredResults.size() == 0 || jsDefaultCallback == null) {
             return;
@@ -303,7 +319,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // fetch update when we are initialized
         if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
                 !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
-            fetchUpdate(null);
+            fetchUpdate();
         }
     }
 
@@ -313,13 +329,19 @@ public class HotCodePushPlugin extends CordovaPlugin {
      *
      * @param callback js callback
      */
-    private void jsFetchUpdate(CallbackContext callback) {
+    private void jsFetchUpdate(CallbackContext callback, CordovaArgs args) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork(UpdateDownloadErrorEvent.EVENT_NAME, callback);
             return;
         }
 
-        fetchUpdate(callback);
+        FetchUpdateOptions fetchOptions = null;
+        try {
+            fetchOptions = new FetchUpdateOptions(args.optJSONObject(0));
+        } catch (JSONException ignored) {
+        }
+
+        fetchUpdate(callback, fetchOptions);
     }
 
     /**
@@ -355,6 +377,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @param arguments arguments from JavaScript
      * @param callback  callback where to send result
      */
+    @Deprecated
     private void jsSetPluginOptions(CordovaArgs arguments, CallbackContext callback) {
         if (!isPluginReadyForWork) {
             sendPluginNotReadyToWork("", callback);
@@ -404,7 +427,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * Check if new version was loaded and can be installed.
      *
      * @param callback callback where to send the result
-     * */
+     */
     private void jsIsUpdateAvailableForInstallation(final CallbackContext callback) {
         Map<String, Object> data = null;
         ChcpError error = null;
@@ -421,19 +444,43 @@ public class HotCodePushPlugin extends CordovaPlugin {
         callback.sendPluginResult(pluginResult);
     }
 
+    // convenience method
+    private void fetchUpdate() {
+        fetchUpdate(null, new FetchUpdateOptions());
+    }
+
     /**
      * Perform update availability check.
      *
      * @param jsCallback callback where to send the result;
      *                   used, when update is requested manually from JavaScript
      */
-    private void fetchUpdate(CallbackContext jsCallback) {
+    private void fetchUpdate(CallbackContext jsCallback, FetchUpdateOptions fetchOptions) {
         if (!isPluginReadyForWork) {
             return;
         }
 
-        final PluginFilesStructure currentReleaseFS = new PluginFilesStructure(cordova.getActivity(), pluginInternalPrefs.getCurrentReleaseVersionName());
-        final ChcpError error = UpdatesLoader.downloadUpdate(chcpXmlConfig.getConfigUrl(), currentReleaseFS, chcpXmlConfig.getNativeInterfaceVersion());
+        Map<String, String> requestHeaders = null;
+        String configURL = chcpXmlConfig.getConfigUrl();
+        if (fetchOptions == null) {
+            fetchOptions = defaultFetchUpdateOptions;
+        }
+        if (fetchOptions != null) {
+            requestHeaders = fetchOptions.getRequestHeaders();
+            final String optionalConfigURL = fetchOptions.getConfigURL();
+            if (!TextUtils.isEmpty(optionalConfigURL)) {
+                configURL = optionalConfigURL;
+            }
+        }
+
+        final UpdateDownloadRequest request = UpdateDownloadRequest.builder(cordova.getActivity())
+                .setConfigURL(configURL)
+                .setCurrentNativeVersion(chcpXmlConfig.getNativeInterfaceVersion())
+                .setCurrentReleaseVersion(pluginInternalPrefs.getCurrentReleaseVersionName())
+                .setRequestHeaders(requestHeaders)
+                .build();
+
+        final ChcpError error = UpdatesLoader.downloadUpdate(request);
         if (error != ChcpError.NONE) {
             if (jsCallback != null) {
                 PluginResult errorResult = PluginResultHelper.createPluginResult(UpdateDownloadErrorEvent.EVENT_NAME, null, error);
@@ -612,7 +659,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         if (chcpXmlConfig.isAutoDownloadIsAllowed() &&
                 !UpdatesInstaller.isInstalling() && !UpdatesLoader.isExecuting()) {
-            fetchUpdate(null);
+            fetchUpdate();
         }
     }
 
@@ -789,6 +836,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
                 HotCodePushPlugin.this.redirectToLocalStorageIndexPage();
             }
         });
+
+        cleanupFileSystemFromOldReleases();
     }
 
     /**
@@ -842,6 +891,23 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     // endregion
+
+    // region Cleanup process
+
+    private void cleanupFileSystemFromOldReleases() {
+        if (TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
+            return;
+        }
+
+        CleanUpHelper.removeReleaseFolders(cordova.getActivity(),
+                new String[]{pluginInternalPrefs.getCurrentReleaseVersionName(),
+                        pluginInternalPrefs.getPreviousReleaseVersionName(),
+                        pluginInternalPrefs.getReadyForInstallationReleaseVersionName()
+                }
+        );
+    }
+
+    //endregion
 
     // region Rollback process
 

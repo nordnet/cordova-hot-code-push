@@ -13,9 +13,12 @@
 
 #pragma mark Public API
 
-- (void) downloadDataFromUrl:(NSURL*) url completionBlock:(HCPDataDownloadCompletionBlock) block {
+- (void) downloadDataFromUrl:(NSURL*) url requestHeaders:(NSDictionary *)headers completionBlock:(HCPDataDownloadCompletionBlock) block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    if (headers) {
+        [configuration setHTTPAdditionalHeaders:headers];
+    }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
     NSURLSessionDataTask* dowloadTask = [session dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -25,9 +28,12 @@
     [dowloadTask resume];
 }
 
-- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL completionBlock:(HCPFileDownloadCompletionBlock)block {
+- (void) downloadFiles:(NSArray *)filesList fromURL:(NSURL *)contentURL toFolder:(NSURL *)folderURL requestHeaders:(NSDictionary *)headers completionBlock:(HCPFileDownloadCompletionBlock)block {
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    if (headers) {
+        [configuration setHTTPAdditionalHeaders:headers];
+    }
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
     
     __block NSMutableSet* startedTasks = [NSMutableSet set];

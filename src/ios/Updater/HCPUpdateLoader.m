@@ -33,22 +33,21 @@
     return _isExecuting;
 }
 
-- (BOOL)downloadUpdateWithConfigUrl:(NSURL *)configUrl currentWebVersion:(NSString *)currentWebVersion currentNativeVersion:(NSUInteger)currentNativeVersion error:(NSError **)error {
+- (BOOL)executeDownloadRequest:(HCPUpdateRequest *)request error:(NSError **)error {
     if (_isExecuting) {
-        *error = [NSError errorWithCode:kHCPDownloadAlreadyInProgressErrorCode description:@"Download already in progress. Please, wait for it to finish."];
+        *error = [NSError errorWithCode:kHCPDownloadAlreadyInProgressErrorCode
+                            description:@"Download already in progress. Please, wait for it to finish."];
         return NO;
     }
     
     // if installing - don't start the task.
     if ([HCPUpdateInstaller sharedInstance].isInstallationInProgress) {
-        *error = [NSError errorWithCode:kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode description:@"Installation is in progress, can't launch the download task. Please, wait for it to finish."];
+        *error = [NSError errorWithCode:kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode
+                            description:@"Installation is in progress, can't launch the download task. Please, wait for it to finish."];
         return NO;
     }
     
-    *error = nil;
-    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithConfigUrl:configUrl
-                                                        currentWebVersion:currentWebVersion
-                                                   nativeInterfaceVersion:currentNativeVersion];
+    id<HCPWorker> task = [[HCPUpdateLoaderWorker alloc] initWithRequest:request];
     [self executeTask:task];
     
     return YES;

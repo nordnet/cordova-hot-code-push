@@ -51,6 +51,11 @@
 @property (nonatomic, strong, readonly) NSString *manifestFileName;
 
 /**
+ *  Getter for the name of the manifest signature file.
+ */
+@property (nonatomic, strong, readonly) NSString *manifestSignatureFileName;
+
+/**
  *  Get root folder for this plugin. 
  *  In it all releases are located.
  *

@@ -171,6 +171,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     request.requestHeaders = options.requestHeaders;
     request.currentWebVersion = _pluginInternalPrefs.currentReleaseVersionName;
     request.currentNativeVersion = _pluginXmlConfig.nativeInterfaceVersion;
+    request.checkUpdateSigning = _pluginXmlConfig.shouldCheckUpdateSigning;
+    request.updateSigningCertificate = _pluginXmlConfig.updateSigningCertificate;
     
     NSError *error = nil;
     [[HCPUpdateLoader sharedInstance] executeDownloadRequest:request error:&error];

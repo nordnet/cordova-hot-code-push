@@ -18,7 +18,7 @@ public class ChcpXmlConfig {
     private boolean allowUpdatesAutoInstall;
     private int nativeInterfaceVersion;
     private boolean checkUpdateSigning;
-    private String updateSigningPubkey;
+    private String updateSigningCertificate;
 
     private ChcpXmlConfig() {
         configUrl = "";
@@ -26,7 +26,7 @@ public class ChcpXmlConfig {
         allowUpdatesAutoInstall = true;
         nativeInterfaceVersion = 1;
         checkUpdateSigning = false;
-        updateSigningPubkey = "";
+        updateSigningCertificate = "";
     }
 
     /**
@@ -127,17 +127,17 @@ public class ChcpXmlConfig {
      *
      * @return PEM encoded RSA public key string
      * */
-    public String getUpdateSigningPubkey() {
-        return updateSigningPubkey;
+    public String getUpdateSigningCertificate() {
+        return updateSigningCertificate;
     }
 
     /**
-     * Setter for public key used to check update signatures.
+     * Setter for certificate used to check update signatures.
      *
-     * @param pubkey PEM encoded RSA public key string
+     * @param pubkey X509 encoded certificate string
      * */
-    void setUpdateSigningPubkey(String pubkey) {
-        updateSigningPubkey = pubkey;
+    void setUpdateSigningCertificate(String pubkey) {
+        updateSigningCertificate = pubkey;
     }
 
     /**
@@ -178,10 +178,10 @@ public class ChcpXmlConfig {
         }
 
         if (jsOptions.has(XmlTags.UPDATE_SIGNING_TAG)) {
-            String signingPubKey = jsOptions.getString(XmlTags.UPDATE_SIGNING_TAG);
-            if (!TextUtils.isEmpty(signingPubKey)) {
+            String signingCertificate = jsOptions.getString(XmlTags.UPDATE_SIGNING_TAG);
+            if (!TextUtils.isEmpty(signingCertificate)) {
                 setCheckUpdateSigning(true);
-                setUpdateSigningPubkey(signingPubKey);
+                setUpdateSigningCertificate(signingCertificate);
             }
         }
 

@@ -37,6 +37,18 @@
 @property (nonatomic) NSUInteger nativeInterfaceVersion;
 
 /**
+ *  Flag that indicates if update signatures should be checked. By default - <code>NO</code>.
+ *
+ *  @return <code>YES</code> if signatures should be checked ; <code>NO</code> if signatures should not be checked
+ */
+@property (nonatomic, getter=shouldCheckUpdateSigning) BOOL checkUpdateSigning;
+
+/**
+ *  x509 certificate string
+ */
+@property (nonatomic) NSString *updateSigningCertificate;
+
+/**
  *  Apply and save options that has been send from the web page.
  *  Using this we can change plugin config from JavaScript.
  *

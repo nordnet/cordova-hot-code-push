@@ -120,6 +120,11 @@ extern NSInteger const kHCPDownloadAlreadyInProgressErrorCode;
 extern NSInteger const kHCPAssetsNotYetInstalledErrorCode;
 
 /**
+ *  Code error occures when we require a content manifest signature, but the signature is not found or not valid
+ */
+extern NSInteger const kHCPContentManifestSignatureInvalidErrorCode;
+
+/**
  *  Category for NSError.
  *  Extended with plugin specific errors.
  */

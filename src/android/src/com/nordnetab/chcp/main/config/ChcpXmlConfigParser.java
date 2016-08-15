@@ -120,9 +120,9 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
     }
 
     private void processUpdateSigningBlock(final XmlPullParser xml) {
-        final String signingPubkey = xml.getAttributeValue(null, XmlTags.UPDATE_SIGNING_PUBKEY_ATTRIBUTE);
+        final String signingCertificate = xml.getAttributeValue(null, XmlTags.UPDATE_SIGNING_CERTIFICATE_ATTRIBUTE);
         chcpConfig.setCheckUpdateSigning(true);
-        chcpConfig.setUpdateSigningPubkey(signingPubkey);
+        chcpConfig.setUpdateSigningCertificate(signingCertificate);
     }
 
 }

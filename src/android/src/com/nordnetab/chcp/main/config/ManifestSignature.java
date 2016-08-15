@@ -12,6 +12,10 @@ import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.PublicKey;
+import java.io.ByteArrayInputStream;
 
 /**
  * Model for manifest signature.
@@ -20,8 +24,8 @@ import java.security.spec.X509EncodedKeySpec;
  */
 public class ManifestSignature {
 
-    private static final String PKCS8_BEGIN_MARKER = "-----BEGIN PUBLIC KEY-----";
-    private static final String PKCS8_END_MARKER = "-----END PUBLIC KEY-----";
+    private static final String X509_BEGIN_MARKER = "-----BEGIN CERTIFICATE-----";
+    private static final String X509_END_MARKER = "-----END CERTIFICATE-----";
 
     // region Json
 
@@ -106,25 +110,27 @@ public class ManifestSignature {
         return contentSignature;
     }
 
-    public boolean isContentManifestValid(ContentManifest manifest, String signingPubkey) {
+    public boolean isContentManifestValid(ContentManifest manifest, String signingCertificate) {
 
         try {
-            int startMarker = signingPubkey.indexOf(PKCS8_BEGIN_MARKER);
-            int endMarker = signingPubkey.indexOf(PKCS8_END_MARKER);
-            String innerKeyPEM = signingPubkey.substring(startMarker+PKCS8_BEGIN_MARKER.length(), endMarker).trim();
-            byte[] innerKeyDER = Base64.decode(innerKeyPEM, Base64.DEFAULT);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            RSAPublicKey pubKey = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(innerKeyDER));
+            int startMarker = signingCertificate.indexOf(X509_BEGIN_MARKER);
+            int endMarker = signingCertificate.indexOf(X509_END_MARKER);
+            String innerCertificatePEM = signingCertificate.substring(startMarker+X509_BEGIN_MARKER.length(), endMarker).trim();
+
+            byte[] innerCertificateDER = Base64.decode(innerCertificatePEM, Base64.DEFAULT);
+            CertificateFactory fact = CertificateFactory.getInstance("X.509");
+            X509Certificate cer = (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(innerCertificateDER));
+            PublicKey pubKey = cer.getPublicKey();
+
+            //KeyFactory kf = KeyFactory.getInstance("RSA");
+            //RSAPublicKey pubKey = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(innerCertificateDER));
             Signature sign = Signature.getInstance("SHA256withRSA");
             sign.initVerify(pubKey);
             for(ManifestFile manifestFile : manifest.getFiles()) {
                 sign.update(manifestFile.name.getBytes("UTF-8"));
                 sign.update(manifestFile.hash.getBytes("UTF-8"));
             }
-            byte[] signatureBytes = new byte[contentSignature.length()/2];
-            for(int i=0; i<contentSignature.length()/2; i++) {
-                signatureBytes[i] = (byte) (Integer.parseInt(contentSignature.substring(i*2, i*2+2),16) & 0xff);
-            }
+            byte[] signatureBytes = Base64.decode(contentSignature, Base64.DEFAULT);
             boolean result = sign.verify(signatureBytes);
             return result;
         } catch (Exception e) {

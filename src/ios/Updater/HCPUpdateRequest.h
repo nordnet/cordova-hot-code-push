@@ -24,6 +24,18 @@
 @property (nonatomic) NSUInteger currentNativeVersion;
 
 /**
+ *  True if update signature should be checked.
+ */
+@property (nonatomic) BOOL checkUpdateSigning;
+
+/**
+ *  Public key used to check update signatures.
+ */
+@property (nonatomic, strong) NSString *updateSigningCertificate;
+
+
+
+/**
  *  Additional request headers.
  */
 @property (nonatomic, strong) NSDictionary *requestHeaders;

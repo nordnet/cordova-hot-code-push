@@ -27,6 +27,7 @@ NSInteger const kHCPCantDownloadUpdateWhileInstallationInProgressErrorCode = -15
 NSInteger const kHCPInstallationAlreadyInProgressErorrCode = -16;
 NSInteger const kHCPDownloadAlreadyInProgressErrorCode = -17;
 NSInteger const kHCPAssetsNotYetInstalledErrorCode = -18;
+NSInteger const kHCPContentManifestSignatureInvalidErrorCode = -20;
 
 // Kind of warnings
 NSInteger const kHCPNothingToInstallErrorCode = 1;

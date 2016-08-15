@@ -44,7 +44,7 @@ class UpdateLoaderWorker implements WorkerTask {
     private final int appNativeVersion;
     private final PluginFilesStructure filesStructure;
     private boolean checkUpdateSigning;
-    private String updateSigningPubkey;
+    private String updateSigningCertificate;
     private final Map<String, String> requestHeaders;
 
     private IObjectFileStorage<ApplicationConfig> appConfigStorage;
@@ -66,7 +66,7 @@ class UpdateLoaderWorker implements WorkerTask {
         filesStructure = request.getCurrentReleaseFileStructure();
         requestHeaders = request.getRequestHeaders();
         checkUpdateSigning = request.getCheckUpdateSigning();
-        updateSigningPubkey = request.getUpdateSigningPubkey();
+        updateSigningCertificate = request.getUpdateSigningCertificate();
     }
 
     @Override
@@ -111,7 +111,7 @@ class UpdateLoaderWorker implements WorkerTask {
         // check content manifest signature
         if(checkUpdateSigning) {
             final ManifestSignature signature = downloadManifestSignature(newContentConfig.getContentUrl());
-            if(signature == null || !signature.isContentManifestValid(newContentManifest, updateSigningPubkey)) {
+            if(signature == null || !signature.isContentManifestValid(newContentManifest, updateSigningCertificate)) {
                 setErrorResult(ChcpError.CONTENT_MANIFEST_SIGNATURE_INVALID, newAppConfig);
                 return;
             }

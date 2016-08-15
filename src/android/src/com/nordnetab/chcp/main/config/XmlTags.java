@@ -30,6 +30,6 @@ final class XmlTags {
 
     // keys for update signing
     public static final String UPDATE_SIGNING_TAG = "update-signing";
-    public static final String UPDATE_SIGNING_PUBKEY_ATTRIBUTE = "pubkey";
+    public static final String UPDATE_SIGNING_CERTIFICATE_ATTRIBUTE = "certificate";
 
 }

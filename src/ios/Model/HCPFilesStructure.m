@@ -14,6 +14,7 @@ static NSString *const DOWNLOAD_FOLDER = @"update";
 static NSString *const WWWW_FOLDER = @"www";
 static NSString *const CHCP_JSON_FILE_PATH = @"chcp.json";
 static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
+static NSString *const CHCP_MANIFEST_SIGNATURE_FILE_PATH = @"chcp.signature";
 
 @interface HCPFilesStructure()
 
@@ -91,12 +92,20 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     return CHCP_MANIFEST_FILE_PATH;
 }
 
+- (NSString *)manifestSignatureFileName {
+    return CHCP_MANIFEST_SIGNATURE_FILE_PATH;
+}
+
 + (NSString *)defaultConfigFileName {
     return CHCP_JSON_FILE_PATH;
 }
 
 + (NSString *)defaultManifestFileName {
     return CHCP_MANIFEST_FILE_PATH;
+}
+
++ (NSString *)defaultManifestSignatureFileName {
+    return CHCP_MANIFEST_SIGNATURE_FILE_PATH;
 }
 
 @end

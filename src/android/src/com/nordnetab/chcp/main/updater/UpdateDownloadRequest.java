@@ -17,7 +17,7 @@ public class UpdateDownloadRequest {
     private PluginFilesStructure currentReleaseFS;
     private int currentNativeVersion;
     private boolean checkUpdateSigning;
-    private String updateSigningPubkey;
+    private String updateSigningCertificate;
     private Map<String, String> requestHeaders;
 
     /**
@@ -28,7 +28,7 @@ public class UpdateDownloadRequest {
      * @param currentReleaseVersion current web content version
      * @param currentNativeVersion  current native interface version
      * @param checkUpdateSigning    true if update signatures should be checked
-     * @param updateSigningPubkey   public key used to check update signatures
+     * @param updateSigningCertificate   public key used to check update signatures
      * @param requestHeaders        additional request headers, which will be added to all requests
      */
     public UpdateDownloadRequest(final Context context,
@@ -36,14 +36,14 @@ public class UpdateDownloadRequest {
                                  final String currentReleaseVersion,
                                  final int currentNativeVersion,
                                  final boolean checkUpdateSigning,
-                                 final String updateSigningPubkey,
+                                 final String updateSigningCertificate,
                                  final Map<String, String> requestHeaders) {
         this.configURL = configURL;
         this.currentNativeVersion = currentNativeVersion;
         this.requestHeaders = requestHeaders;
         this.currentReleaseFS = new PluginFilesStructure(context, currentReleaseVersion);
         this.checkUpdateSigning = checkUpdateSigning;
-        this.updateSigningPubkey = updateSigningPubkey;
+        this.updateSigningCertificate = updateSigningCertificate;
     }
 
     /**
@@ -106,8 +106,8 @@ public class UpdateDownloadRequest {
      *
      * @return PEM encoded RSA public key string
      * */
-    public String getUpdateSigningPubkey() {
-        return updateSigningPubkey;
+    public String getUpdateSigningCertificate() {
+        return updateSigningCertificate;
     }
 
 
@@ -120,7 +120,7 @@ public class UpdateDownloadRequest {
         private String currentReleaseVersion;
         private int currentNativeVersion;
         private boolean checkUpdateSigning;
-        private String updateSigningPubkey;
+        private String updateSigningCertificate;
         private Map<String, String> requestHeaders;
 
         /**
@@ -187,12 +187,12 @@ public class UpdateDownloadRequest {
         }
 
         /**
-         * Setter for public key used to check update signatures.
+         * Setter for certificate used to check update signatures.
          *
-         * @param pubkey PEM encoded RSA public key string
+         * @param certificate X509 certificate string
          * */
-        public Builder setUpdateSigningPubkey(final String pubkey) {
-            this.updateSigningPubkey = pubkey;
+        public Builder setUpdateSigningCertificate(final String certificate) {
+            this.updateSigningCertificate = certificate;
             return this;
         }
 
@@ -202,7 +202,7 @@ public class UpdateDownloadRequest {
          * @return update request instance
          */
         public UpdateDownloadRequest build() {
-            return new UpdateDownloadRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, checkUpdateSigning, updateSigningPubkey, requestHeaders);
+            return new UpdateDownloadRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, checkUpdateSigning, updateSigningCertificate, requestHeaders);
         }
     }
 

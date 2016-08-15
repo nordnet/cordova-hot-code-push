@@ -15,11 +15,14 @@
 #import "NSError+HCPExtension.h"
 #import "HCPUpdateInstaller.h"
 #import "HCPContentManifest.h"
+#import "HCPManifestSignature.h"
 
 @interface HCPUpdateLoaderWorker() {
     NSURL *_configURL;
     HCPFilesStructure *_pluginFiles;
     NSUInteger _nativeInterfaceVersion;
+    BOOL _checkUpdateSigning;
+    NSString *_updateSigningCertificate;
     
     id<HCPConfigFileStorage> _appConfigStorage;
     id<HCPConfigFileStorage> _manifestStorage;
@@ -46,6 +49,9 @@
         _configURL = [request.configURL copy];
         _requestHeaders = [request.requestHeaders copy];
         _nativeInterfaceVersion = request.currentNativeVersion;
+        _checkUpdateSigning = request.checkUpdateSigning;
+        _updateSigningCertificate = request.updateSigningCertificate;
+        
         _workerId = [self generateWorkerId];
         _pluginFiles = [[HCPFilesStructure alloc] initWithReleaseVersion:request.currentWebVersion];
         _appConfigStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:_pluginFiles];
@@ -97,15 +103,7 @@
         }
         
         // download new content manifest
-        NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
-        [configDownloader downloadDataFromUrl:manifestFileURL requestHeaders:_requestHeaders completionBlock:^(NSData *data, NSError *error) {
-            HCPContentManifest *newManifest = [self getManifestConfigFromData:data error:&error];
-            if (newManifest == nil) {
-                [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
-                                        descriptionFromError:error]
-                    applicationConfig:newAppConfig];
-                return;
-            }
+        void (^processManifestBlock)(HCPContentManifest *newManifest) = ^(HCPContentManifest *newManifest){
             
             // compare manifests to find out if anything has changed since the last update
             HCPManifestDiff *manifestDiff = [_oldManifest calculateDifference:newManifest];
@@ -135,6 +133,40 @@
             [_appConfigStorage store:newAppConfig inFolder:_pluginFiles.downloadFolder];
             
             [self notifyUpdateDownloadSuccess:newAppConfig];
+        };
+        
+        NSURL *manifestFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestFileName];
+        [configDownloader downloadDataFromUrl:manifestFileURL requestHeaders:_requestHeaders completionBlock:^(NSData *data, NSError *error){
+            HCPContentManifest *newManifest = [self getManifestConfigFromData:data error:&error];
+            if (newManifest == nil) {
+                [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadContentManifestErrorCode
+                                        descriptionFromError:error]
+                    applicationConfig:newAppConfig];
+                return;
+            }
+            
+            if(_checkUpdateSigning) {
+                NSURL *manifestSignatureFileURL = [newAppConfig.contentConfig.contentURL URLByAppendingPathComponent:_pluginFiles.manifestSignatureFileName];
+                [configDownloader downloadDataFromUrl:manifestSignatureFileURL requestHeaders:_requestHeaders completionBlock:^(NSData *data, NSError *error){
+                    HCPManifestSignature *signature = [self getManifestSignatureFromData:data error:&error];
+                    if (signature == nil) {
+                        [self notifyWithError:[NSError errorWithCode:kHCPContentManifestSignatureInvalidErrorCode
+                                                descriptionFromError:error]
+                            applicationConfig:newAppConfig];
+                        return;
+                    }
+                    if (![signature isContentManifestValid:newManifest usingSignatureCertificate:_updateSigningCertificate]) {
+                        [self notifyWithError:[NSError errorWithCode:kHCPContentManifestSignatureInvalidErrorCode
+                                                description:@"Manifest signature is not valid"]
+                            applicationConfig:newAppConfig];
+                        return;
+                    }
+                    processManifestBlock(newManifest);
+                }];
+            }
+            else {
+                processManifestBlock(newManifest);
+            }
         }];
     }];
 }
@@ -196,6 +228,19 @@
     }
     
     return [HCPContentManifest instanceFromJsonObject:json];
+}
+
+- (HCPManifestSignature *)getManifestSignatureFromData:(NSData *)data error:(NSError **)error {
+    if (*error) {
+        return nil;
+    }
+    
+    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
+    if (*error) {
+        return nil;
+    }
+    
+    return [HCPManifestSignature instanceFromJsonObject:json];
 }
 
 /**

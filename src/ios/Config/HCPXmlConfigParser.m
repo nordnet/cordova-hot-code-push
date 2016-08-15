@@ -66,6 +66,8 @@
         [self parseAutoInstallOptions:attributeDict];
     } else if ([elementName isEqualToString:kHCPNativeInterfaceXmlTag]) {
         [self parseNativeInterfaceOptions:attributeDict];
+    } else if ([elementName isEqualToString:kHCPUpdateSigningXmlTag]) {
+        [self parseUpdateSigningOptions:attributeDict];
     }
 }
 
@@ -96,6 +98,11 @@
 
 - (void)parseNativeInterfaceOptions:(NSDictionary *)attributeDict {
     _xmlConfig.nativeInterfaceVersion = [(NSString *)attributeDict[kHCPNativeInterfaceVersionXmlAttribute] integerValue];
+}
+
+- (void)parseUpdateSigningOptions:(NSDictionary *)attributeDict {
+    _xmlConfig.checkUpdateSigning = YES;
+    _xmlConfig.updateSigningCertificate = attributeDict[kHCPUpdateSigningCertificateXmlAttribute];
 }
 
 @end

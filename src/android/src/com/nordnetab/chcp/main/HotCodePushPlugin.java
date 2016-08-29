@@ -1,5 +1,6 @@
 package com.nordnetab.chcp.main;
 
+import android.content.Context;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -251,8 +252,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsRequestAppUpdate(args, callbackContext);
         } else if (JSAction.IS_UPDATE_AVAILABLE_FOR_INSTALLATION.equals(action)) {
             jsIsUpdateAvailableForInstallation(callbackContext);
-        } else if (JSAction.GET_CURRENT_VERSION.equals(action)) {
-            jsGetCurrentVersion(callbackContext);
+        } else if (JSAction.GET_INFO.equals(action)) {
+            jsGetInfo(callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -451,11 +452,16 @@ public class HotCodePushPlugin extends CordovaPlugin {
      *
      * @param callback callback where to send the result
      */
-    private void jsGetCurrentVersion(final CallbackContext callback) {
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("currentVersion", pluginInternalPrefs.getCurrentReleaseVersionName());
+    private void jsGetInfo(final CallbackContext callback) {
+        final Context context = cordova.getActivity();
+        final Map<String, Object> data = new HashMap<String, Object>();
+        data.put("currentWebVersion", pluginInternalPrefs.getCurrentReleaseVersionName());
+        data.put("readyToInstallWebVersion", pluginInternalPrefs.getReadyForInstallationReleaseVersionName());
+        data.put("previousWebVersion", pluginInternalPrefs.getPreviousReleaseVersionName());
+        data.put("appVersion", VersionHelper.applicationVersionName(context));
+        data.put("buildVersion", VersionHelper.applicationVersionCode(context));
 
-        PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
+        final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
         callback.sendPluginResult(pluginResult);
     }
 

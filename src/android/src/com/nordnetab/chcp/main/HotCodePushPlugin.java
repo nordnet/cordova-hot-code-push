@@ -568,7 +568,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
 
-        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getApplicationContext(),cordova.getActivity().getAssets(), WWW_FOLDER, fileStructure.getWwwFolder());
+        AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getApplicationContext(), WWW_FOLDER, fileStructure.getWwwFolder());
     }
 
     /**

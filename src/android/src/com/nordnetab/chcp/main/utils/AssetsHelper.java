@@ -1,7 +1,6 @@
 package com.nordnetab.chcp.main.utils;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 
 import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
@@ -35,15 +34,14 @@ public class AssetsHelper {
      * Copy files from the assets folder into the specific folder on the external storage.
      * Method runs asynchronously. Results are dispatched through events.
      *
-     * @param applicationContext
-     * @param assetManager       assets manager
+     * @param applicationContext current application context
      * @param fromDirectory      which directory in assets we want to copy
      * @param toDirectory        absolute path to the destination folder on the external storage
      * @see AssetsInstallationErrorEvent
      * @see AssetsInstalledEvent
      * @see EventBus
      */
-    public static void copyAssetDirectoryToAppDirectory(final Context applicationContext, final AssetManager assetManager, final String fromDirectory, final String toDirectory) {
+    public static void copyAssetDirectoryToAppDirectory(final Context applicationContext, final String fromDirectory, final String toDirectory) {
         if (isWorking) {
             return;
         }

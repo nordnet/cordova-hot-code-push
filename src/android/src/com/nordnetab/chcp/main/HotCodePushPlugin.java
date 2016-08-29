@@ -251,6 +251,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsRequestAppUpdate(args, callbackContext);
         } else if (JSAction.IS_UPDATE_AVAILABLE_FOR_INSTALLATION.equals(action)) {
             jsIsUpdateAvailableForInstallation(callbackContext);
+        } else if (JSAction.GET_CURRENT_VERSION.equals(action)) {
+            jsGetCurrentVersion(callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -441,6 +443,19 @@ public class HotCodePushPlugin extends CordovaPlugin {
         }
 
         PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, error);
+        callback.sendPluginResult(pluginResult);
+    }
+
+    /**
+     * Check if new version was loaded and can be installed.
+     *
+     * @param callback callback where to send the result
+     */
+    private void jsGetCurrentVersion(final CallbackContext callback) {
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("currentVersion", pluginInternalPrefs.getCurrentReleaseVersionName());
+
+        PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
         callback.sendPluginResult(pluginResult);
     }
 

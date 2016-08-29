@@ -13,6 +13,7 @@ public final class JSAction {
     public static final String CONFIGURE = "jsConfigure";
     public static final String REQUEST_APP_UPDATE = "jsRequestAppUpdate";
     public static final String IS_UPDATE_AVAILABLE_FOR_INSTALLATION = "jsIsUpdateAvailableForInstallation";
+    public static final String GET_CURRENT_VERSION = "jsGetCurrentVersion";
 
     // Private API
     public static final String INIT = "jsInitPlugin";

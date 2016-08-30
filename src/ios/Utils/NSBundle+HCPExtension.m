@@ -17,7 +17,13 @@ static NSString *const WWW_FOLDER_IN_BUNDLE = @"www";
 + (NSString *)applicationBuildVersion {
     NSBundle *mainBundle = [NSBundle mainBundle];
     
-    return [mainBundle objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
+    return [mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+}
+
++ (NSString *)applicationVersionName {
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    
+    return [mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
 }
 
 + (NSString *)pathToWwwFolder {

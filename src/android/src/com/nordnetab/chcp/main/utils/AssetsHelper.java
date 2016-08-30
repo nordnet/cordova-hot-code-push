@@ -6,7 +6,6 @@ import com.nordnetab.chcp.main.events.AssetsInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.AssetsInstalledEvent;
 import com.nordnetab.chcp.main.events.BeforeAssetsInstalledEvent;
 
-import org.apache.cordova.LOG;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
@@ -54,11 +53,8 @@ public class AssetsHelper {
             @Override
             public void run() {
                 try {
-                    long start = System.currentTimeMillis();
-                    copyAssetDirectory(applicationContext, fromDirectory, toDirectory);
+                    execute(applicationContext, fromDirectory, toDirectory);
                     EventBus.getDefault().post(new AssetsInstalledEvent());
-                    long time = System.currentTimeMillis() - start;
-                    LOG.d("CHCP", "Copied assets in : %d ms", time);
                 } catch (IOException e) {
                     e.printStackTrace();
                     EventBus.getDefault().post(new AssetsInstallationErrorEvent());
@@ -69,31 +65,35 @@ public class AssetsHelper {
         }).start();
     }
 
-    private static void copyAssetDirectory(Context applicationContext, String fromDirectory, String toDirectory) throws IOException {
+    private static void execute(Context applicationContext, String fromDirectory, String toDirectory) throws IOException {
         // recreate cache folder
         FilesUtility.delete(toDirectory);
         FilesUtility.ensureDirectoryExists(toDirectory);
-        JarFile jarFile = new JarFile(applicationContext.getApplicationInfo().sourceDir);
 
-        String prefix = "assets/" + fromDirectory;
-        int prefixLength = prefix.length();
-        Enumeration<JarEntry> enu = jarFile.entries();
-        while (enu.hasMoreElements()) {
-            JarEntry fileJarEntry = enu.nextElement();
-            String name = fileJarEntry.getName();
-            if (!fileJarEntry.isDirectory() && name.startsWith(prefix)) {
+        final String assetsDir = "assets/" + fromDirectory;
+        copyAssets(applicationContext.getApplicationInfo().sourceDir, assetsDir, toDirectory);
+    }
+
+    private static void copyAssets(final String appJarPath, final String assetsDir, final String toDirectory) throws IOException {
+        final JarFile jarFile = new JarFile(appJarPath);
+        final int prefixLength = assetsDir.length();
+        final Enumeration<JarEntry> filesEnumeration = jarFile.entries();
+
+        while (filesEnumeration.hasMoreElements()) {
+            final JarEntry fileJarEntry = filesEnumeration.nextElement();
+            final String name = fileJarEntry.getName();
+            if (!fileJarEntry.isDirectory() && name.startsWith(assetsDir)) {
                 final String destinationFileAbsolutePath = Paths.get(toDirectory, name.substring(prefixLength));
 
-                copyAssetFile(jarFile.getInputStream(fileJarEntry), destinationFileAbsolutePath);
+                copyFile(jarFile.getInputStream(fileJarEntry), destinationFileAbsolutePath);
             }
         }
-
     }
 
     /**
      * Copies asset file to destination path
      */
-    private static void copyAssetFile(InputStream in, String destinationFilePath) throws IOException {
+    private static void copyFile(final InputStream in, final String destinationFilePath) throws IOException {
         FilesUtility.ensureDirectoryExists(new File(destinationFilePath).getParent());
         OutputStream out = new FileOutputStream(destinationFilePath);
         // Transfer bytes from in to out

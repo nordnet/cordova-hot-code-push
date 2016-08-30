@@ -67,10 +67,10 @@
 - (void)jsIsUpdateAvailableForInstallation:(CDVInvokedUrlCommand *)command;
 
 /**
- *  Get the name of the current version.
+ *  Get information about app and web versions.
  *
  *  @param command command with which the method is called
  */
-- (void)jsGetCurrentVersion:(CDVInvokedUrlCommand *)command;
+- (void)jsGetVersionInfo:(CDVInvokedUrlCommand *)command;
 
 @end

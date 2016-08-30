@@ -448,7 +448,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     /**
-     * Check if new version was loaded and can be installed.
+     * Get information about app and web versions.
      *
      * @param callback callback where to send the result
      */

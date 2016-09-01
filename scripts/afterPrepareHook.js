@@ -125,10 +125,6 @@ function processConsoleOptions_cordova_54(consoleOptions) {
  * @return {boolean} true - if build option is found and we successfully injected it into config.xml; otherwise - false
  */
 function prepareWithCustomBuildOption(ctx, optionName, chcpXmlOptions) {
-  if (optionName.length == 0) {
-    return false;
-  }
-
   var buildConfig = chcpBuildOptions.getBuildConfigurationByName(ctx, optionName);
   if (buildConfig == null) {
     console.warn('Build configuration for "' + optionName + '" not found in chcp.options. Ignoring it.');

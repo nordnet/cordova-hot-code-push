@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ContentManifest;
-import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateInstalledEvent;
 import com.nordnetab.chcp.main.events.WorkerEvent;
@@ -74,7 +73,7 @@ class InstallationWorker implements WorkerTask {
         deleteUnusedFiles();
 
         // install the update
-        boolean isInstalled = moveFilesFromInstallationFolderToWwwFodler();
+        boolean isInstalled = moveFilesFromInstallationFolderToWwwFolder();
         if (!isInstalled) {
             cleanUpOnFailure();
             setResultForError(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
@@ -130,8 +129,11 @@ class InstallationWorker implements WorkerTask {
      */
     private boolean copyFilesFromCurrentReleaseToNewRelease() {
         boolean result = true;
+        // Happens in some weird cases
+        if(currentReleaseFS.getWwwFolder().equals(newReleaseFS.getWwwFolder())) return result;
         final File currentWwwFolder = new File(currentReleaseFS.getWwwFolder());
         final File newWwwFolder = new File(newReleaseFS.getWwwFolder());
+
         try {
             // just in case if www folder already exists - remove it
             if (newWwwFolder.exists()) {
@@ -177,7 +179,7 @@ class InstallationWorker implements WorkerTask {
      *
      * @return <code>true</code> if files are copied; <code>false</code> - otherwise
      */
-    private boolean moveFilesFromInstallationFolderToWwwFodler() {
+    private boolean moveFilesFromInstallationFolderToWwwFolder() {
         try {
             FilesUtility.copy(newReleaseFS.getDownloadFolder(), newReleaseFS.getWwwFolder());
 

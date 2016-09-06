@@ -1,11 +1,24 @@
 # Change Log
 
+## 1.5.0 (2016-08-30)
+
+**Bug fixes:**
+
+- [Issue #197](https://github.com/nordnet/cordova-hot-code-push/issues/197). Android can now update files with spaces in their names.
+
+**Improvements:**
+
+- Merged [pull request #204](https://github.com/nordnet/cordova-hot-code-push/pull/204). Initial installation of the assets on the external storage on Android is now much faster. Thanks to [@Mikey1982](https://github.com/Mikey1982).
+- Added new JS method: `getVersionInfo`. Based on [pull request #170](https://github.com/nordnet/cordova-hot-code-push/pull/170) from [@Manduro](https://github.com/Manduro) - thank you. For documentation, please, refer to [wikki page](https://github.com/nordnet/cordova-hot-code-push/wiki/Get-version-information).
+
 ## 1.4.0 (2016-06-21)
 
 **Bug fixes:**
-- [Issue #155](https://github.com/nordnet/cordova-hot-code-push/issues/155). Android app should not crash if server has a bad chcp.json file.
+
+- [Issue #155](https://github.com/nordnet/cordova-hot-code-push/issues/155). Android app should not crash if server has a bad `chcp.json` file.
 
 **Improvements:**
+
 - [Issue #153](https://github.com/nordnet/cordova-hot-code-push/issues/153). You can now pass `chcp.json` file url into `fetchUpdate` method on JS side. Also, you can provide additional HTTP headers to the request. For example, authorization info. These headers will be used for loading configuration files and updated/changed files from your server. Thanks to [@davidovich](https://github.com/davidovich) for [pull request #150](https://github.com/nordnet/cordova-hot-code-push/pull/150).
 - [Issue #99](https://github.com/nordnet/cordova-hot-code-push/issues/99). iOS build version can now be a string. So, changing it from 1.0.0 to 1.0.1 will trigger reinstallation of `www` folder. Before that it had to be an integer.
 - [Issue #160](https://github.com/nordnet/cordova-hot-code-push/issues/160). Old releases are now gets removed after update installation. Previously cleanup was performed only on application restart.

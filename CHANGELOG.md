@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.5.1 (2016-09-06)
+
+**Bug fixes:**
+
+- Merged [pull request #205](https://github.com/nordnet/cordova-hot-code-push/pull/205). Fixes Android app crashes, when `content_url` is missing in server's `chcp.json` config. Thanks to [@Mikey1982](https://github.com/Mikey1982).
+- [Issue #208](https://github.com/nordnet/cordova-hot-code-push/issues/208). In some cases `plugins/ios.json` file couldn't be found by the hook, that checks, if `cordova-plugin-wkwebview-engine` plugin is installed in the project. Now hook will check for the plugin's folder directly.
+
 ## 1.5.0 (2016-08-30)
 
 **Bug fixes:**

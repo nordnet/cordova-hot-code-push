@@ -172,16 +172,19 @@
     
     NSArray *updateFileList = _manifestDiff.updateFileList;
     for (HCPManifestFile *updatedFile in updateFileList) {
-        NSURL *fileLocalURL = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
-        if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
-            errorMsg = [NSString stringWithFormat:@"Update validation error! File not found: %@", updatedFile.name];
-            break;
-        }
-        
-        NSString *fileMD5 = [[NSData dataWithContentsOfURL:fileLocalURL] md5];
-        if (![fileMD5 isEqualToString:updatedFile.md5Hash]) {
-            errorMsg = [NSString stringWithFormat:@"Update validation error! File's %@ hash %@ doesnt match the hash %@ from manifest file", updatedFile.name, fileMD5, updatedFile.md5Hash];
-            break;
+        // Force the release of the memory allocated to calculate the MD5 hash
+        @autoreleasepool {
+            NSURL *fileLocalURL = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:updatedFile.name isDirectory:NO];
+            if (![_fileManager fileExistsAtPath:fileLocalURL.path]) {
+                errorMsg = [NSString stringWithFormat:@"Update validation error! File not found: %@", updatedFile.name];
+                break;
+            }
+            
+            NSString *fileMD5 = [[NSData dataWithContentsOfURL:fileLocalURL] md5];
+            if (![fileMD5 isEqualToString:updatedFile.md5Hash]) {
+                errorMsg = [NSString stringWithFormat:@"Update validation error! File's %@ hash %@ doesnt match the hash %@ from manifest file", updatedFile.name, fileMD5, updatedFile.md5Hash];
+                break;
+            }
         }
     }
     
@@ -243,32 +246,35 @@
     NSArray *updatedFiles = _manifestDiff.updateFileList;
     NSString *errorMsg = nil;
     for (HCPManifestFile *manifestFile in updatedFiles) {
-        // determine paths to the file in installation and www folders
-        NSURL *pathInInstallationFolder = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:manifestFile.name];
-        NSURL *pathInWwwFolder = [_newReleaseFS.wwwFolder URLByAppendingPathComponent:manifestFile.name];
-        
-        // if file already exists in www folder - remove it before copying
-        if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
-            errorMsg = [NSString stringWithFormat:@"Failed to delete old version of the file %@ : %@. Installation failed",
-                            manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
-            break;
-        }
-        
-        // if needed - create subfolders for the new file
-        NSURL *parentDirectoryPathInWwwFolder = [pathInWwwFolder URLByDeletingLastPathComponent];
-        if (![fileManager fileExistsAtPath:parentDirectoryPathInWwwFolder.path]) {
-            if (![fileManager createDirectoryAtPath:parentDirectoryPathInWwwFolder.path withIntermediateDirectories:YES attributes:nil error:error]) {
-                errorMsg = [NSString stringWithFormat:@"Failed to create folder structure for file %@ : %@. Installation failed.",
+        // Force the release of the memory allocated during file copy
+        @autoreleasepool {
+            // determine paths to the file in installation and www folders
+            NSURL *pathInInstallationFolder = [_newReleaseFS.downloadFolder URLByAppendingPathComponent:manifestFile.name];
+            NSURL *pathInWwwFolder = [_newReleaseFS.wwwFolder URLByAppendingPathComponent:manifestFile.name];
+            
+            // if file already exists in www folder - remove it before copying
+            if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
+                errorMsg = [NSString stringWithFormat:@"Failed to delete old version of the file %@ : %@. Installation failed",
                                 manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
                 break;
             }
-        }
-        
-        // copy new file into www folder
-        if (![fileManager moveItemAtURL:pathInInstallationFolder toURL:pathInWwwFolder error:error]) {
-            errorMsg = [NSString stringWithFormat:@"Failed to copy file %@ into www folder: %@. Installation failed.",
-                            manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
-            break;
+            
+            // if needed - create subfolders for the new file
+            NSURL *parentDirectoryPathInWwwFolder = [pathInWwwFolder URLByDeletingLastPathComponent];
+            if (![fileManager fileExistsAtPath:parentDirectoryPathInWwwFolder.path]) {
+                if (![fileManager createDirectoryAtPath:parentDirectoryPathInWwwFolder.path withIntermediateDirectories:YES attributes:nil error:error]) {
+                    errorMsg = [NSString stringWithFormat:@"Failed to create folder structure for file %@ : %@. Installation failed.",
+                                    manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
+                    break;
+                }
+            }
+            
+            // copy new file into www folder
+            if (![fileManager moveItemAtURL:pathInInstallationFolder toURL:pathInWwwFolder error:error]) {
+                errorMsg = [NSString stringWithFormat:@"Failed to copy file %@ into www folder: %@. Installation failed.",
+                                manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
+                break;
+            }
         }
     }
     

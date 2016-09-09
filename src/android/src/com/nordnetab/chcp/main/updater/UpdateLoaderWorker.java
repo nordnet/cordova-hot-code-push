@@ -26,7 +26,6 @@ import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.utils.FilesUtility;
 import com.nordnetab.chcp.main.utils.URLUtility;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +83,9 @@ class UpdateLoaderWorker implements WorkerTask {
             return;
         }
         final ContentConfig newContentConfig = newAppConfig.getContentConfig();
-        if (newContentConfig == null || TextUtils.isEmpty(newContentConfig.getReleaseVersion())) {
+        if (newContentConfig == null
+                || TextUtils.isEmpty(newContentConfig.getReleaseVersion())
+                || TextUtils.isEmpty(newContentConfig.getContentUrl())) {
             setErrorResult(ChcpError.NEW_APPLICATION_CONFIG_IS_INVALID, null);
             return;
         }

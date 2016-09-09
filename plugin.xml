@@ -55,6 +55,9 @@
     <source-file src="src/ios/Config/HCPContentManifest.m" target-dir="Config/"/>
     <header-file src="src/ios/Config/HCPContentManifest.h" target-dir="Config/"/>
 
+    <source-file src="src/ios/Config/HCPManifestSignature.m" target-dir="Config/"/>
+    <header-file src="src/ios/Config/HCPManifestSignature.h" target-dir="Config/"/>
+
     <source-file src="src/ios/Config/HCPPluginInternalPreferences.m" target-dir="Config/"/>
     <header-file src="src/ios/Config/HCPPluginInternalPreferences.h" target-dir="Config/"/>
 
@@ -134,8 +137,11 @@
     <source-file src="src/ios/Utils/NSBundle+HCPExtension.m" target-dir="Utils/"/>
     <header-file src="src/ios/Utils/NSBundle+HCPExtension.h" target-dir="Utils/"/>
 
-    <source-file src="src/ios/Utils/NSData+HCPMD5.m" target-dir="Utils/"/>
-    <header-file src="src/ios/Utils/NSData+HCPMD5.h" target-dir="Utils/"/>
+    <source-file src="src/ios/Utils/NSData+HCPHash.m" target-dir="Utils/"/>
+    <header-file src="src/ios/Utils/NSData+HCPHash.h" target-dir="Utils/"/>
+
+    <source-file src="src/ios/Utils/NSString+HCPHash.m" target-dir="Utils/"/>
+    <header-file src="src/ios/Utils/NSString+HCPHash.h" target-dir="Utils/"/>
 
     <source-file src="src/ios/Utils/NSError+HCPExtension.m" target-dir="Utils/"/>
     <header-file src="src/ios/Utils/NSError+HCPExtension.h" target-dir="Utils/"/>
@@ -183,6 +189,7 @@
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/ApplicationConfig.java" target-dir="src/com/nordnetab/chcp/main/config"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/ContentConfig.java" target-dir="src/com/nordnetab/chcp/main/config"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/ContentManifest.java" target-dir="src/com/nordnetab/chcp/main/config"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/config/ManifestSignature.java" target-dir="src/com/nordnetab/chcp/main/config"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/PluginInternalPreferences.java" target-dir="src/com/nordnetab/chcp/main/config"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/ChcpXmlConfig.java" target-dir="src/com/nordnetab/chcp/main/config"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/config/ChcpXmlConfigParser.java" target-dir="src/com/nordnetab/chcp/main/config"/>
@@ -207,6 +214,7 @@
     <!-- sources for package: com.nordnetab.chcp.network -->
     <source-file src="src/android/src/com/nordnetab/chcp/main/network/ApplicationConfigDownloader.java" target-dir="src/com/nordnetab/chcp/main/network"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/network/ContentManifestDownloader.java" target-dir="src/com/nordnetab/chcp/main/network"/>
+    <source-file src="src/android/src/com/nordnetab/chcp/main/network/ManifestSignatureDownloader.java" target-dir="src/com/nordnetab/chcp/main/network"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/network/FileDownloader.java" target-dir="src/com/nordnetab/chcp/main/network"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/network/JsonDownloader.java" target-dir="src/com/nordnetab/chcp/main/network"/>
     <source-file src="src/android/src/com/nordnetab/chcp/main/network/DownloadResult.java" target-dir="src/com/nordnetab/chcp/main/network"/>

@@ -788,6 +788,17 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
+- (void)jsGetVersionInfo:(CDVInvokedUrlCommand *)command {
+    NSDictionary *data = @{@"currentWebVersion": _pluginInternalPrefs.currentReleaseVersionName,
+                           @"readyToInstallWebVersion": _pluginInternalPrefs.readyForInstallationReleaseVersionName,
+                           @"previousWebVersion": _pluginInternalPrefs.previousReleaseVersionName,
+                           @"appVersion": [NSBundle applicationVersionName],
+                           @"buildVersion": [NSBundle applicationBuildVersion]};
+
+    CDVPluginResult *result = [CDVPluginResult pluginResultWithActionName:nil data:data error:nil];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 - (void)sendPluginNotReadyToWorkMessageForEvent:(NSString *)eventName callbackID:(NSString *)callbackID {
     NSError *error = [NSError errorWithCode:kHCPAssetsNotYetInstalledErrorCode
                                 description:@"WWW folder from the bundle is not yet installed on the external device. Please, wait for this operation to finish."];

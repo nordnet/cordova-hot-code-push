@@ -13,7 +13,8 @@ var exec = require('cordova/exec'),
     INSTALL_UPDATE: 'jsInstallUpdate',
     CONFIGURE: 'jsConfigure',
     REQUEST_APP_UPDATE: 'jsRequestAppUpdate',
-    IS_UPDATE_AVAILABLE_FOR_INSTALLATION: 'jsIsUpdateAvailableForInstallation'
+    IS_UPDATE_AVAILABLE_FOR_INSTALLATION: 'jsIsUpdateAvailableForInstallation',
+    GET_INFO: 'jsGetVersionInfo'
   };
 
 // Called when Cordova is ready for work.
@@ -262,6 +263,16 @@ var chcp = {
    */
   isUpdateAvailableForInstallation: function(callback) {
     callNativeMethod(pluginNativeMethod.IS_UPDATE_AVAILABLE_FOR_INSTALLATION, null, callback);
+  },
+
+  /**
+   * Get information about the current version like current release version, app build version and so on.
+   * The "data" property of the callback will contain all the information.
+   *
+   * @param {Callback(error, data)} callback - called, when information is retrieved from the native side.
+   */
+  getVersionInfo: function(callback) {
+    callNativeMethod(pluginNativeMethod.GET_INFO, null, callback);
   }
 };
 

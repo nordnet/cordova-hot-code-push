@@ -1,6 +1,9 @@
 package com.nordnetab.chcp.main.utils;
 
+import android.util.Log;
+
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -21,12 +24,14 @@ public class URLUtility {
     public static URL stringToUrl(String urlString) {
         URL url = null;
         try {
-            url = new URL(URLDecoder.decode(urlString, "UTF-8"));
+            url = new URL(urlString);
+            final URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+            url = uri.toURL();
         } catch (Exception e) {
             try {
                 url = new URL(urlString);
             } catch (MalformedURLException e2) {
-                e2.printStackTrace();
+                Log.d("CHCP", "Failed to transfer url string \"" + urlString + "\" to actual url", e2);
             }
         }
 

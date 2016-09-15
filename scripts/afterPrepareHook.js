@@ -22,12 +22,12 @@ If no option is provided - hook will use .chcpenv file to build for local develo
 More information can be found on https://github.com/nordnet/cordova-hot-code-push.
 */
 
-var chcpBuildOptions = require('./lib/chcpBuildOptions.js'),
-  chcpConfigXmlReader = require('./lib/chcpConfigXmlReader.js'),
-  chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js'),
-  iosWKWebViewEngineSupport = require('./lib/iosWKWebViewEngineSupport.js'),
-  BUILD_OPTION_PREFIX = 'chcp-',
-  RELEASE_BUILD_FLAG = '--release';
+var chcpBuildOptions = require('./lib/chcpBuildOptions.js');
+var chcpConfigXmlReader = require('./lib/chcpConfigXmlReader.js');
+var chcpConfigXmlWriter = require('./lib/chcpConfigXmlWriter.js');
+var iosWKWebViewEngineSupport = require('./lib/iosWKWebViewEngineSupport.js');
+var BUILD_OPTION_PREFIX = 'chcp-';
+var RELEASE_BUILD_FLAG = '--release';
 
 function logStart() {
   console.log('CHCP plugin after prepare hook:');
@@ -98,9 +98,9 @@ function processConsoleOptions_cordova_54(consoleOptions) {
   }
 
   // search for plugin specific build options
-  var arguments = consoleOptions.argv;
-  for (var idx in arguments) {
-    var opt = arguments[idx];
+  var args = consoleOptions.argv;
+  for (var idx in args) {
+    var opt = args[idx];
     if (!isString(opt)) {
       continue;
     }

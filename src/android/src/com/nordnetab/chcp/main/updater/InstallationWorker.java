@@ -129,6 +129,12 @@ class InstallationWorker implements WorkerTask {
      * @return <code>true</code> if files are copied; <code>false</code> - otherwise.
      */
     private boolean copyFilesFromCurrentReleaseToNewRelease() {
+        //fix when app verlay installation，www content update filed
+        //error is code: -7, description: "Can't copy files from previous release to the new release"
+        if(currentReleaseFS != null && currentReleaseFS.getWwwFolder() != null
+                && currentReleaseFS.getWwwFolder().equals(newReleaseFS.getWwwFolder())) {
+            return true;
+        }
         boolean result = true;
         final File currentWwwFolder = new File(currentReleaseFS.getWwwFolder());
         final File newWwwFolder = new File(newReleaseFS.getWwwFolder());

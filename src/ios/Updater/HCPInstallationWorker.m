@@ -193,6 +193,13 @@
 }
 
 - (BOOL)copyFilesFromCurrentReleaseToNewRelease:(NSError **)error {
+    //fix when app verlay installation，www content update filed
+    //error is code: -7, description: "Can't copy files from previous release to the new release"
+    if(_currentReleaseFS != nil && _currentReleaseFS.wwwFolder != nil
+       && [_currentReleaseFS.wwwFolder.path isEqualToString:_newReleaseFS.wwwFolder.path]) {
+        return YES;
+    }
+    
     *error = nil;
     
     // just in case check if previous www folder exists; if it does - remove it before copying new stuff

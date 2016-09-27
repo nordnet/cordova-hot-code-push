@@ -55,7 +55,7 @@ class UpdateLoaderWorker implements WorkerTask {
      *
      * @param request download request
      */
-    public UpdateLoaderWorker(final UpdateDownloadRequest request) {
+    UpdateLoaderWorker(final UpdateDownloadRequest request) {
         applicationConfigUrl = request.getConfigURL();
         appNativeVersion = request.getCurrentNativeVersion();
         filesStructure = request.getCurrentReleaseFileStructure();

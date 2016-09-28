@@ -100,6 +100,11 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     // reset www folder installed flag
     if (_pluginInternalPrefs.isWwwFolderInstalled) {
         _pluginInternalPrefs.wwwFolderInstalled = NO;
+        _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
+        _pluginInternalPrefs.previousReleaseVersionName = @"";
+        HCPApplicationConfig *config = [HCPApplicationConfig configFromBundle:[HCPFilesStructure defaultConfigFileName]];
+        _pluginInternalPrefs.currentReleaseVersionName = config.contentConfig.releaseVersion;
+        
         [_pluginInternalPrefs saveToUserDefaults];
     }
     

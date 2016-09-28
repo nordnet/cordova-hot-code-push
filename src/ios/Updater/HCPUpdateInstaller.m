@@ -52,7 +52,8 @@
     HCPFilesStructure *newVersionFS = [[HCPFilesStructure alloc] initWithReleaseVersion:newVersion];
     
     // check if there is anything to install
-    if (![[NSFileManager defaultManager] fileExistsAtPath:newVersionFS.downloadFolder.path]) {
+    if (![[NSFileManager defaultManager] fileExistsAtPath:newVersionFS.downloadFolder.path] ||
+            [newVersion isEqualToString:currentVersion]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
         return NO;
     }

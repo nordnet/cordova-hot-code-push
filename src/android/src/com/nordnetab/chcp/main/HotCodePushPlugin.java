@@ -587,9 +587,14 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // reset www folder installed flag
         if (pluginInternalPrefs.isWwwFolderInstalled()) {
             pluginInternalPrefs.setWwwFolderInstalled(false);
+            pluginInternalPrefs.setReadyForInstallationReleaseVersionName("");
+            pluginInternalPrefs.setPreviousReleaseVersionName("");
+
+            final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(cordova.getActivity(), PluginFilesStructure.CONFIG_FILE_NAME);
+            pluginInternalPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
+
             pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
         }
-
 
         AssetsHelper.copyAssetDirectoryToAppDirectory(cordova.getActivity().getApplicationContext(), WWW_FOLDER, fileStructure.getWwwFolder());
     }

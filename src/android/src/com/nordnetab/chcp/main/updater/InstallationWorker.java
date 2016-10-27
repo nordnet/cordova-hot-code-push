@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ContentManifest;
-import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateInstalledEvent;
 import com.nordnetab.chcp.main.events.WorkerEvent;
@@ -47,7 +46,7 @@ class InstallationWorker implements WorkerTask {
      * @param newVersion     version to install
      * @param currentVersion current content version
      */
-    public InstallationWorker(final Context context, final String newVersion, final String currentVersion) {
+    InstallationWorker(final Context context, final String newVersion, final String currentVersion) {
         newReleaseFS = new PluginFilesStructure(context, newVersion);
         currentReleaseFS = new PluginFilesStructure(context, currentVersion);
     }
@@ -75,7 +74,7 @@ class InstallationWorker implements WorkerTask {
         deleteUnusedFiles();
 
         // install the update
-        boolean isInstalled = moveFilesFromInstallationFolderToWwwFodler();
+        boolean isInstalled = moveFilesFromInstallationFolderToWwwFolder();
         if (!isInstalled) {
             cleanUpOnFailure();
             setResultForError(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
@@ -178,7 +177,7 @@ class InstallationWorker implements WorkerTask {
      *
      * @return <code>true</code> if files are copied; <code>false</code> - otherwise
      */
-    private boolean moveFilesFromInstallationFolderToWwwFodler() {
+    private boolean moveFilesFromInstallationFolderToWwwFolder() {
         try {
             FilesUtility.copy(newReleaseFS.getDownloadFolder(), newReleaseFS.getWwwFolder());
 

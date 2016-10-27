@@ -98,9 +98,9 @@ function processConsoleOptions_cordova_54(consoleOptions) {
   }
 
   // search for plugin specific build options
-  var arguments = consoleOptions.argv;
-  for (var idx in arguments) {
-    var opt = arguments[idx];
+  var args = consoleOptions.argv;
+  for (var idx in args) {
+    var opt = args[idx];
     if (!isString(opt)) {
       continue;
     }

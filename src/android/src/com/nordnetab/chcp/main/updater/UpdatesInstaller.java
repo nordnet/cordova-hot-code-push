@@ -51,8 +51,9 @@ public class UpdatesInstaller {
             return ChcpError.CANT_INSTALL_WHILE_DOWNLOAD_IN_PROGRESS;
         }
 
+        // check, that download folder exists, and that we are not trying to install same release
         final PluginFilesStructure newReleaseFS = new PluginFilesStructure(context, newVersion);
-        if (!new File(newReleaseFS.getDownloadFolder()).exists()) {
+        if (!new File(newReleaseFS.getDownloadFolder()).exists() || newVersion.equals(currentVersion)) {
             return ChcpError.NOTHING_TO_INSTALL;
         }
 

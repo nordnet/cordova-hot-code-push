@@ -16,6 +16,8 @@ public class UpdateDownloadRequest {
     private String configURL;
     private PluginFilesStructure currentReleaseFS;
     private int currentNativeVersion;
+    private boolean checkUpdateSigning;
+    private String updateSigningCertificate;
     private Map<String, String> requestHeaders;
 
     /**
@@ -25,17 +27,23 @@ public class UpdateDownloadRequest {
      * @param configURL             chcp.json url
      * @param currentReleaseVersion current web content version
      * @param currentNativeVersion  current native interface version
+     * @param checkUpdateSigning    true if update signatures should be checked
+     * @param updateSigningCertificate   public key used to check update signatures
      * @param requestHeaders        additional request headers, which will be added to all requests
      */
     public UpdateDownloadRequest(final Context context,
                                  final String configURL,
                                  final String currentReleaseVersion,
                                  final int currentNativeVersion,
+                                 final boolean checkUpdateSigning,
+                                 final String updateSigningCertificate,
                                  final Map<String, String> requestHeaders) {
         this.configURL = configURL;
         this.currentNativeVersion = currentNativeVersion;
         this.requestHeaders = requestHeaders;
         this.currentReleaseFS = new PluginFilesStructure(context, currentReleaseVersion);
+        this.checkUpdateSigning = checkUpdateSigning;
+        this.updateSigningCertificate = updateSigningCertificate;
     }
 
     /**
@@ -84,6 +92,25 @@ public class UpdateDownloadRequest {
         return requestHeaders;
     }
 
+    /**
+     * Update signing check.
+     *
+     * @return true if update signatures should be checked
+     * */
+    public boolean getCheckUpdateSigning() {
+        return checkUpdateSigning;
+    }
+
+    /**
+     * Public key used to check update signatures.
+     *
+     * @return PEM encoded RSA public key string
+     * */
+    public String getUpdateSigningCertificate() {
+        return updateSigningCertificate;
+    }
+
+
     // region Builder pattern
 
     public static final class Builder {
@@ -92,6 +119,8 @@ public class UpdateDownloadRequest {
         private String configURL;
         private String currentReleaseVersion;
         private int currentNativeVersion;
+        private boolean checkUpdateSigning;
+        private String updateSigningCertificate;
         private Map<String, String> requestHeaders;
 
         /**
@@ -148,12 +177,32 @@ public class UpdateDownloadRequest {
         }
 
         /**
+         * Setter for current native interface version of the application.
+         *
+         * @param shouldCheck true if update signatures should be verified
+         * */
+        public Builder setCheckUpdateSigning(final boolean shouldCheck) {
+            this.checkUpdateSigning = shouldCheck;
+            return this;
+        }
+
+        /**
+         * Setter for certificate used to check update signatures.
+         *
+         * @param certificate X509 certificate string
+         * */
+        public Builder setUpdateSigningCertificate(final String certificate) {
+            this.updateSigningCertificate = certificate;
+            return this;
+        }
+
+        /**
          * Build the actual object.
          *
          * @return update request instance
          */
         public UpdateDownloadRequest build() {
-            return new UpdateDownloadRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, requestHeaders);
+            return new UpdateDownloadRequest(mContext, configURL, currentReleaseVersion, currentNativeVersion, checkUpdateSigning, updateSigningCertificate, requestHeaders);
         }
     }
 

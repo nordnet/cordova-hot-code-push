@@ -28,4 +28,8 @@ final class XmlTags {
     public static final String NATIVE_INTERFACE_TAG = "native-interface";
     public static final String NATIVE_INTERFACE_VERSION_ATTRIBUTE = "version";
 
+    // keys for update signing
+    public static final String UPDATE_SIGNING_TAG = "update-signing";
+    public static final String UPDATE_SIGNING_CERTIFICATE_ATTRIBUTE = "certificate";
+
 }

@@ -22,6 +22,11 @@ public class PluginFilesStructure {
      */
     public static final String MANIFEST_FILE_NAME = "chcp.manifest";
 
+    /**
+     * Manifest signature file name.
+     */
+    public static final String MANIFEST_SIGNATURE_FILE_NAME = "chcp.signature";
+
     private static final String PLUGIN_FOLDER = "cordova-hot-code-push-plugin";
 
     private static final String MAIN_CONTENT_FOLDER = "www";

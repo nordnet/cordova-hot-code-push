@@ -24,6 +24,11 @@ NSString *const kHCPAutoInstallEnabledXmlAttribute = @"enabled";
 NSString *const kHCPNativeInterfaceXmlTag = @"native-interface";
 NSString *const kHCPNativeInterfaceVersionXmlAttribute = @"version";
 
+// Keys for update signing
+NSString *const kHCPUpdateSigningXmlTag = @"update-signing";
+NSString *const kHCPUpdateSigningCertificateXmlAttribute = @"certificate";
+
+
 @implementation HCPXmlTags
 
 @end

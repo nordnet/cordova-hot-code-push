@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.nordnetab.chcp.main.model.ManifestFile;
 import com.nordnetab.chcp.main.utils.FilesUtility;
-import com.nordnetab.chcp.main.utils.MD5;
+import com.nordnetab.chcp.main.utils.Hasher;
 import com.nordnetab.chcp.main.utils.Paths;
 import com.nordnetab.chcp.main.utils.URLConnectionHelper;
 import com.nordnetab.chcp.main.utils.URLUtility;
@@ -65,7 +65,8 @@ public class FileDownloader {
                                 final String checkSum,
                                 final Map<String, String> requestHeaders) throws Exception {
         Log.d("CHCP", "Loading file: " + urlFrom);
-        final MD5 md5 = new MD5();
+        final String hashAlgorithm = Hasher.identifyHashAlgorithm(checkSum);
+        final Hasher hasher = new Hasher(hashAlgorithm);
 
         final File downloadFile = new File(filePath);
         FilesUtility.delete(downloadFile);
@@ -80,14 +81,14 @@ public class FileDownloader {
         int count;
         while ((count = input.read(data)) != -1) {
             output.write(data, 0, count);
-            md5.write(data, count);
+            hasher.write(data, count);
         }
 
         output.flush();
         output.close();
         input.close();
 
-        final String downloadedFileHash = md5.calculateHash();
+        final String downloadedFileHash = hasher.calculateHash();
         if (!downloadedFileHash.equals(checkSum)) {
             throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match hash " + downloadedFileHash + " of the downloaded file");
         }

@@ -15,6 +15,7 @@ import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.main.storage.ContentManifestStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.utils.FilesUtility;
+import com.nordnetab.chcp.main.utils.Hasher;
 
 import java.io.File;
 import java.io.IOException;
@@ -207,10 +208,11 @@ class InstallationWorker implements WorkerTask {
 
         for (ManifestFile updatedFile : updateFileList) {
             File file = new File(downloadFolder, updatedFile.name);
+            String hashAlgorithm = Hasher.identifyHashAlgorithm(updatedFile.hash);
 
             try {
                 if (!file.exists() ||
-                        !FilesUtility.calculateFileHash(file).equals(updatedFile.hash)) {
+                        !FilesUtility.calculateFileHash(file, hashAlgorithm).equals(updatedFile.hash)) {
                     isValid = false;
                     break;
                 }

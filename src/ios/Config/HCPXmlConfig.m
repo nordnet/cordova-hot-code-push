@@ -17,6 +17,8 @@
         _allowUpdatesAutoInstallation = YES;
         _configUrl = nil;
         _nativeInterfaceVersion = 1;
+        _checkUpdateSigning = NO;
+        _updateSigningCertificate = @"";
     }
     
     return self;
@@ -34,6 +36,12 @@
     if (jsOptions[kHCPAutoDownloadXmlTag]) {
         self.allowUpdatesAutoDownload = [(NSNumber *)jsOptions[kHCPAutoDownloadXmlTag] boolValue];
     }
+    
+    if (jsOptions[kHCPUpdateSigningXmlTag]) {
+        self.checkUpdateSigning = YES;
+        self.updateSigningCertificate = jsOptions[kHCPUpdateSigningXmlTag];
+    }
+
 }
 
 

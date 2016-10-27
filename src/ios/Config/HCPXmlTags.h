@@ -23,6 +23,11 @@ extern NSString *const kHCPAutoInstallEnabledXmlAttribute;
 extern NSString *const kHCPNativeInterfaceXmlTag;
 extern NSString *const kHCPNativeInterfaceVersionXmlAttribute;
 
+// Keys for update signing
+extern NSString *const kHCPUpdateSigningXmlTag;
+extern NSString *const kHCPUpdateSigningCertificateXmlAttribute;
+
+
 @interface HCPXmlTags : NSObject
 
 @end

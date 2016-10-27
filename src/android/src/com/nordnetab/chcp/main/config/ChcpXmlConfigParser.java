@@ -76,6 +76,11 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         if (XmlTags.NATIVE_INTERFACE_TAG.equals(name)) {
             processNativeInterfaceBlock(xml);
         }
+
+        // parse update signing tag
+        if (XmlTags.UPDATE_SIGNING_TAG.equals(name)) {
+            processUpdateSigningBlock(xml);
+        }
     }
 
     @Override
@@ -113,4 +118,11 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
 
         chcpConfig.setNativeInterfaceVersion(nativeVersion);
     }
+
+    private void processUpdateSigningBlock(final XmlPullParser xml) {
+        final String signingCertificate = xml.getAttributeValue(null, XmlTags.UPDATE_SIGNING_CERTIFICATE_ATTRIBUTE);
+        chcpConfig.setCheckUpdateSigning(true);
+        chcpConfig.setUpdateSigningCertificate(signingCertificate);
+    }
+
 }

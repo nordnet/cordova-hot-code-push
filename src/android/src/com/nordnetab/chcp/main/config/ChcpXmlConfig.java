@@ -17,12 +17,16 @@ public class ChcpXmlConfig {
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
     private int nativeInterfaceVersion;
+    private boolean checkUpdateSigning;
+    private String updateSigningCertificate;
 
     private ChcpXmlConfig() {
         configUrl = "";
         allowUpdatesAutoDownload = true;
         allowUpdatesAutoInstall = true;
         nativeInterfaceVersion = 1;
+        checkUpdateSigning = false;
+        updateSigningCertificate = "";
     }
 
     /**
@@ -92,12 +96,48 @@ public class ChcpXmlConfig {
     }
 
     /**
-     * Setter for current native interface version of the application.
+     * Setter for for update signing check.
      *
      * @param version version to set
      * */
     void setNativeInterfaceVersion(int version) {
         nativeInterfaceVersion = version > 0 ? version : 1;
+    }
+
+    /**
+     * Getter for update signing check.
+     *
+     * @return true if update signatures should be checked
+     * */
+    public boolean getCheckUpdateSigning() {
+        return checkUpdateSigning;
+    }
+
+    /**
+     * Setter for current native interface version of the application.
+     *
+     * @param shouldCheck true if update signatures should be verified
+     * */
+    void setCheckUpdateSigning(boolean shouldCheck) {
+        checkUpdateSigning = shouldCheck;
+    }
+
+    /**
+     * Getter for public key used to check update signatures.
+     *
+     * @return PEM encoded RSA public key string
+     * */
+    public String getUpdateSigningCertificate() {
+        return updateSigningCertificate;
+    }
+
+    /**
+     * Setter for certificate used to check update signatures.
+     *
+     * @param pubkey X509 encoded certificate string
+     * */
+    void setUpdateSigningCertificate(String pubkey) {
+        updateSigningCertificate = pubkey;
     }
 
     /**
@@ -136,5 +176,14 @@ public class ChcpXmlConfig {
         if (jsOptions.has(XmlTags.AUTO_DOWNLOAD_TAG)) {
             allowUpdatesAutoDownload(jsOptions.getBoolean(XmlTags.AUTO_DOWNLOAD_TAG));
         }
+
+        if (jsOptions.has(XmlTags.UPDATE_SIGNING_TAG)) {
+            String signingCertificate = jsOptions.getString(XmlTags.UPDATE_SIGNING_TAG);
+            if (!TextUtils.isEmpty(signingCertificate)) {
+                setCheckUpdateSigning(true);
+                setUpdateSigningCertificate(signingCertificate);
+            }
+        }
+
     }
 }

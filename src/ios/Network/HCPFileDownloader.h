@@ -14,27 +14,9 @@
 typedef void (^HCPFileDownloadCompletionBlock)(NSError *error);
 
 /**
- *  Complition block for data download.
- *
- *  @param data  downloaded data
- *  @param error error information; <code>nil</code> - if everything is fine
- */
-typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
-
-/**
  *  Helper class to download files from the server.
  */
 @interface HCPFileDownloader : NSObject
-
-/**
- *  Download data asynchronously.
- *
- *  @param url      url to the downloaded file
- *  @param block    data download completion block, called with the data when it is available.
- */
-- (void) downloadDataFromUrl:(NSURL*)url
-              requestHeaders:(NSDictionary *)headers
-             completionBlock:(HCPDataDownloadCompletionBlock) block;
 
 /**
  *  Download list of files asynchronously.
@@ -46,10 +28,13 @@ typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
  *
  *  @see HCPManifestFile
  */
-- (void) downloadFiles:(NSArray *)filesList
-               fromURL:(NSURL *)contentURL
-              toFolder:(NSURL *)folderURL
-        requestHeaders:(NSDictionary *)headers
-       completionBlock:(HCPFileDownloadCompletionBlock)block;
+
+- (instancetype)initWithFiles:(NSArray *)filesList
+                    srcDirURL:(NSURL *)contentURL
+                    dstDirURL:(NSURL *)folderURL
+               requestHeaders:(NSDictionary *)headers;
+
+- (void)startDownloadWithCompletionBlock:(HCPFileDownloadCompletionBlock)block;
+
 
 @end

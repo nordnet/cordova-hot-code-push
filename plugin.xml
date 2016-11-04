@@ -91,6 +91,9 @@
     <source-file src="src/ios/Network/HCPFileDownloader.m" target-dir="Network/"/>
     <header-file src="src/ios/Network/HCPFileDownloader.h" target-dir="Network/"/>
 
+    <source-file src="src/ios/Network/HCPDataDownloader.m" target-dir="Network/"/>
+    <header-file src="src/ios/Network/HCPDataDownloader.h" target-dir="Network/"/>
+
     <!-- sources for Storage folder -->
     <source-file src="src/ios/Storage/HCPApplicationConfigStorage.m" target-dir="Storage/"/>
     <header-file src="src/ios/Storage/HCPApplicationConfigStorage.h" target-dir="Storage/"/>

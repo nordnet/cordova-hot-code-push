@@ -11,6 +11,7 @@
 #import "HCPApplicationConfigStorage.h"
 #import "HCPContentManifestStorage.h"
 #import "HCPFileDownloader.h"
+#import "HCPDataDownloader.h"
 #import "HCPEvents.h"
 #import "NSError+HCPExtension.h"
 #import "HCPUpdateInstaller.h"
@@ -71,7 +72,7 @@
         return;
     }
     
-    HCPFileDownloader *configDownloader = [[HCPFileDownloader alloc] init];
+    HCPDataDownloader *configDownloader = [[HCPDataDownloader alloc] init];
     
     // download new application config
     [configDownloader downloadDataFromUrl:_configURL requestHeaders:_requestHeaders completionBlock:^(NSData *data, NSError *error) {
@@ -146,12 +147,11 @@
                     manifest:(HCPContentManifest *)newManifest {
     
     // download files
-    HCPFileDownloader *downloader = [[HCPFileDownloader alloc] init];
-    [downloader downloadFiles:updatedFiles
-                      fromURL:newAppConfig.contentConfig.contentURL
-                     toFolder:_pluginFiles.downloadFolder
-               requestHeaders:_requestHeaders
-              completionBlock:^(NSError * error) {
+    HCPFileDownloader *downloader = [[HCPFileDownloader alloc] initWithFiles:updatedFiles
+                                                                   srcDirURL:newAppConfig.contentConfig.contentURL
+                                                                   dstDirURL:_pluginFiles.downloadFolder
+                                                              requestHeaders:_requestHeaders];
+    [downloader startDownloadWithCompletionBlock:^(NSError * error) {
         if (error) {
             // remove new release folder
             [[NSFileManager defaultManager] removeItemAtURL:_pluginFiles.contentFolder error:nil];

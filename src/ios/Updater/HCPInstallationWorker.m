@@ -255,7 +255,7 @@
             // if file already exists in www folder - remove it before copying
             if ([fileManager fileExistsAtPath:pathInWwwFolder.path] && ![fileManager removeItemAtURL:pathInWwwFolder error:error]) {
                 errorMsg = [NSString stringWithFormat:@"Failed to delete old version of the file %@ : %@. Installation failed",
-                                manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
+                            manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
                 break;
             }
             
@@ -264,7 +264,7 @@
             if (![fileManager fileExistsAtPath:parentDirectoryPathInWwwFolder.path]) {
                 if (![fileManager createDirectoryAtPath:parentDirectoryPathInWwwFolder.path withIntermediateDirectories:YES attributes:nil error:error]) {
                     errorMsg = [NSString stringWithFormat:@"Failed to create folder structure for file %@ : %@. Installation failed.",
-                                    manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
+                                manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
                     break;
                 }
             }
@@ -272,7 +272,7 @@
             // copy new file into www folder
             if (![fileManager moveItemAtURL:pathInInstallationFolder toURL:pathInWwwFolder error:error]) {
                 errorMsg = [NSString stringWithFormat:@"Failed to copy file %@ into www folder: %@. Installation failed.",
-                                manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
+                            manifestFile.name, [(*error) underlyingErrorLocalizedDesription]];
                 break;
             }
         }

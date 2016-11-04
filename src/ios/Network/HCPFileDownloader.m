@@ -65,28 +65,23 @@ static NSUInteger const TIMEOUT = 300;
 - (void)URLSession:(NSURLSession *)session didBecomeInvalidWithError:(NSError *)error {
     if (error && _complitionHandler) {
         _complitionHandler(error);
-    }
-}
-
-- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
-    if (error) {
-        [_session invalidateAndCancel];
-        _complitionHandler(error);
-        return;
+        _session = nil;
     }
 }
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
     NSError *error = nil;
     if (![self moveLoadedFile:location forFile:_filesList[_downloadCounter] toFolder:_folderURL error:&error]) {
-        _complitionHandler(error);
         [_session invalidateAndCancel];
+        _session = nil;
+        _complitionHandler(error);
         return;
     }
     
     _downloadCounter++;
     if (_downloadCounter >= _filesList.count) {
         [_session finishTasksAndInvalidate];
+        _session = nil;
         _complitionHandler(nil);
         return;
     }
@@ -112,16 +107,13 @@ static NSUInteger const TIMEOUT = 300;
  *
  *  @return <code>YES</code> if data is corrupted; <code>NO</code> if data is valid
  */
-- (BOOL)isDataCorrupted:(NSData *)data forFile:(HCPManifestFile *)file error:(NSError **)error {
-    *error = nil;
-    NSString *dataHash = [data md5];
-    NSString *fileChecksum = file.md5Hash;
-    if ([dataHash isEqualToString:fileChecksum]) {
+- (BOOL)isFileCorrupted:(NSURL *)file checksum:(NSString *)checksum {
+    NSString *dataHash = [[NSData dataWithContentsOfURL:file] md5];
+    if ([dataHash isEqualToString:checksum]) {
         return NO;
     }
     
-    NSString *errorMsg = [NSString stringWithFormat:@"Hash %@ of the file %@ doesn't match the checksum %@", dataHash, file.name, fileChecksum];
-    *error = [NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode description:errorMsg];
+    NSLog(@"Hash %@ doesn't match the checksum %@", dataHash, checksum);
     
     return YES;
 }
@@ -138,10 +130,12 @@ static NSUInteger const TIMEOUT = 300;
  */
 
 - (BOOL)moveLoadedFile:(NSURL *)loadedFile forFile:(HCPManifestFile *)file toFolder:(NSURL *)folderURL error:(NSError **)error {
-//    if ([self isDataCorrupted:data forFile:file error:error]) {
-//        return NO;
-//    }
-//    
+    if ([self isFileCorrupted:loadedFile checksum:file.md5Hash]) {
+        NSString *errorMsg = [NSString stringWithFormat:@"File %@ is corrupted", file.name];
+        *error = [NSError errorWithCode:kHCPFailedToDownloadUpdateFilesErrorCode description:errorMsg];
+        return NO;
+    }
+    
     NSURL *filePath = [folderURL URLByAppendingPathComponent:file.name];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
@@ -157,8 +151,6 @@ static NSUInteger const TIMEOUT = 300;
                                  error:nil];
     
     // write data
-    //return [data writeToURL:filePath options:kNilOptions error:error];
-    
     return [fileManager moveItemAtURL:loadedFile toURL:filePath error: error];
 }
 

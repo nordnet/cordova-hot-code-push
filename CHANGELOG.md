@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.5.2 (2016-11-06)
+
+**Bug fixes:**
+
+- [Issue #213](https://github.com/nordnet/cordova-hot-code-push/issues/213). Large sync lead to timeout on iOS. Merged [pull request #217](https://github.com/nordnet/cordova-hot-code-push/pull/217), thanks to [@bbreijer](https://github.com/bbreijer). Now iOS version should be more memory efficient when loading large set of files. It also can now download large files.
+- Merged [pull request #218](https://github.com/nordnet/cordova-hot-code-push/pull/218). Fixes build failure on the after_prepare hook. Thanks to [@warent](https://github.com/warent).
+- [Issue #228](https://github.com/nordnet/cordova-hot-code-push/issues/228). Added missing error code `NEW_APPLICATION_CONFIG_IS_INVALID` to JS API.
+- [Issue #229](https://github.com/nordnet/cordova-hot-code-push/issues/229). Thanks to [@zwwhappy](https://github.com/zwwhappy) for [pull request #225](https://github.com/nordnet/cordova-hot-code-push/pull/225), and [@sfnt](https://github.com/sfnt) for [pull request #231](https://github.com/nordnet/cordova-hot-code-push/pull/231).
+
 ## 1.5.1 (2016-09-06)
 
 **Bug fixes:**

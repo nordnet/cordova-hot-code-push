@@ -19,22 +19,23 @@ typedef void (^HCPFileDownloadCompletionBlock)(NSError *error);
 @interface HCPFileDownloader : NSObject
 
 /**
- *  Download list of files asynchronously.
- *
- *  @param filesList  list of files to download. Files are instances of HCPManifestFile class.
- *  @param contentURL url on the server where all files are located. Full URL to the file is constructed from this one and the files mame.
- *  @param folderURL  url to the directory in local file system where to put all loaded files
- *  @param block      download completion block
- *
- *  @see HCPManifestFile
+ * Constructor.
+ * 
+ * @param filesList  list of files to download
+ * @param contentURL url on the server where files are located
+ * @param folderURL  where loaded files should be placed
+ * @param headers    headers to attach to the requests
  */
-
 - (instancetype)initWithFiles:(NSArray *)filesList
                     srcDirURL:(NSURL *)contentURL
                     dstDirURL:(NSURL *)folderURL
                requestHeaders:(NSDictionary *)headers;
 
+/**
+ * Start download task.
+ * 
+ * @param block complition block
+ */
 - (void)startDownloadWithCompletionBlock:(HCPFileDownloadCompletionBlock)block;
-
 
 @end

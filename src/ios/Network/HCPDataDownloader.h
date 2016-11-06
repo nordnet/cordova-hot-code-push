@@ -1,9 +1,7 @@
 //
 //  HCPDataDownloader.h
-//  HelloCordova
 //
 //  Created by Nikolay Demyankov on 04.11.16.
-//
 //
 
 #import <Foundation/Foundation.h>
@@ -16,14 +14,17 @@
  */
 typedef void (^HCPDataDownloadCompletionBlock)(NSData *data, NSError *error);
 
-
+/**
+ *  Helper class to download data.
+ */
 @interface HCPDataDownloader : NSObject
 
 /**
  *  Download data asynchronously.
  *
- *  @param url      url to the downloaded file
- *  @param block    data download completion block, called with the data when it is available.
+ *  @param url     url to the downloaded file
+ *  @param headers request headers to send with the request
+ *  @param block   data download completion block, called with the data when it is available.
  */
 - (void) downloadDataFromUrl:(NSURL*)url
               requestHeaders:(NSDictionary *)headers

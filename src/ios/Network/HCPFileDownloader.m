@@ -99,13 +99,12 @@ static NSUInteger const TIMEOUT = 300;
 #pragma Private API
 
 /**
- *  Check if data was corrupted during the download.
+ *  Check if loaded file is corrupted.
  *
- *  @param data     data to check
+ *  @param file     file's url on the local storage
  *  @param checksum supposed checksum of the data
- *  @param error    error details if data corrupted; <code>nil</code> if data is valid
  *
- *  @return <code>YES</code> if data is corrupted; <code>NO</code> if data is valid
+ *  @return <code>YES</code> if file is corrupted; <code>NO</code> if file is valid
  */
 - (BOOL)isFileCorrupted:(NSURL *)file checksum:(NSString *)checksum {
     NSString *dataHash = [[NSData dataWithContentsOfURL:file] md5];
@@ -119,16 +118,15 @@ static NSUInteger const TIMEOUT = 300;
 }
 
 /**
- *  Save loaded file data to the file system.
+ *  Move loaded file from the tmp folder to the download folder.
  *
- *  @param data      loaded data
- *  @param file      file, whose data we loaded
- *  @param folderURL folder, where to save loaded data
- *  @param error     error entry; <code>nil</code> - if saved successfully;
+ *  @param loadedFile loaded file url in the tmp folder
+ *  @param forFile    what file we loaded according to the manifest
+ *  @param folderURL  folder, where to move it
+ *  @param error      error entry; <code>nil</code> - if saved successfully;
  *
  *  @return <code>YES</code> - if data is saved; <code>NO</code> - otherwise
  */
-
 - (BOOL)moveLoadedFile:(NSURL *)loadedFile forFile:(HCPManifestFile *)file toFolder:(NSURL *)folderURL error:(NSError **)error {
     if ([self isFileCorrupted:loadedFile checksum:file.md5Hash]) {
         NSString *errorMsg = [NSString stringWithFormat:@"File %@ is corrupted", file.name];

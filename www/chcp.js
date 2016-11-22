@@ -249,9 +249,10 @@ var chcp = {
    * Install update if there is anything to install.
    *
    * @param {Callback(error)} callback - called when native side finishes installation process
+   * @param {Object} options - additional options, "dontReload" to prevent reload after installation.
    */
-  installUpdate: function(callback) {
-    callNativeMethod(pluginNativeMethod.INSTALL_UPDATE, null, callback);
+  installUpdate: function(callback, options) {
+    callNativeMethod(pluginNativeMethod.INSTALL_UPDATE, options, callback);
   },
 
   /**

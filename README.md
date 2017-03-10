@@ -96,6 +96,13 @@ In this guide we will show how quickly you can test this plugin and start using 
 
 7. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
 
+8. For production, do not forget to add the following to your `config.xml` file as it is a required property. Checkout the [wiki](https://github.com/nordnet/cordova-hot-code-push/wiki/Cordova-config-preferences) for more information:
+
+```xml
+<chcp>
+    <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
+</chcp>
+```
 From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
 
 ### Documentation

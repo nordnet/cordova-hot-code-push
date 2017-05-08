@@ -76,9 +76,44 @@ function loadProjectFile() {
     projectFile = platform_ios.parseProjectFile(iosPlatformPath);
   } catch (e) {
     // let's try cordova 5.0 structure
-    platform_ios = context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios');
-    projectFile = platform_ios.parseProjectFile(iosPlatformPath);
-  }
+    try {
+      platform_ios = context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios');
+      projectFile = platform_ios.parseProjectFile(iosPlatformPath);
+    } catch (e) {
+      // cordova 7.0 due to https://issues.apache.org/jira/browse/CB-11242 / https://github.com/apache/cordova-lib/pull/526
+      var project_files = context.requireCordovaModule('glob')
+        .sync(path.join(iosPlatformPath, '*.xcodeproj', 'project.pbxproj'));
+
+      if (project_files.length === 0) {
+        throw new Error('does not appear to be an xcode project (no xcode project file)');
+      }
+
+      var pbxPath = project_files[0];
+
+      var xcodeproj = context.requireCordovaModule('xcode').project(pbxPath);
+      xcodeproj.parseSync();
+
+      projectFile = {
+        'xcode': xcodeproj,
+        write: function () {
+            var fs = context.requireCordovaModule('fs');
+
+        var frameworks_file = path.join(iosPlatformPath, 'frameworks.json');
+        var frameworks = {};
+        try {
+            frameworks = context.requireCordovaModule(frameworks_file);
+        } catch (e) { }
+
+        fs.writeFileSync(pbxPath, xcodeproj.writeSync());
+          if (Object.keys(frameworks).length === 0) {
+              // If there is no framework references remain in the project, just remove this file
+              context.requireCordovaModule('shelljs').rm('-rf', frameworks_file);
+              return;
+          }
+          fs.writeFileSync(frameworks_file, JSON.stringify(this.frameworks, null, 4));
+        }
+      };
+    }
 
   return projectFile;
 }

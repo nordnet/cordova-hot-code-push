@@ -318,7 +318,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [configParser setDelegate:((id <NSXMLParserDelegate>)delegate)];
     [configParser parse];
     
-    if (delegate.startPage) {
+	//if it isnt a html file fall back to deafult starting page
+     if (delegate.startPage && [delegate.startPage containsString:@".html"]) {
         _indexPage = delegate.startPage;
     } else {
         _indexPage = DEFAULT_STARTING_PAGE;

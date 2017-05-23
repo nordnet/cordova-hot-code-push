@@ -67,20 +67,49 @@ function isDirectoryExists(dir) {
  * @return {Object} projectFile - project file information
  */
 function loadProjectFile() {
-  var platform_ios;
-  var projectFile;
-
   try {
-    // try pre-5.0 cordova structure
-    platform_ios = context.requireCordovaModule('cordova-lib/src/plugman/platforms')['ios'];
-    projectFile = platform_ios.parseProjectFile(iosPlatformPath);
-  } catch (e) {
-    // let's try cordova 5.0 structure
-    platform_ios = context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios');
-    projectFile = platform_ios.parseProjectFile(iosPlatformPath);
+    return loadProjectFile_cordova_7_and_above();
+  } catch(e) {
+  }
+  
+  try {
+    return loadProjectFile_cordova_5_and_6();
+  } catch(e) {
   }
 
-  return projectFile;
+  try {
+    return loadProjectFile_cordova_pre_5();
+  } catch (e) {
+  }
+
+  throw new Error('Failed to load iOS project file. Maybe your Cordova version is not supported?');
+}
+
+function loadProjectFile_cordova_pre_5() {
+  var platformIos = context.requireCordovaModule('cordova-lib/src/plugman/platforms')['ios'];
+
+  return platformIos.parseProjectFile(iosPlatformPath);
+}
+
+function loadProjectFile_cordova_5_and_6() {
+  var platformIos = context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios');
+  
+  return platformIos.parseProjectFile(iosPlatformPath);
+}
+
+function loadProjectFile_cordova_7_and_above() {
+  var pbxPath = path.join(iosPlatformPath, projectName + '.xcodeproj', 'project.pbxproj');
+  var xcodeproj = context.requireCordovaModule('xcode').project(pbxPath);
+  xcodeproj.parseSync();
+
+  var saveProj = function() {
+    fs.writeFileSync(pbxPath, xcodeproj.writeSync());
+  };
+
+  return {
+    xcode: xcodeproj,
+    write: saveProj
+  };
 }
 
 /**

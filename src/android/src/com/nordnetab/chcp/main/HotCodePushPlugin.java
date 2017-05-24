@@ -551,11 +551,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
      * @return <code>true</code> - plugin is ready; otherwise - <code>false</code>
      */
     private boolean isPluginReadyForWork() {
+        boolean isForceInstallIsAllowed = chcpXmlConfig.isForceInstallIsAllowed();
         boolean isWwwFolderExists = isWwwFolderExists();
         boolean isWwwFolderInstalled = pluginInternalPrefs.isWwwFolderInstalled();
         boolean isApplicationHasBeenUpdated = isApplicationHasBeenUpdated();
 
-        return isWwwFolderExists && isWwwFolderInstalled && !isApplicationHasBeenUpdated;
+        return isWwwFolderExists && isWwwFolderInstalled && !isApplicationHasBeenUpdated && !isForceInstallIsAllowed;
     }
 
     /**

@@ -741,8 +741,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         [self sendPluginNotReadyToWorkMessageForEvent:kHCPUpdateDownloadErrorEvent callbackID:command.callbackId];
     }
 
+    HCPFetchUpdateOptions *fetchOptions = nil;
     NSDictionary *optionsFromJS = command.arguments.count ? command.arguments[0] : nil;
-    HCPFetchUpdateOptions *fetchOptions = [[HCPFetchUpdateOptions alloc] initWithDictionary:optionsFromJS];
+
+    if (optionsFromJS) {
+        fetchOptions = [[HCPFetchUpdateOptions alloc] initWithDictionary:optionsFromJS];
+    }
     
     [self _fetchUpdate:command.callbackId withOptions:fetchOptions];
 }

@@ -23,6 +23,10 @@ extern NSString *const kHCPAutoInstallEnabledXmlAttribute;
 extern NSString *const kHCPNativeInterfaceXmlTag;
 extern NSString *const kHCPNativeInterfaceVersionXmlAttribute;
 
+// Keys for processing force install options
+extern NSString *const kHCPForceInstallXmlTag;
+extern NSString *const kHCPForceInstallEnabledXmlAttribute;
+
 @interface HCPXmlTags : NSObject
 
 @end

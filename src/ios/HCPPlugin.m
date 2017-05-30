@@ -53,7 +53,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     [self subscribeToEvents];
     
     // install www folder if it is needed
-    if ([self isWWwFolderNeedsToBeInstalled]) {
+    BOOL isForceInstallAllowed = _pluginXmlConfig.isForceInstallAllowed;
+    if ([self isWWwFolderNeedsToBeInstalled] || isForceInstallAllowed) {
         [self installWwwFolder];
         return;
     }

@@ -55,6 +55,7 @@ In this guide we will show how quickly you can test this plugin and start using 
 
   ```sh
   cordova plugin add cordova-hot-code-push-plugin
+  npm install -D xml2js
   ```
 
 3. Add plugin for local development:

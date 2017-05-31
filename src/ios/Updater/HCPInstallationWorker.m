@@ -197,7 +197,7 @@
 
 - (BOOL)copyFilesFromCurrentReleaseToNewRelease:(NSError **)error {
     *error = nil;
-    
+    if ([_newReleaseFS.wwwFolder.path isEqualToString: _currentReleaseFS.wwwFolder.path]) return YES;
     // just in case check if previous www folder exists; if it does - remove it before copying new stuff
     if ([_fileManager fileExistsAtPath:_newReleaseFS.wwwFolder.path]) {
         [_fileManager removeItemAtURL:_newReleaseFS.wwwFolder error:nil];

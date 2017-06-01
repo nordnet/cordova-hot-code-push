@@ -117,7 +117,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
         // ensure that www folder installed on external storage;
         // if not - install it
         isPluginReadyForWork = isPluginReadyForWork();
-        if (!isPluginReadyForWork) {
+        boolean isForceInstallIsAllowed = chcpXmlConfig.isForceInstallIsAllowed();
+        if (!isPluginReadyForWork || isForceInstallIsAllowed) {
             dontReloadOnStart = true;
             installWwwFolder();
             return;

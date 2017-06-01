@@ -28,4 +28,7 @@ final class XmlTags {
     public static final String NATIVE_INTERFACE_TAG = "native-interface";
     public static final String NATIVE_INTERFACE_VERSION_ATTRIBUTE = "version";
 
+    // keys for force install
+    public static final String FORCE_INSTALL_TAG = "force-install";
+    public static final String FORCE_INSTALL_ENABLED_ATTRIBUTE = "enabled";
 }

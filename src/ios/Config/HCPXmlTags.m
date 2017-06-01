@@ -24,6 +24,10 @@ NSString *const kHCPAutoInstallEnabledXmlAttribute = @"enabled";
 NSString *const kHCPNativeInterfaceXmlTag = @"native-interface";
 NSString *const kHCPNativeInterfaceVersionXmlAttribute = @"version";
 
+// Keys for processing force install options
+NSString *const kHCPForceInstallXmlTag = @"force-install";
+NSString *const kHCPForceInstallEnabledXmlAttribute = @"enabled";
+
 @implementation HCPXmlTags
 
 @end

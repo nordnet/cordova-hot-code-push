@@ -1,5 +1,15 @@
 # Change Log
 
+## 1.5.3 (2016-05-27)
+
+**Bug fixes:**
+
+- [Issue #295](https://github.com/nordnet/cordova-hot-code-push/issues/295). Fixed build issues with Cordova 7 on iOS. Merged [pull request #296](https://github.com/nordnet/cordova-hot-code-push/pull/296), thanks to [@chauthai](https://github.com/chauthai).
+
+**Documentation:**
+
+- Merged [pull request #281](https://github.com/nordnet/cordova-hot-code-push/pull/281). Thanks to [@cadesalaberry](https://github.com/cadesalaberry).
+
 ## 1.5.2 (2016-11-06)
 
 **Bug fixes:**

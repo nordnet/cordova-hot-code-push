@@ -283,9 +283,9 @@ var chcp = {
    * @param {Callback(error, data)} callback - called, when information is retrieved from the native side.
    */
   getPath: function(callback) {
-    //callNativeMethod(pluginNativeMethod.GET_PATH, null, callback);
+    callNativeMethod(pluginNativeMethod.GET_PATH, null, callback);
     //TODO: Fit in Plug-In logic.
-    exec(callback, null, PLUGIN_NAME, pluginNativeMethod.GET_PATH, []);
+    //exec(callback, null, PLUGIN_NAME, pluginNativeMethod.GET_PATH, []);
   }
 };
 

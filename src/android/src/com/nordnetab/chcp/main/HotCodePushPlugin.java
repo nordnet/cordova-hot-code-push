@@ -474,12 +474,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
      */
     private void jsGetPath(final CallbackContext callback) {
         final Context context = cordova.getActivity();
-        //final Map<String, Object> data = new HashMap<String, Object>();
-        //data.put("wwwFolder", fileStructure.getWwwFolder());
+        final Map<String, Object> data = new HashMap<String, Object>();
+        data.put("wwwFolder", fileStructure.getWwwFolder());
 
-        //final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
-        //callback.sendPluginResult(pluginResult);
-        callback.success(fileStructure.getWwwFolder());
+        final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
+        callback.sendPluginResult(pluginResult);
+        //callback.success(fileStructure.getWwwFolder());
     }
 
     // convenience method

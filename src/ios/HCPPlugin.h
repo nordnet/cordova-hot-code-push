@@ -73,4 +73,10 @@
  */
 - (void)jsGetVersionInfo:(CDVInvokedUrlCommand *)command;
 
+/**
+ * Get android path of current www folder
+ *
+ * @param command command with which the method is called
+ */
+- (void)jsGetPath:(CDVInvokedUrlCommand *)command;
 @end

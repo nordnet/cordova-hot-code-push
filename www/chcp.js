@@ -14,7 +14,8 @@ var exec = require('cordova/exec'),
     CONFIGURE: 'jsConfigure',
     REQUEST_APP_UPDATE: 'jsRequestAppUpdate',
     IS_UPDATE_AVAILABLE_FOR_INSTALLATION: 'jsIsUpdateAvailableForInstallation',
-    GET_INFO: 'jsGetVersionInfo'
+    GET_INFO: 'jsGetVersionInfo',
+    GET_PATH: 'jsGetPath'
   };
 
 // Called when Cordova is ready for work.
@@ -274,6 +275,15 @@ var chcp = {
    */
   getVersionInfo: function(callback) {
     callNativeMethod(pluginNativeMethod.GET_INFO, null, callback);
+  },
+
+  /**
+   * Get www path for current version.
+   *
+   * @param {Callback(error, data)} callback - called, when information is retrieved from the native side.
+   */
+  getPath: function(callback) {
+    callNativeMethod(pluginNativeMethod.GET_PATH, null, callback);
   }
 };
 

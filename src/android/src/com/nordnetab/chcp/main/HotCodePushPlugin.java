@@ -254,6 +254,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
             jsIsUpdateAvailableForInstallation(callbackContext);
         } else if (JSAction.GET_VERSION_INFO.equals(action)) {
             jsGetVersionInfo(callbackContext);
+        } else if(JSAction.GET_WWW_PATH.equals(action)) {
+            jsGetPath(callbackContext);
         } else {
             cmdProcessed = false;
         }
@@ -460,6 +462,20 @@ public class HotCodePushPlugin extends CordovaPlugin {
         data.put("previousWebVersion", pluginInternalPrefs.getPreviousReleaseVersionName());
         data.put("appVersion", VersionHelper.applicationVersionName(context));
         data.put("buildVersion", VersionHelper.applicationVersionCode(context));
+
+        final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
+        callback.sendPluginResult(pluginResult);
+    }
+
+    /**
+     * Get android path of current www folder
+     *
+     * @param callback callback where to send the result
+     */
+    private void jsGetPath(final CallbackContext callback) {
+        final Context context = cordova.getActivity();
+        final Map<String, Object> data = new HashMap<String, Object>();
+        data.put("wwwFolder", fileStructure.getWwwFolder());
 
         final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
         callback.sendPluginResult(pluginResult);

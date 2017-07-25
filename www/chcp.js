@@ -284,8 +284,6 @@ var chcp = {
    */
   getPath: function(callback) {
     callNativeMethod(pluginNativeMethod.GET_PATH, null, callback);
-    //TODO: Fit in Plug-In logic.
-    //exec(callback, null, PLUGIN_NAME, pluginNativeMethod.GET_PATH, []);
   }
 };
 

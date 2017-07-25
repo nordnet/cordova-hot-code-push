@@ -479,7 +479,6 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
         final PluginResult pluginResult = PluginResultHelper.createPluginResult(null, data, null);
         callback.sendPluginResult(pluginResult);
-        //callback.success(fileStructure.getWwwFolder());
     }
 
     // convenience method

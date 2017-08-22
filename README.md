@@ -1,3 +1,7 @@
+#### google 번역기를 이용해 간단하게 번역하고 간단하게 의역해 알아보기 쉽게 변경함
+공식문서의 [wiki](https://github.com/nordnet/cordova-hot-code-push/wiki)를 통해 보다 자세한정보를 얻는것이 좋다
+* * *
+
 # Cordova Hot Code Push Plugin
 
 이 플러그인은 응용 프로그램의 웹 기반 컨텐츠를 자동으로 업데이트하는 기능을 제공합니다. 

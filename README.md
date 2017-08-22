@@ -1,47 +1,57 @@
 # Cordova Hot Code Push Plugin
 
-This plugin provides functionality to perform automatic updates of the web based content in your application. Basically, everything that is stored in `www` folder of your Cordova project can be updated using this plugin.
+이 플러그인은 응용 프로그램의 웹 기반 컨텐츠를 자동으로 업데이트하는 기능을 제공합니다. 
+기본적으로 Cordova 프로젝트의`www` 폴더에 저장된 모든 것들은이 플러그인을 사용하여 업데이트 될 수 있습니다.
 
-When you publish your application on the store - you pack in it all your web content: html files, JavaScript code, images and so on. There are two ways how you can update it:
+저장소에 응용 프로그램을 게시 할 때 - HTML 파일, JavaScript 코드, 이미지 등 모든 웹 컨텐츠를 패키지에 저장합니다. 
+업데이트 방법에는 두 가지가 있습니다.
 
-1. Publish new version of the app on the store. But it takes time, especially with the App Store.
-2. Sacrifice the offline feature and load all the pages online. But as soon as Internet connection goes down - application won't work.
+1. 마켓에 앱의 새 버전을 게시하십시오. 그러나 앱 스토어에서는 특히 시간이 걸립니다.
+2. 오프라인 기능을 희생하고 모든 페이지를 온라인으로 로드하십시오. 그러나 인터넷 연결이 끊어지면 응용 프로그램이 작동하지 않습니다.
 
-This plugin is intended to fix all that. When user starts the app for the first time - it copies all the web files onto the external storage. From this moment all pages are loaded from the external folder and not from the packed bundle. On every launch plugin connects to your server (with optional authentication, see fetchUpdate() below) and checks if the new version of web project is available for download. If so - it loads it on the device and installs on the next launch.
+이 플러그인은 모든 문제를 해결하기위한 것입니다. 사용자가 앱을 처음 시작하면 모든 웹 파일이 외부 저장소에 복사됩니다. 
+이 순간부터 모든 페이지는 패키징 된 번들이 아닌 외부 폴더에서 로드됩니다.
+매 실행시 플러그인에서 서버(옵션 인증 사용, 아래 fetchUpdate () 참조)에 연결하고 새 버전의 웹 프로젝트를 다운로드 할 수 있는지 확인합니다.
+다운로드가 가능하다면 장치에 로드하고 다음 실행에 설치합니다.
 
-As a result, your application receives updates of the web content as soon as possible, and still can work in offline mode. Also, plugin allows you to specify dependency between the web release and the native version to make sure, that new release will work on the older versions of the application.
+결과적으로 당신의 어플리케이션은 최대한 빠르게 웹 컨텐츠의 업데이트를 받아, 오프라인 모드로 작업 할 수 있습니다.
+또한 플러그인을 사용하면 웹 Release와 네이티브 버전 간의 종속성을 지정하여 새 버전이 이전 버전의 응용 프로그램에서 작동하도록 할 수 있습니다.
 
-**Is it fine with App Store?** Yes, it is... as long as your content corresponds to what application is intended for and you don't ask user to click some button to update the web content. For more details please refer to [this wiki page](https://github.com/nordnet/cordova-hot-code-push/wiki/App-Store-FAQ).
+**App Store에서 사용 가능한가요?** 
+예, 어플리케이션이 의도 한 내용과 컨텐츠가 일치하고 사용자가 웹 컨텐츠를 업데이트하기 위해 일부 버튼을 클릭하도록 요청하지 않는 한 가능합니다.
+자세한 내용은 [wiki 페이지](https://github.com/nordnet/cordova-hot-code-push/wiki/App-Store-FAQ)를 참조하십시오.
 
-## Supported platforms
+## 지원 플랫폼
+- Android 4.0.0 또는 상위버전.
+- iOS 7.0 또는 상위버전. Xcode 7 필요.
 
-- Android 4.0.0 or above.
-- iOS 7.0 or above. Xcode 7 is required.
+### 설치
 
-### Installation
-
-This requires cordova 5.0+ (current stable 1.5.3)
+이 플러그인은 cordova 5.0+ (current stable 1.5.3)을 사용합니다
 
 ```sh
 cordova plugin add cordova-hot-code-push-plugin
 ```
 
-It is also possible to install via repo url directly (__unstable__)
+repo url을 통해 직접 설치할 수도 있습니다 (__unstable__)
 ```sh
 cordova plugin add https://github.com/nordnet/cordova-hot-code-push.git
 ```
 
-At the end of the installation plugin will recommend you to install [Cordova Hot Code Push CLI client](https://github.com/nordnet/cordova-hot-code-push-cli). This client will help you to:
-- easily generate necessary configuration files;
-- launch local server to listen for any changes in the web project and deploy new version immediately on the app.
 
-Of course, you can use this plugin without the CLI client, but it will make your life easier.
+설치가 끝나면 [Cordova Hot Code Push CLI 클라이언트](https://github.com/nordnet/cordova-hot-code-push-cli)를 설치하는 것이 좋습니다.
+이 클라이언트는 다음과 같은 기능을 제공합니다:
+- 필요한 구성 파일을 쉽게 생성 할 수 있습니다
+- 로컬 서버를 시작하여 웹 프로젝트의 모든 변경 사항을 수신하고 새 버전을 앱에 즉시 배포합니다.
 
-### Quick start guide
+물론 CLI 클라이언트없이 이 플러그인을 사용할 수는 있지만, 사용하는 편이 훨씬 더 편리합니다.
 
-In this guide we will show how quickly you can test this plugin and start using it for development. For that we will install [development add-on](https://github.com/nordnet/cordova-hot-code-push/wiki/Local-Development-Plugin).
+### 빠른 시작 가이드
 
-1. Create new Cordova project using command line interface and add iOS/Android platforms:
+이 가이드에서는 이 플러그인을 테스트하고, 개발을 위해 얼마나 빨리 사용할 수 있는지 보여줍니다.
+이를 위해 우리는 [Development add-on](https://github.com/nordnet/cordova-hot-code-push/wiki/Local-Development-Plugin)을 설치합니다.
+
+1. 명령 줄 인터페이스를 사용하여 새로운 Cordova 프로젝트를 만들고 iOS / Android 플랫폼을 추가하십시오:
 
   ```sh
   cordova create TestProject com.example.testproject TestProject
@@ -49,33 +59,33 @@ In this guide we will show how quickly you can test this plugin and start using 
   cordova platform add android
   cordova platform add ios
   ```
-  Or use the existing one.
+  또는 기존의 것을 사용하십시오.
 
-2. Add plugin:
+2. 플러그인 추가:
 
   ```sh
   cordova plugin add cordova-hot-code-push-plugin
   ```
 
-3. Add plugin for local development:
+3. 로컬 개발용 플러그인 추가:
 
   ```sh
   cordova plugin add cordova-hot-code-push-local-dev-addon
   ```
 
-4. Install Cordova Hot Code Push CLI client:
+4. Cordova Hot Code Push CLI 클라이언트 설치:
 
   ```sh
   npm install -g cordova-hot-code-push-cli
   ```
 
-5. Start local server by executing:
+5. 로컬 서버 시작:
 
   ```sh
   cordova-hcp server
   ```
 
-  As a result you will see something like this:
+  실행하면 아래와 같은 내용을 볼 수 있습니다:
   ```
   Running server
   Checking:  /Cordova/TestProject/www
@@ -86,28 +96,30 @@ In this guide we will show how quickly you can test this plugin and start using 
   cordova-hcp public server available at: https://5027caf9.ngrok.com
   ```
 
-6. Open new console window, go to the project root and launch the app:
+6. 프로젝트 루트로 이동하여 app을 시작합니다.:
 
   ```sh
   cordova run
   ```
 
-  Wait until application is launched for both platforms.
+  플랫폼에서 응용 프로그램이 시작될 때까지 기다립니다..
 
-7. Now open your `index.html` page in `www` folder of the `TestProject`, change something in it and save. In a few seconds you will see updated page on the launched devices (emulators).
+7. 이제`TestProject`의`www` 폴더에있는`index.html` 페이지를 열어 무언가를 변경하고 저장하십시오. 몇 초 안에 앱이 설치 된 장치(또는 에뮬레이터)에 업데이트 된 페이지가 표시됩니다.
 
-From this point you can do local development, where all the changes are uploaded on the devices without the need to restart applications on every change you made.
+이 시점부터 모든 변경 사항에 대해 어플리케이션을 다시 설치할 필요없이 모든 변경 사항을 장치에 업로드하는 로컬 개발 작업을 수행 할 수 있습니다.
 
-For production build do not forget to add the following to your `config.xml` file as it is a required property. Checkout the [wiki](https://github.com/nordnet/cordova-hot-code-push/wiki/Cordova-config-preferences) for more information:
-
+production 빌드의 경우 필수 속성이므로 아래 내용을 `config.xml` 파일에 추가하는 것을 잊지 마십시오.
 ```xml
 <chcp>
     <config-file url="https://5027caf9.ngrok.com/chcp.json"/>
 </chcp>
 ```
+자세한 내용은 [wiki](https://github.com/nordnet/cordova-hot-code-push/wiki/Cordova-config-preferences)를 확인하십시오.
+
 
 ### Documentation
 
-All documentation can be found in details in our [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki).
+모든 문서는 [Wiki on GitHub](https://github.com/nordnet/cordova-hot-code-push/wiki)에 자세히 나와 있습니다.
 
-If you have some questions/problems/suggestions - don't hesitate to post a [thread](https://github.com/nordnet/cordova-hot-code-push/issues). If it's an actual issue - please, follow [this guide](https://github.com/nordnet/cordova-hot-code-push/wiki/Issue-creation-guide) on how to do that properly.
+질문/문제/제안 사항이 있으시면 언제든지 [Issue](https://github.com/nordnet/cordova-hot-code-push/issues)를 게시하십시오.
+실제 문제 인 경우 올바르게 수행하는 방법에 대해서는 [가이드](https://github.com/nordnet/cordova-hot-code-push/wiki/Issue-creation-guide)를 따르십시오.

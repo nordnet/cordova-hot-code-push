@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 변경점
 1. config.xml을 통한 백업 삭제여부 설정가능  
  true를 주면 자동으로 백업을 삭제한다.
@@ -6,6 +7,11 @@
   <remove-backup enabled="true" />  <!-- default false --> 
 </chcp>
 ````
+=======
+#### google 번역기를 이용해 간단하게 번역하고 간단하게 의역해 알아보기 쉽게 변경함
+공식문서의 [wiki](https://github.com/nordnet/cordova-hot-code-push/wiki)를 통해 보다 자세한정보를 얻는것이 좋다
+* * *
+>>>>>>> 1a6c3c272adacfa665e652ce5fa1a368e5d2b4d1
 
 # Cordova Hot Code Push Plugin
 

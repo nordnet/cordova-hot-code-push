@@ -8,6 +8,8 @@ import com.nordnetab.chcp.main.model.PluginFilesStructure;
 
 import java.io.File;
 
+import static android.R.id.list;
+
 /**
  * Created by Nikolay Demyankov on 29.12.15.
  * <p/>
@@ -15,66 +17,72 @@ import java.io.File;
  */
 public class CleanUpHelper {
 
-    private static boolean isExecuting;
+  private static boolean isExecuting;
 
-    private final File rootFolder;
+  private final File rootFolder;
 
-    /**
-     * Constructor.
-     *
-     * @param rootFolder root folder, where releases are stored
-     */
-    private CleanUpHelper(final String rootFolder) {
-        this.rootFolder = new File(rootFolder);
+  /**
+   * Constructor.
+   *
+   * @param rootFolder root folder, where releases are stored
+   */
+  private CleanUpHelper(final String rootFolder) {
+    this.rootFolder = new File(rootFolder);
+  }
+
+  /**
+   * 릴리즈 폴더 삭제
+   *
+   * @param context          application context
+   * @param excludedReleases which releases are leave alive.
+   */
+  public static void removeReleaseFolders(final Context context, final String[] excludedReleases) {
+    // 현재 작업을 실행 했다면
+    if (isExecuting) {
+      return;
+    }
+    isExecuting = true;
+
+    final String rootFolder = PluginFilesStructure.getPluginRootFolder(context);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        new CleanUpHelper(rootFolder).removeFolders(excludedReleases);
+        isExecuting = false;
+      }
+    }).start();
+  }
+
+  private void removeFolders(final String[] excludedReleases) {
+    if (!rootFolder.exists()) {
+      return;
     }
 
-    /**
-     * Remove release folders.
-     *
-     * @param context          application context
-     * @param excludedReleases which releases are leave alive.
-     */
-    public static void removeReleaseFolders(final Context context, final String[] excludedReleases) {
-        if (isExecuting) {
-            return;
+    File[] files = rootFolder.listFiles();
+    for (File file : files) {
+      boolean isIgnored = false;
+      LogUtil.Debug("CHCP","Root Folder 내에 있는 File list " + file.getName());
+
+      for (String excludedReleaseName : excludedReleases) {
+        LogUtil.Debug("CHCP","ExcludedRelease 파일 : " + excludedReleaseName);
+
+        if (TextUtils.isEmpty(excludedReleaseName)) {
+          continue;
         }
-        isExecuting = true;
 
-        final String rootFolder = PluginFilesStructure.getPluginRootFolder(context);
+        if (file.getName().equals(excludedReleaseName)) {
+          LogUtil.Debug("CHCP","삭제될 파일 " + file.getName());
+          isIgnored = true;
+          break;
+        }
+      }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                new CleanUpHelper(rootFolder).removeFolders(excludedReleases);
-                isExecuting = false;
-            }
-        }).start();
+      if (!isIgnored) {
+        LogUtil.Debug("CHCP", "이전 릴리즈 폴더 삭제: " + file.getName());
+        FilesUtility.delete(file);
+      }
     }
-
-    private void removeFolders(final String[] excludedReleases) {
-        if (!rootFolder.exists()) {
-            return;
-        }
-
-        File[] files = rootFolder.listFiles();
-        for (File file : files) {
-            boolean isIgnored = false;
-            for (String excludedReleaseName : excludedReleases) {
-                if (TextUtils.isEmpty(excludedReleaseName)) {
-                    continue;
-                }
-
-                if (file.getName().equals(excludedReleaseName)) {
-                    isIgnored = true;
-                    break;
-                }
-            }
-
-            if (!isIgnored) {
-                Log.d("CHCP", "Deleting old release folder: " + file.getName());
-                FilesUtility.delete(file);
-            }
-        }
-    }
+  }
 
 }

@@ -18,197 +18,208 @@ import java.io.IOException;
  */
 public class PluginInternalPreferences {
 
-    // json keys of the preference
-    private static final String APPLICATION_BUILD_VERSION = "app_build_version";
-    private static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
-    private static final String PREVIOUS_RELEASE_VERSION_NAME = "previous_release_version_name";
-    private static final String CURRENT_RELEASE_VERSION_NAME = "current_release_version_name";
-    private static final String READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = "ready_for_installation_release_version_name";
+  // json keys of the preference
+  private static final String APPLICATION_BUILD_VERSION = "app_build_version";
+  private static final String WWW_FOLDER_INSTALLED_FLAG = "www_folder_installed";
+  private static final String PREVIOUS_RELEASE_VERSION_NAME = "previous_release_version_name";
+  private static final String CURRENT_RELEASE_VERSION_NAME = "current_release_version_name";
+  private static final String READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = "ready_for_installation_release_version_name";
 
-    private int appBuildVersion;
-    private boolean wwwFolderInstalled;
-    private String currentReleaseVersionName;
-    private String previousReleaseVersionName;
-    private String readyForInstallationReleaseVersionName;
+  private int appBuildVersion;
+  private boolean wwwFolderInstalled;
+  private String currentReleaseVersionName;
+  private String previousReleaseVersionName;
+  private String readyForInstallationReleaseVersionName;
 
-    /**
-     * Create instance of the object from JSON string.
-     *
-     * @param json JSON string
-     * @return object instance
-     */
-    public static PluginInternalPreferences fromJson(final String json) {
-        PluginInternalPreferences config = new PluginInternalPreferences();
-        try {
-            JsonNode jsonNode = new ObjectMapper().readTree(json);
-            config.setAppBuildVersion(
-                    jsonNode.get(APPLICATION_BUILD_VERSION).asInt()
-            );
-            config.setWwwFolderInstalled(
-                    jsonNode.get(WWW_FOLDER_INSTALLED_FLAG).asBoolean()
-            );
+  /**
+   * Create instance of the object from JSON string.
+   *
+   * @param json JSON string
+   * @return object instance
+   */
+  public static PluginInternalPreferences fromJson(final String json) {
+    PluginInternalPreferences config = new PluginInternalPreferences();
+    try {
+      JsonNode jsonNode = new ObjectMapper().readTree(json);
+      config.setAppBuildVersion(
+        jsonNode.get(APPLICATION_BUILD_VERSION).asInt()
+      );
+      config.setWwwFolderInstalled(
+        jsonNode.get(WWW_FOLDER_INSTALLED_FLAG).asBoolean()
+      );
 
-            if (jsonNode.has(CURRENT_RELEASE_VERSION_NAME)) {
-                config.setCurrentReleaseVersionName(
-                        jsonNode.get(CURRENT_RELEASE_VERSION_NAME).asText()
-                );
-            }
+      if (jsonNode.has(CURRENT_RELEASE_VERSION_NAME)) {
+        config.setCurrentReleaseVersionName(
+          jsonNode.get(CURRENT_RELEASE_VERSION_NAME).asText()
+        );
+      }
 
-            if (jsonNode.has(PREVIOUS_RELEASE_VERSION_NAME)) {
-                config.setPreviousReleaseVersionName(
-                        jsonNode.get(PREVIOUS_RELEASE_VERSION_NAME).asText()
-                );
-            }
+      if (jsonNode.has(PREVIOUS_RELEASE_VERSION_NAME)) {
+        config.setPreviousReleaseVersionName(
+          jsonNode.get(PREVIOUS_RELEASE_VERSION_NAME).asText()
+        );
+      }
 
-            if (jsonNode.has(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME)) {
-                config.setReadyForInstallationReleaseVersionName(
-                        jsonNode.get(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME).asText()
-                );
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+      if (jsonNode.has(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME)) {
+        config.setReadyForInstallationReleaseVersionName(
+          jsonNode.get(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME).asText()
+        );
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
 
-            config = null;
-        }
-
-        return config;
+      config = null;
     }
 
-    private PluginInternalPreferences() {
-        currentReleaseVersionName = "";
-        previousReleaseVersionName = "";
-        readyForInstallationReleaseVersionName = "";
+    return config;
+  }
+
+  private PluginInternalPreferences() {
+    currentReleaseVersionName = "";
+    previousReleaseVersionName = "";
+    readyForInstallationReleaseVersionName = "";
+  }
+
+  /**
+   * 기본 환경설정 작성
+   *
+   * @param context application context
+   * @return default plugin internal preferences
+   */
+  public static PluginInternalPreferences createDefault(final Context context) {
+    final PluginInternalPreferences pluginPrefs = new PluginInternalPreferences();
+
+    // 빌드 버전
+    pluginPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
+
+    // wwwFolder 저장 여부
+    pluginPrefs.setWwwFolderInstalled(false);
+
+    // 이전 릴리즈 버전 명
+    pluginPrefs.setPreviousReleaseVersionName("");
+
+    // 설치 준비 완료된 릴리즈 버전 명
+    pluginPrefs.setReadyForInstallationReleaseVersionName("");
+
+    // 현재 릴리즈 버전 명
+    pluginPrefs.setCurrentReleaseVersionName("");
+
+    // 현재 릴리즈 버전을 얻기위해 Assets/ 에서 chcp.json 읽기
+    final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context, PluginFilesStructure.CONFIG_FILE_NAME);
+    if (appConfig != null) {
+      // 현재 릴리즈 버전명
+      pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
     }
 
-    /**
-     * Create default preferences.
-     *
-     * @param context application context
-     * @return default plugin internal preferences
-     */
-    public static PluginInternalPreferences createDefault(final Context context) {
-        final PluginInternalPreferences pluginPrefs = new PluginInternalPreferences();
-        pluginPrefs.setAppBuildVersion(VersionHelper.applicationVersionCode(context));
-        pluginPrefs.setWwwFolderInstalled(false);
-        pluginPrefs.setPreviousReleaseVersionName("");
-        pluginPrefs.setReadyForInstallationReleaseVersionName("");
-        pluginPrefs.setCurrentReleaseVersionName("");
+    return pluginPrefs;
+  }
 
-        // read app config from assets to get current release version
-        final ApplicationConfig appConfig = ApplicationConfig.configFromAssets(context, PluginFilesStructure.CONFIG_FILE_NAME);
-        if (appConfig != null) {
-            pluginPrefs.setCurrentReleaseVersionName(appConfig.getContentConfig().getReleaseVersion());
-        }
+  /**
+   * Getter for build version of the app, which was detected on the last launch.
+   * Using it we can determine if application has been updated through Google Play.
+   *
+   * @return build version of the app from last launch
+   */
+  public int getAppBuildVersion() {
+    return appBuildVersion;
+  }
 
-        return pluginPrefs;
-    }
+  /**
+   * Setter for build version.
+   *
+   * @param appBuildVersion new application build version
+   */
+  public void setAppBuildVersion(int appBuildVersion) {
+    this.appBuildVersion = appBuildVersion;
+  }
 
-    /**
-     * Getter for build version of the app, which was detected on the last launch.
-     * Using it we can determine if application has been updated through Google Play.
-     *
-     * @return build version of the app from last launch
-     */
-    public int getAppBuildVersion() {
-        return appBuildVersion;
-    }
+  /**
+   * Getter for flag if www folder was installed on the external storage.
+   *
+   * @return <code>true</code> - www folder was installed; otherwise - <code>false</code>
+   */
+  public boolean isWwwFolderInstalled() {
+    return wwwFolderInstalled;
+  }
 
-    /**
-     * Setter for build version.
-     *
-     * @param appBuildVersion new application build version
-     */
-    public void setAppBuildVersion(int appBuildVersion) {
-        this.appBuildVersion = appBuildVersion;
-    }
+  /**
+   * Setter for the flag that www folder was installed on the external storage.
+   *
+   * @param isWwwFolderInstalled is www folder is installed
+   */
+  public void setWwwFolderInstalled(boolean isWwwFolderInstalled) {
+    wwwFolderInstalled = isWwwFolderInstalled;
+  }
 
-    /**
-     * Getter for flag if www folder was installed on the external storage.
-     *
-     * @return <code>true</code> - www folder was installed; otherwise - <code>false</code>
-     */
-    public boolean isWwwFolderInstalled() {
-        return wwwFolderInstalled;
-    }
+  /**
+   * Getter for current release version name.
+   *
+   * @return current release version name
+   */
+  public String getCurrentReleaseVersionName() {
+    return currentReleaseVersionName;
+  }
 
-    /**
-     * Setter for the flag that www folder was installed on the external storage.
-     *
-     * @param isWwwFolderInstalled is www folder is installed
-     */
-    public void setWwwFolderInstalled(boolean isWwwFolderInstalled) {
-        wwwFolderInstalled = isWwwFolderInstalled;
-    }
+  /**
+   * Setter for current release version name.
+   *
+   * @param currentReleaseVersionName current release version
+   */
+  public void setCurrentReleaseVersionName(final String currentReleaseVersionName) {
+    this.currentReleaseVersionName = currentReleaseVersionName;
+  }
 
-    /**
-     * Getter for current release version name.
-     *
-     * @return current release version name
-     */
-    public String getCurrentReleaseVersionName() {
-        return currentReleaseVersionName;
-    }
+  /**
+   * Getter for previous release version name.
+   *
+   * @return previous release version name
+   */
+  public String getPreviousReleaseVersionName() {
+    return previousReleaseVersionName;
+  }
 
-    /**
-     * Setter for current release version name.
-     *
-     * @param currentReleaseVersionName current release version
-     */
-    public void setCurrentReleaseVersionName(final String currentReleaseVersionName) {
-        this.currentReleaseVersionName = currentReleaseVersionName;
-    }
+  /**
+   * Setter for previous release version name.
+   *
+   * @param previousReleaseVersionName previous release version name
+   */
+  public void setPreviousReleaseVersionName(String previousReleaseVersionName) {
+    this.previousReleaseVersionName = previousReleaseVersionName;
+  }
 
-    /**
-     * Getter for previous release version name.
-     *
-     * @return previous release version name
-     */
-    public String getPreviousReleaseVersionName() {
-        return previousReleaseVersionName;
-    }
+  /**
+   * Getter for version, that is ready for installation.
+   *
+   * @return version to install
+   */
+  public String getReadyForInstallationReleaseVersionName() {
+    return readyForInstallationReleaseVersionName;
+  }
 
-    /**
-     * Setter for previous release version name.
-     *
-     * @param previousReleaseVersionName previous release version name
-     */
-    public void setPreviousReleaseVersionName(String previousReleaseVersionName) {
-        this.previousReleaseVersionName = previousReleaseVersionName;
-    }
+  /**
+   * Setter for version, that is ready for installation.
+   *
+   * @param readyForInstallationReleaseVersionName version to install
+   */
+  public void setReadyForInstallationReleaseVersionName(String readyForInstallationReleaseVersionName) {
+    this.readyForInstallationReleaseVersionName = readyForInstallationReleaseVersionName;
+  }
 
-    /**
-     * Getter for version, that is ready for installation.
-     *
-     * @return version to install
-     */
-    public String getReadyForInstallationReleaseVersionName() {
-        return readyForInstallationReleaseVersionName;
-    }
+  /**
+   * Convert object into JSON string
+   *
+   * @return JSON string
+   */
+  @Override
+  public String toString() {
+    JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+    ObjectNode object = nodeFactory.objectNode();
+    object.set(APPLICATION_BUILD_VERSION, nodeFactory.numberNode(appBuildVersion));
+    object.set(WWW_FOLDER_INSTALLED_FLAG, nodeFactory.booleanNode(wwwFolderInstalled));
+    object.set(CURRENT_RELEASE_VERSION_NAME, nodeFactory.textNode(currentReleaseVersionName));
+    object.set(PREVIOUS_RELEASE_VERSION_NAME, nodeFactory.textNode(previousReleaseVersionName));
+    object.set(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME, nodeFactory.textNode(readyForInstallationReleaseVersionName));
 
-    /**
-     * Setter for version, that is ready for installation.
-     *
-     * @param readyForInstallationReleaseVersionName version to install
-     */
-    public void setReadyForInstallationReleaseVersionName(String readyForInstallationReleaseVersionName) {
-        this.readyForInstallationReleaseVersionName = readyForInstallationReleaseVersionName;
-    }
-
-    /**
-     * Convert object into JSON string
-     *
-     * @return JSON string
-     */
-    @Override
-    public String toString() {
-        JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
-        ObjectNode object = nodeFactory.objectNode();
-        object.set(APPLICATION_BUILD_VERSION, nodeFactory.numberNode(appBuildVersion));
-        object.set(WWW_FOLDER_INSTALLED_FLAG, nodeFactory.booleanNode(wwwFolderInstalled));
-        object.set(CURRENT_RELEASE_VERSION_NAME, nodeFactory.textNode(currentReleaseVersionName));
-        object.set(PREVIOUS_RELEASE_VERSION_NAME, nodeFactory.textNode(previousReleaseVersionName));
-        object.set(READY_FOR_INSTALLATION_RELEASE_VERSION_NAME, nodeFactory.textNode(readyForInstallationReleaseVersionName));
-
-        return object.toString();
-    }
+    return object.toString();
+  }
 }

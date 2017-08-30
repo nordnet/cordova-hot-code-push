@@ -1,14 +1,15 @@
-
-
 var exec = require('cordova/exec'),
   channel = require('cordova/channel'),
 
-  // Reference name for the plugin
+  // 플러그인 이름 설정
   PLUGIN_NAME = 'HotCodePush',
 
   // Plugin methods on the native side that can be called from JavaScript
+  // 플러그인에서 사용할 메소드를 미리 지정, JSAction.java에 정의되어 있음
   pluginNativeMethod = {
+    // Private API
     INITIALIZE: 'jsInitPlugin',
+    // Public API
     FETCH_UPDATE: 'jsFetchUpdate',
     INSTALL_UPDATE: 'jsInstallUpdate',
     CONFIGURE: 'jsConfigure',
@@ -17,10 +18,12 @@ var exec = require('cordova/exec'),
     GET_INFO: 'jsGetVersionInfo'
   };
 
-// Called when Cordova is ready for work.
-// Here we will send default callback to the native side through which it will send to us different events.
+// Cordova가 준비완료 될 때 chcp 환경설정을 읽고 Native에 반영함
+// 여기서 우리는 네이티브 측으로 기본 콜백을 보내 다른 이벤트를 우리에게 보냅니다.
+// 해당 콜백은 native에 저장되어 있다가 update 등의 이벤트가 생기면 callback으로 전달 함
 channel.onCordovaReady.subscribe(function() {
   ensureCustomEventExists();
+  // nativeCallback으로 success callback을 받아옴
   exec(nativeCallback, null, PLUGIN_NAME, pluginNativeMethod.INITIALIZE, []);
 });
 
@@ -94,11 +97,11 @@ function callNativeMethod(methodName, options, callback) {
 // region Update/Install events
 
 /*
- * Polyfill for adding CustomEvent which may not exist on older versions of Android.
- * See https://developer.mozilla.org/fr/docs/Web/API/CustomEvent for more details.
+ * 하위버전 안드로이드를 위한 CustomEvent Polyfill
+ * See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
  */
 function ensureCustomEventExists() {
-  // Create only if it doesn't exist
+  // CustomEvent가 없는 경우에만 Polyfill 적용
   if (window.CustomEvent) {
     return;
   }

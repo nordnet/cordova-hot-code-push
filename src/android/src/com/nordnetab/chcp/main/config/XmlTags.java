@@ -28,4 +28,7 @@ final class XmlTags {
     public static final String NATIVE_INTERFACE_TAG = "native-interface";
     public static final String NATIVE_INTERFACE_VERSION_ATTRIBUTE = "version";
 
+    // 백업 파일 지우는지 결정하는 Tag
+    public static final String REMOVE_BACKUP_TAG = "remove-backup";
+    public static final String REMOVE_BACKUP_ENABLED_ATTRIBUTE = "enabled";
 }

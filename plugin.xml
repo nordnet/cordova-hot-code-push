@@ -9,9 +9,9 @@
   <repo>https://github.com/nordnet/cordova-hot-code-push</repo>
   <issue>https://github.com/nordnet/cordova-hot-code-push/issues</issue>
   <engines>
-    <engine name="cordova-ios" version=">=3.8"></engine>
-    <engine name="cordova-android" version=">=4"></engine>
-    <engine name="cordova-plugman" version=">=4.2.0"></engine>
+    <engine name="cordova-ios" version=">=3.8"/>
+    <engine name="cordova-android" version=">=4"/>
+    <engine name="cordova-plugman" version=">=4.2.0"/>
     <!-- needed for gradleReference support -->
   </engines>
   <!-- JavaScrip Library Sources -->

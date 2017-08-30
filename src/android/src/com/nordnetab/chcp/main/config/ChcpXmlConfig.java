@@ -17,12 +17,15 @@ public class ChcpXmlConfig {
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
     private int nativeInterfaceVersion;
+    // 백업 관련 추가
+    private boolean allowRemoveBackup;
 
     private ChcpXmlConfig() {
         configUrl = "";
         allowUpdatesAutoDownload = true;
         allowUpdatesAutoInstall = true;
         nativeInterfaceVersion = 1;
+        allowRemoveBackup = false;
     }
 
     /**
@@ -101,8 +104,7 @@ public class ChcpXmlConfig {
     }
 
     /**
-     * Load plugins specific preferences from Cordova's config.xml.
-     *
+     * config.xml에 플러그인 환경설정을 불러온다
      * @param context current context of the activity
      * @return hot-code-push plugin preferences
      */
@@ -136,5 +138,19 @@ public class ChcpXmlConfig {
         if (jsOptions.has(XmlTags.AUTO_DOWNLOAD_TAG)) {
             allowUpdatesAutoDownload(jsOptions.getBoolean(XmlTags.AUTO_DOWNLOAD_TAG));
         }
+    }
+
+    /**
+     * 백업 삭제 관련 Getter
+     */
+    public boolean isAllowRemoveBackup() {
+        return allowRemoveBackup;
+    }
+
+    /**
+     * 백업 삭제 관련 Setter
+     */
+    public void setAllowRemoveBackup(boolean allowRemoveBackup) {
+        this.allowRemoveBackup = allowRemoveBackup;
     }
 }

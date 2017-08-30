@@ -1,3 +1,12 @@
+# 변경점
+1. config.xml을 통한 백업 삭제여부 설정가능  
+ true를 주면 자동으로 백업을 삭제한다.
+```xml
+<chcp>
+  <remove-backup enabled="true" />  <!-- default false --> 
+</chcp>
+````
+
 # Cordova Hot Code Push Plugin
 
 이 플러그인은 응용 프로그램의 웹 기반 컨텐츠를 자동으로 업데이트하는 기능을 제공합니다. 

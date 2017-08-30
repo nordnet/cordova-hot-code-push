@@ -64,7 +64,7 @@ class UpdateLoaderWorker implements WorkerTask {
 
     @Override
     public void run() {
-        Log.d("CHCP", "Starting loader worker ");
+        LogUtil.Debug("CHCP", "Starting loader worker ");
         // initialize before running
         if (!init()) {
             return;
@@ -133,7 +133,7 @@ class UpdateLoaderWorker implements WorkerTask {
         // notify that we are done
         setSuccessResult(newAppConfig);
 
-        Log.d("CHCP", "Loader worker has finished");
+        LogUtil.Debug("CHCP", "Loader worker has finished");
     }
 
     /**
@@ -172,7 +172,7 @@ class UpdateLoaderWorker implements WorkerTask {
         final ApplicationConfigDownloader downloader = new ApplicationConfigDownloader(configUrl, requestHeaders);
         final DownloadResult<ApplicationConfig> downloadResult = downloader.download();
         if (downloadResult.error != null) {
-            Log.d("CHCP", "Failed to download application config");
+            LogUtil.Debug("CHCP", "Failed to download application config");
 
             return null;
         }
@@ -191,7 +191,7 @@ class UpdateLoaderWorker implements WorkerTask {
         final ContentManifestDownloader downloader = new ContentManifestDownloader(url, requestHeaders);
         final DownloadResult<ContentManifest> downloadResult = downloader.download();
         if (downloadResult.error != null) {
-            Log.d("CHCP", "Failed to download content manifest");
+            LogUtil.Debug("CHCP", "Failed to download content manifest");
             return null;
         }
 

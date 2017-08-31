@@ -62,24 +62,24 @@ public class CleanUpHelper {
     File[] files = rootFolder.listFiles();
     for (File file : files) {
       boolean isIgnored = false;
-      LogUtil.Debug("CHCP","Root Folder 내에 있는 File list " + file.getName());
+      Log.d("CHCP","Root Folder 내에 있는 File list " + file.getName());
 
       for (String excludedReleaseName : excludedReleases) {
-        LogUtil.Debug("CHCP","ExcludedRelease 파일 : " + excludedReleaseName);
+        Log.d("CHCP","ExcludedRelease 파일 : " + excludedReleaseName);
 
         if (TextUtils.isEmpty(excludedReleaseName)) {
           continue;
         }
 
         if (file.getName().equals(excludedReleaseName)) {
-          LogUtil.Debug("CHCP","삭제될 파일 " + file.getName());
+          Log.d("CHCP","삭제될 파일 " + file.getName());
           isIgnored = true;
           break;
         }
       }
 
       if (!isIgnored) {
-        LogUtil.Debug("CHCP", "이전 릴리즈 폴더 삭제: " + file.getName());
+        Log.d("CHCP", "이전 릴리즈 폴더 삭제: " + file.getName());
         FilesUtility.delete(file);
       }
     }

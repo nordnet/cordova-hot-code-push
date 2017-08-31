@@ -55,14 +55,14 @@ class InstallationWorker implements WorkerTask {
   @Override
   public void run() {
     // run 수행 전 init을 통해 Manifest File 비교
-    LogUtil.Debug("CHCP", "업데이트 Init 실행");
+    Log.d("CHCP", "업데이트 Init 실행");
 
     if (!init()) {
       return;
     }
 
     // 업데이트 검증
-    LogUtil.Debug("CHCP", "업데이트 검증");
+    Log.d("CHCP", "업데이트 검증");
 
     if (!isUpdateValid(newReleaseFS.getDownloadFolder(), manifestDiff)) {
       // 검증 실패시 ERROR
@@ -72,7 +72,7 @@ class InstallationWorker implements WorkerTask {
 
     // IMPORTANT
     // 현재 릴리즈 폴더의 내용을 new 릴리즈 폴더로 복사
-    LogUtil.Debug("CHCP", "현재 릴리즈 폴더의 내용을 New Release폴더로 복사");
+    Log.d("CHCP", "현재 릴리즈 폴더의 내용을 New Release폴더로 복사");
 
     if (!copyFilesFromCurrentReleaseToNewRelease()) {
       setResultForError(ChcpError.FAILED_TO_COPY_FILES_FROM_PREVIOUS_RELEASE);
@@ -80,7 +80,7 @@ class InstallationWorker implements WorkerTask {
     }
 
     // Manifest 비교를 통해 새 릴리즈에서 사용하지 않는 files 삭제
-    LogUtil.Debug("CHCP", "Manifest 비교를 통해 사용하지 않는 File 삭제");
+    Log.d("CHCP", "Manifest 비교를 통해 사용하지 않는 File 삭제");
 
     deleteUnusedFiles();
 
@@ -89,7 +89,7 @@ class InstallationWorker implements WorkerTask {
 
     // 설치 실패시
     if (!isInstalled) {
-      LogUtil.Debug("CHCP", "설치 실패, 새로받은 파일들 삭제");
+      Log.d("CHCP", "설치 실패, 새로받은 파일들 삭제");
 
       cleanUpOnFailure();
       setResultForError(ChcpError.FAILED_TO_COPY_NEW_CONTENT_FILES);
@@ -97,12 +97,12 @@ class InstallationWorker implements WorkerTask {
     }
 
     // 다운로드 폴더를 지운다 (update/)
-    LogUtil.Debug("CHCP", "다운로드 폴더 삭제 update/");
+    Log.d("CHCP", "다운로드 폴더 삭제 update/");
 
     cleanUpOnSuccess();
 
     // 업데이트 성공 알람을 보낸다
-    LogUtil.Debug("CHCP", "업데이트 성공 이벤트 보냄");
+    Log.d("CHCP", "업데이트 성공 이벤트 보냄");
 
     setSuccessResult();
   }
@@ -114,12 +114,12 @@ class InstallationWorker implements WorkerTask {
    */
   private boolean init() {
     // chcp.json  Config 가져오기
-    LogUtil.Debug("CHCP", "Chcp.json 가져오기");
+    Log.d("CHCP", "Chcp.json 가져오기");
 
     IObjectFileStorage<ApplicationConfig> appConfigStorage = new ApplicationConfigStorage();
 
     // update 폴더 임시 생성
-    LogUtil.Debug("CHCP", "Update 임시 폴더 생성");
+    Log.d("CHCP", "Update 임시 폴더 생성");
 
     newAppConfig = appConfigStorage.loadFromFolder(newReleaseFS.getDownloadFolder());
     if (newAppConfig == null) {
@@ -128,7 +128,7 @@ class InstallationWorker implements WorkerTask {
     }
 
     // 로컬에 있는 manifest File Path 가져오기
-    LogUtil.Debug("CHCP", "로컬에 있는 manifest 파일 패스 가져오기");
+    Log.d("CHCP", "로컬에 있는 manifest 파일 패스 가져오기");
 
     IObjectFileStorage<ContentManifest> manifestStorage = new ContentManifestStorage();
     ContentManifest oldManifest = manifestStorage.loadFromFolder(currentReleaseFS.getWwwFolder());
@@ -138,7 +138,7 @@ class InstallationWorker implements WorkerTask {
     }
 
     // 다운로드 폴더에서 manifest File Path 가져오기
-    LogUtil.Debug("CHCP", "다운로드 폴더에서 manifest 파일 패스 가져오기");
+    Log.d("CHCP", "다운로드 폴더에서 manifest 파일 패스 가져오기");
 
     ContentManifest newManifest = manifestStorage.loadFromFolder(newReleaseFS.getDownloadFolder());
     if (newManifest == null) {
@@ -147,7 +147,7 @@ class InstallationWorker implements WorkerTask {
     }
 
     // Manifest 차이점 가져오기
-    LogUtil.Debug("CHCP", "manifest 차이점 비교");
+    Log.d("CHCP", "manifest 차이점 비교");
 
     manifestDiff = oldManifest.calculateDifference(newManifest);
 
@@ -166,15 +166,15 @@ class InstallationWorker implements WorkerTask {
 
     try {
       // 만약 새버전의 www folder가 존재한다면 지움
-      LogUtil.Debug("CHCP", "만약 새 버전의 폴더가 존재한다면 지움");
+      Log.d("CHCP", "만약 새 버전의 폴더가 존재한다면 지움");
 
       if (newWwwFolder.exists()) {
-        LogUtil.Debug("CHCP", "새 버전의 폴더가 존재해서 지움");
+        Log.d("CHCP", "새 버전의 폴더가 존재해서 지움");
 
         FilesUtility.delete(newWwwFolder);
       }
 
-      LogUtil.Debug("CHCP", "현재 버전에서 새 버전으로 파일 복사");
+      Log.d("CHCP", "현재 버전에서 새 버전으로 파일 복사");
 
       FilesUtility.copy(currentWwwFolder, newWwwFolder);
     } catch (Exception e) {
@@ -217,7 +217,7 @@ class InstallationWorker implements WorkerTask {
    */
   private boolean moveFilesFromInstallationFolderToWwwFolder() {
     try {
-      LogUtil.Debug("CHCP", "다운로드 받은 파일을 새로운 www폴더로 이동");
+      Log.d("CHCP", "다운로드 받은 파일을 새로운 www폴더로 이동");
 
       FilesUtility.copy(newReleaseFS.getDownloadFolder(), newReleaseFS.getWwwFolder());
 
@@ -241,20 +241,20 @@ class InstallationWorker implements WorkerTask {
    */
   private boolean isUpdateValid(String downloadFolderPath, ManifestDiff manifestDiff) {
     // 다운로더 폴더 패스 ~~/update
-    LogUtil.Debug("CHCP", "다운로드 폴더 패스 가져오기");
+    Log.d("CHCP", "다운로드 폴더 패스 가져오기");
 
     File downloadFolder = new File(downloadFolderPath);
 
     // 존재한다면 나가기
     if (!downloadFolder.exists()) {
-      LogUtil.Debug("CHCP", "다운로드 폴더 존재하므로 out");
+      Log.d("CHCP", "다운로드 폴더 존재하므로 out");
 
       return false;
     }
 
     boolean isValid = true;
     // Manifest변경점에서 업데이트 할 파일들만 가져오기
-    LogUtil.Debug("CHCP", "manifest에서 변경된 파일들만 가져옴");
+    Log.d("CHCP", "manifest에서 변경된 파일들만 가져옴");
 
     List<ManifestFile> updateFileList = manifestDiff.getUpdateFiles();
 

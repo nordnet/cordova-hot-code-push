@@ -55,7 +55,7 @@ public class ApplicationConfig {
 
       config.jsonString = jsonString;
     } catch (Exception e) {
-      LogUtil.Debug("CHCP", "Failed to convert json string into application config", e);
+      Log.d("CHCP", "Failed to convert json string into application config", e);
       config = null;
     }
 
@@ -82,14 +82,14 @@ public class ApplicationConfig {
         returnString.append(line);
       }
     } catch (Exception e) {
-      LogUtil.Debug("CHCP", "Failed to read chcp.json from assets", e);
+      Log.d("CHCP", "Failed to read chcp.json from assets", e);
     } finally {
       try {
         if (reader != null) {
           reader.close();
         }
       } catch (Exception e2) {
-        LogUtil.Debug("CHCP", "Failed to clear resources after reading chcp.json from the assets", e2);
+        Log.d("CHCP", "Failed to clear resources after reading chcp.json from the assets", e2);
       }
     }
 

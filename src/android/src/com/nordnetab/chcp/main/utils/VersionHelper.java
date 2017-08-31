@@ -23,7 +23,7 @@ public class VersionHelper {
       // Android Manifest에 있는 VersionCode attribute를 가져온다
       versionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
     } catch (PackageManager.NameNotFoundException e) {
-      LogUtil.Debug("CHCP", "Can't get version code", e);
+      Log.d("CHCP", "Can't get version code", e);
     }
 
     return versionCode;
@@ -41,7 +41,7 @@ public class VersionHelper {
       // Android Manifest에 있는 VersionName attribute를 가져온다
       versionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
     } catch (PackageManager.NameNotFoundException e) {
-      LogUtil.Debug("CHCP", "Can't get version name", e);
+      Log.d("CHCP", "Can't get version name", e);
     }
 
     return versionName;

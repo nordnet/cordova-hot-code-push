@@ -31,7 +31,7 @@ public class URLUtility {
             try {
                 url = new URL(urlString);
             } catch (MalformedURLException e2) {
-                LogUtil.Debug("CHCP", "Failed to transfer url string \"" + urlString + "\" to actual url", e2);
+                Log.d("CHCP", "Failed to transfer url string \"" + urlString + "\" to actual url", e2);
             }
         }
 

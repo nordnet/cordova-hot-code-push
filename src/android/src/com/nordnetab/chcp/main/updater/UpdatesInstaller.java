@@ -63,11 +63,11 @@ public class UpdatesInstaller {
     // 설치작업 전 이벤트 등록
     dispatchBeforeInstallEvent();
 
-    LogUtil.Debug("CHCP", "업데이트 Task 작성");
+    Log.d("CHCP", "업데이트 Task 작성");
     // 설치 워커 등록
     final WorkerTask task = new InstallationWorker(context, newVersion, currentVersion);
 
-    LogUtil.Debug("CHCP", "업데이트 Task 실행");
+    Log.d("CHCP", "업데이트 Task 실행");
 
     // 설치 실행
     execute(task);

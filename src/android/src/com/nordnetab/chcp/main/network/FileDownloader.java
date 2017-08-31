@@ -51,7 +51,7 @@ public class FileDownloader {
                               final String filePath,
                               final String checkSum,
                               final Map<String, String> requestHeaders) throws Exception {
-    LogUtil.Debug("CHCP", "Loading file: " + urlFrom);
+    Log.d("CHCP", "Loading file: " + urlFrom);
     final MD5 md5 = new MD5();
 
     final File downloadFile = new File(filePath);

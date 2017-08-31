@@ -1,6 +1,7 @@
 package com.nordnetab.chcp.main.updater;
 
 import android.content.Context;
+import android.util.Log;
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ContentManifest;
 import com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent;
@@ -14,7 +15,6 @@ import com.nordnetab.chcp.main.storage.ApplicationConfigStorage;
 import com.nordnetab.chcp.main.storage.ContentManifestStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.utils.FilesUtility;
-import com.nordnetab.chcp.main.utils.LogUtil;
 
 import java.io.File;
 import java.io.IOException;

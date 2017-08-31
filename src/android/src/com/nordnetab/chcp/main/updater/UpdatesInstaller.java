@@ -6,7 +6,6 @@ import com.nordnetab.chcp.main.events.BeforeInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.model.ChcpError;
 import com.nordnetab.chcp.main.model.PluginFilesStructure;
-import com.nordnetab.chcp.main.utils.LogUtil;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;

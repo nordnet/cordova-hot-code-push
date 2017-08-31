@@ -75,7 +75,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     // 내부 환경설정 로드. PluginInternalPrefs에 저장
     loadPluginInternalPreferences();
 
-    LogUtil.Debug("CHCP", "현재 실행되는 릴리즈 버전 " + pluginInternalPrefs.getCurrentReleaseVersionName());
+    Log.d("CHCP", "현재 실행되는 릴리즈 버전 " + pluginInternalPrefs.getCurrentReleaseVersionName());
 
     // 릴리즈 폴더가 저장되는 디렉토리에서 불필요한 릴리즈 폴더를 삭제함
     cleanupFileSystemFromOldReleases(chcpXmlConfig);
@@ -96,7 +96,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   public void onStart() {
     super.onStart();
 
-    LogUtil.Debug("CHCP", "onStart 액티비티 호출 시점");
+    Log.d("CHCP", "onStart 액티비티 호출 시점");
 
     final EventBus eventBus = EventBus.getDefault();
     if (!eventBus.isRegistered(this)) {
@@ -109,12 +109,12 @@ public class HotCodePushPlugin extends CordovaPlugin {
     if (!isPluginReadyForWork) {
       dontReloadOnStart = true;
 
-      LogUtil.Debug("CHCP", "wwwFolder 설치");
+      Log.d("CHCP", "wwwFolder 설치");
       // wwwfolder 설치
       installWwwFolder();
       return;
     }
-    LogUtil.Debug("CHCP", "wwwFolder 설치 되었음");
+    Log.d("CHCP", "wwwFolder 설치 되었음");
 
 
     // 로컬 저장소에있는 경우에만 리로드 한다
@@ -124,13 +124,13 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     // udpate를 설치한다
-    LogUtil.Debug("CHCP", "업데이트 설치 확인");
+    Log.d("CHCP", "업데이트 설치 확인");
 
     if (chcpXmlConfig.isAutoInstallIsAllowed() &&
       !UpdatesInstaller.isInstalling() &&
       !UpdatesLoader.isExecuting() &&
       !TextUtils.isEmpty(pluginInternalPrefs.getReadyForInstallationReleaseVersionName())) {
-      LogUtil.Debug("CHCP", "업데이트 설치 수행");
+      Log.d("CHCP", "업데이트 설치 수행");
 
       installUpdate(null);
     }
@@ -362,7 +362,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     } catch (JSONException ignored) {
     }
 
-    LogUtil.Debug("CHCP", "업데이트 시작");
+    Log.d("CHCP", "업데이트 시작");
 
     fetchUpdate(callback, fetchOptions);
   }
@@ -412,7 +412,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
       chcpXmlConfig.mergeOptionsFromJs(jsonObject);
       // TODO: store them somewhere?
     } catch (JSONException e) {
-      LogUtil.Debug("CHCP", "Failed to process plugin options, received from JS.", e);
+      Log.d("CHCP", "Failed to process plugin options, received from JS.", e);
     }
 
     callback.success();
@@ -434,7 +434,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     try {
       msg = (String) arguments.get(0);
     } catch (JSONException e) {
-      LogUtil.Debug("CHCP", "Dialog message is not set", e);
+      Log.d("CHCP", "Dialog message is not set", e);
 
     }
 
@@ -501,7 +501,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
    * @param fetchOptions "https://github.com/nordnet/cordova-hot-code-push/wiki/Fetch-update"
    */
   private void fetchUpdate(CallbackContext jsCallback, FetchUpdateOptions fetchOptions) {
-    LogUtil.Debug("CHCP", "업데이트 수행 부분 들어옴");
+    Log.d("CHCP", "업데이트 수행 부분 들어옴");
 
     if (!isPluginReadyForWork) {
       return;
@@ -510,7 +510,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     Map<String, String> requestHeaders = null;
     // chcp config에 저장되어있는 server URL 가져오기
     String configURL = chcpXmlConfig.getConfigUrl();
-    LogUtil.Debug("CHCP", "서버 URL 가져옴 : " + configURL);
+    Log.d("CHCP", "서버 URL 가져옴 : " + configURL);
 
 
     // fetchOption이 없으면 default 설정으로
@@ -527,7 +527,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
       }
     }
 
-    LogUtil.Debug("CHCP", "페치 옵션 가져옴 : " + (fetchOptions != null ? fetchOptions.getConfigURL() : null));
+    Log.d("CHCP", "페치 옵션 가져옴 : " + (fetchOptions != null ? fetchOptions.getConfigURL() : null));
 
     // 업데이트 다운로드 리퀘스트 설정
     final UpdateDownloadRequest request = UpdateDownloadRequest.builder(cordova.getActivity())
@@ -562,7 +562,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
       return;
     }
 
-    LogUtil.Debug("CHCP", "updatesInstaller 실행");
+    Log.d("CHCP", "updatesInstaller 실행");
 
     ChcpError error = UpdatesInstaller.install(cordova.getActivity(),
       pluginInternalPrefs.getReadyForInstallationReleaseVersionName(),    // 인스톨 할 버전
@@ -661,7 +661,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     // make sure, that index page exists
     String external = Paths.get(fileStructure.getWwwFolder(), strippedIndexPage);
     if (!new File(external).exists()) {
-      LogUtil.Debug("CHCP", "External starting page not found. Aborting page change.");
+      Log.d("CHCP", "External starting page not found. Aborting page change.");
       return;
     }
 
@@ -669,7 +669,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     external = Paths.get(fileStructure.getWwwFolder(), indexPage);
     webView.loadUrlIntoView(FILE_PREFIX + external, false);
 
-    LogUtil.Debug("CHCP", "Loading external page: " + external);
+    Log.d("CHCP", "Loading external page: " + external);
   }
 
   /**
@@ -698,7 +698,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(final BeforeAssetsInstalledEvent event) {
-    LogUtil.Debug("CHCP", "Dispatching before assets installed event");
+    Log.d("CHCP", "Dispatching before assets installed event");
     final PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
 
     sendMessageToDefaultCallback(result);
@@ -744,7 +744,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(AssetsInstallationErrorEvent event) {
-    LogUtil.Debug("CHCP", "Can't install assets on device. Continue to work with default bundle");
+    Log.d("CHCP", "Can't install assets on device. Continue to work with default bundle");
 
     PluginResult result = PluginResultHelper.pluginResultFromEvent(event);
     sendMessageToDefaultCallback(result);
@@ -766,7 +766,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @Subscribe
   public void onEvent(UpdateIsReadyToInstallEvent event) {
     final ContentConfig newContentConfig = event.applicationConfig().getContentConfig();
-    LogUtil.Debug("CHCP", "Update is ready for installation: " + newContentConfig.getReleaseVersion());
+    Log.d("CHCP", "Update is ready for installation: " + newContentConfig.getReleaseVersion());
 
     pluginInternalPrefs.setReadyForInstallationReleaseVersionName(newContentConfig.getReleaseVersion());
     pluginInternalPrefsStorage.storeInPreference(pluginInternalPrefs);
@@ -799,7 +799,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(NothingToUpdateEvent event) {
-    LogUtil.Debug("CHCP", "Nothing to update");
+    Log.d("CHCP", "Nothing to update");
 
     PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
@@ -823,7 +823,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(BeforeInstallEvent event) {
-    LogUtil.Debug("CHCP", "Dispatching Before install event");
+    Log.d("CHCP", "Dispatching Before install event");
 
     PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
@@ -841,11 +841,11 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(UpdateDownloadErrorEvent event) {
-    LogUtil.Debug("CHCP", "Failed to update");
+    Log.d("CHCP", "Failed to update");
 
     final ChcpError error = event.error();
     if (error == ChcpError.LOCAL_VERSION_OF_APPLICATION_CONFIG_NOT_FOUND || error == ChcpError.LOCAL_VERSION_OF_MANIFEST_NOT_FOUND) {
-      LogUtil.Debug("CHCP", "Can't load application config from installation folder. Reinstalling external folder");
+      Log.d("CHCP", "Can't load application config from installation folder. Reinstalling external folder");
       installWwwFolder();
     }
 
@@ -877,8 +877,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(UpdateInstalledEvent event) {
-    LogUtil.Debug("CHCP", "Update is installed");
-    LogUtil.Debug("CHCP", "업데이트 설치 된 뒤 이벤트를 보내면 onEvent에서 처리함");
+    Log.d("CHCP", "Update is installed");
+    Log.d("CHCP", "업데이트 설치 된 뒤 이벤트를 보내면 onEvent에서 처리함");
 
     final ContentConfig newContentConfig = event.applicationConfig().getContentConfig();
 
@@ -907,7 +907,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
       }
     });
 
-    LogUtil.Debug("CHCP", "여기가 실행된다");
+    Log.d("CHCP", "여기가 실행된다");
 
     cleanupFileSystemFromOldReleases(chcpXmlConfig);
   }
@@ -923,7 +923,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(UpdateInstallationErrorEvent event) {
-    LogUtil.Debug("CHCP", "Failed to install");
+    Log.d("CHCP", "Failed to install");
 
     PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
@@ -949,7 +949,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(NothingToInstallEvent event) {
-    LogUtil.Debug("CHCP", "Nothing to install");
+    Log.d("CHCP", "Nothing to install");
 
     PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
 
@@ -974,7 +974,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   private void cleanupFileSystemFromOldReleases(ChcpXmlConfig chcpXmlConfig) {
     boolean isAllowRemoveBackup = chcpXmlConfig.isAllowRemoveBackup();
 
-    LogUtil.Debug("CHCP", "isAllowRemoveBackup의 값은 : " + isAllowRemoveBackup);
+    Log.d("CHCP", "isAllowRemoveBackup의 값은 : " + isAllowRemoveBackup);
 
     if (TextUtils.isEmpty(pluginInternalPrefs.getCurrentReleaseVersionName())) {
       return;
@@ -1024,10 +1024,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
     }
 
     if (pluginInternalPrefs.getPreviousReleaseVersionName().length() > 0) {
-      LogUtil.Debug("CHCP", "Current release is corrupted, trying to rollback to the previous one");
+      Log.d("CHCP", "Current release is corrupted, trying to rollback to the previous one");
       rollbackToPreviousRelease();
     } else {
-      LogUtil.Debug("CHCP", "Current release is corrupted, reinstalling www folder from assets");
+      Log.d("CHCP", "Current release is corrupted, reinstalling www folder from assets");
       installWwwFolder();
     }
   }

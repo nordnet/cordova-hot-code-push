@@ -1,5 +1,6 @@
 package com.nordnetab.chcp.main.network;
 
+import android.util.Log;
 import com.nordnetab.chcp.main.model.ManifestFile;
 import com.nordnetab.chcp.main.utils.*;
 

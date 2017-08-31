@@ -2,6 +2,7 @@ package com.nordnetab.chcp.main.utils;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 /**
  * 어플리케이션의 빌드 버전을 가져오는 Helper 클래스

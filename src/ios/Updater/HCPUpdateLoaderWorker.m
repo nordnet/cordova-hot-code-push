@@ -77,6 +77,7 @@
     // download new application config
     [configDownloader downloadDataFromUrl:_configURL requestHeaders:_requestHeaders completionBlock:^(NSData *data, NSError *error) {
         HCPApplicationConfig *newAppConfig = [self getApplicationConfigFromData:data error:&error];
+        NSAssert(newAppConfig.contentConfig.contentURL, @"content_url should be config in chcp.json");
         if (newAppConfig == nil) {
             [self notifyWithError:[NSError errorWithCode:kHCPFailedToDownloadApplicationConfigErrorCode descriptionFromError:error]
                 applicationConfig:nil];

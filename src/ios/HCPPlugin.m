@@ -264,7 +264,13 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
  *  Redirect user to the index page that is located on the external storage.
  */
 - (void)resetIndexPageToExternalStorage {
-    NSString *indexPageStripped = [self indexPageFromConfigXml];
+    NSString *indexPageStripped = nil;
+    if ([self.viewController isKindOfClass:[CDVViewController class]]) {
+        indexPageStripped = ((CDVViewController *)self.viewController).startPage;
+    }
+    if (!indexPageStripped) {
+       indexPageStripped = [self indexPageFromConfigXml];
+    }
     
     NSRange r = [indexPageStripped rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"?#"] options:0];
     if (r.location != NSNotFound) {

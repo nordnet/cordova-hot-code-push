@@ -38,7 +38,6 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
   @Override
   public void handleStartTag(final XmlPullParser xml) {
     /* 확인할것 -> "https://github.com/nordnet/cordova-hot-code-push/wiki/Build-options" */
-    // TODO: backup 여부를 chcp xml에다 설정할 수 있도록 하면 좋을 듯
 
     // 이미 파싱한 chcp 블록이면 pass
     if (didParseChcpBlock) {
@@ -83,7 +82,7 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
       processNativeInterfaceBlock(xml);
     }
 
-    // TODO : Backup remove or not option 설정
+    // Backup remove or not option 설정
     if (XmlTags.REMOVE_BACKUP_TAG.equals(name)) {
       // do Remove Backup process
       processRemoveBackupBlock(xml);
@@ -97,7 +96,7 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
     boolean isEnabled = xml.getAttributeValue(null, XmlTags.REMOVE_BACKUP_ENABLED_ATTRIBUTE).equals("true");
 
     // 백업 여부 저장
-    chcpConfig.setAllowRemoveBackup(isEnabled);
+    chcpConfig.allowRemoveBackup(isEnabled);
   }
 
   @Override

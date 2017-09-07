@@ -138,6 +138,10 @@ public class ChcpXmlConfig {
         if (jsOptions.has(XmlTags.AUTO_DOWNLOAD_TAG)) {
             allowUpdatesAutoDownload(jsOptions.getBoolean(XmlTags.AUTO_DOWNLOAD_TAG));
         }
+
+        if (jsOptions.has(XmlTags.REMOVE_BACKUP_TAG)) {
+            allowRemoveBackup(jsOptions.getBoolean(XmlTags.REMOVE_BACKUP_TAG));
+        }
     }
 
     /**
@@ -150,7 +154,7 @@ public class ChcpXmlConfig {
     /**
      * 백업 삭제 관련 Setter
      */
-    public void setAllowRemoveBackup(boolean allowRemoveBackup) {
-        this.allowRemoveBackup = allowRemoveBackup;
+    public void allowRemoveBackup(boolean isAllowed) {
+        this.allowRemoveBackup = isAllowed;
     }
 }

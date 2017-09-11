@@ -32,6 +32,13 @@
 @property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
 
 /**
+ * 백업 삭제에 대한 property 추가
+ *
+ * @return YES는 백업을 삭제하도록, NO는 백업 유지
+ */
+@property (nonatomic, getter=isUpdatesRemoveBackupAllowed) BOOL allowRemoveBackup;
+
+/**
  *  Current native interface version of the application.
  */
 @property (nonatomic) NSUInteger nativeInterfaceVersion;

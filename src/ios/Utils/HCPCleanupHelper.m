@@ -25,7 +25,7 @@
 #pragma Private API
 
 /**
- *  Get shared instance of the cleaner.
+ *  클리너의 공유 인스턴스를 가져옴 (싱글톤 패턴)
  *  Class is a singleton to exclude conflicts.
  *
  *  @return class instance
@@ -40,6 +40,9 @@
     return sharedInstance;
 }
 
+/*
+ * ignoredReleases 를 제외한 모든 파일 삭제
+ */
 - (void)removeReleaseFoldersExcluding:(NSArray *)ignoredReleases {
     if (_isExecuting) {
         return;

@@ -24,6 +24,10 @@ NSString *const kHCPAutoInstallEnabledXmlAttribute = @"enabled";
 NSString *const kHCPNativeInterfaceXmlTag = @"native-interface";
 NSString *const kHCPNativeInterfaceVersionXmlAttribute = @"version";
 
+// NOTE: remove backup에서 사용되는 키
+NSString *const kHCPRemoveBackupXmlTag = @"remove-backup";
+NSString *const kHCPRemoveBackupXmlEnabledXmlAttribute = @"enabled";
+
 @implementation HCPXmlTags
 
 @end

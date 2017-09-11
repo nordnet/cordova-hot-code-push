@@ -43,10 +43,15 @@ static NSString *const READY_FOR_INSTALLATION_RELEASE_VERSION_NAME = @"ready_for
     NSDictionary *jsonObject = json;
     
     HCPPluginInternalPreferences *pluginConfig = [[HCPPluginInternalPreferences alloc] init];
+    // 앱 빌드 버전
     pluginConfig.appBuildVersion = (NSString *)jsonObject[APPLICATION_BUILD_VERSION];
+    // www/ 설치여부
     pluginConfig.wwwFolderInstalled = [(NSNumber *)jsonObject[WWW_FOLDER_INSTALLED_FLAG] boolValue];
+    // 현재 버전
     pluginConfig.currentReleaseVersionName = (NSString *)jsonObject[CURRENT_RELEASE_VERSION_NAME];
+    // 이전 버전 (백업본)
     pluginConfig.previousReleaseVersionName = (NSString *)jsonObject[PREVIOUS_RELEASE_VERSION_NAME];
+    // 업데이트 준비 여부
     pluginConfig.readyForInstallationReleaseVersionName = (NSString *)jsonObject[READY_FOR_INSTALLATION_RELEASE_VERSION_NAME];
     
     return pluginConfig;

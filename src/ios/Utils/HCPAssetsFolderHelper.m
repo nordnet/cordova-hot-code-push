@@ -22,6 +22,7 @@
 
 #pragma mark Public API
 
+// www 폴더 설치 메소드
 + (void)installWwwFolderToExternalStorageFolder:(NSURL *)externalFolderURL {
     HCPAssetsFolderHelper *helper = [HCPAssetsFolderHelper sharedInstance];
     if (helper.isWorking) {

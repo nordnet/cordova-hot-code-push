@@ -78,7 +78,7 @@
 
     // NOTE : backup Remove 관련한 chcp config 변경은 여기에 로직을 추가하면 됨
     // <config-file>인 경우
-    if ([elemetName isEqualToString:kHCPConfigFileXmlTag]) {
+    if ([elementName isEqualToString:kHCPConfigFileXmlTag]) {
         [self parseConfigUrl:attributeDict];
     }
     // <auto-download>인 경우

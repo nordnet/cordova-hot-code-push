@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nordnet/cordova-hot-code-push.git"
+    "url": "https://github.com/nordnet/cordova-hot-code-push.git"
   },
   "keywords": [
     "cordova",
@@ -24,16 +24,15 @@
     "cordova-android",
     "cordova-ios"
   ],
-  "engines": [
-    {
-      "name": "cordova-android",
-      "version": ">=4"
-    },
-    {
-      "name": "cordova-plugman",
-      "version": ">=4.2.0"
+  "engines": {
+    "cordovaDependencies": {
+      "1.5.3": {
+        "cordova-ios": ">3.8",
+        "cordova-android": ">=4",
+        "cordova-plugman": ">=4.2.0"
+      }
     }
-  ],
+  },
   "dependencies": {
     "xml2js": "^0.4"
   },

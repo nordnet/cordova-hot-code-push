@@ -66,7 +66,9 @@
         [self parseAutoInstallOptions:attributeDict];
     } else if ([elementName isEqualToString:kHCPNativeInterfaceXmlTag]) {
         [self parseNativeInterfaceOptions:attributeDict];
-    }
+    } else if ([elementName isEqualToString:kHCPForceInstallXmlTag]) {
+        [self parseForceInstallOptions:attributeDict];
+    } 
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName {
@@ -96,6 +98,10 @@
 
 - (void)parseNativeInterfaceOptions:(NSDictionary *)attributeDict {
     _xmlConfig.nativeInterfaceVersion = [(NSString *)attributeDict[kHCPNativeInterfaceVersionXmlAttribute] integerValue];
+}
+
+- (void)parseForceInstallOptions:(NSDictionary *)attributeDict {
+    _xmlConfig.allowForceInstall = [(NSNumber *)attributeDict[kHCPForceInstallEnabledXmlAttribute] boolValue];
 }
 
 @end

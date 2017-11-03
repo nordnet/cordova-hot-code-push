@@ -16,12 +16,14 @@ public class ChcpXmlConfig {
     private String configUrl;
     private boolean allowUpdatesAutoDownload;
     private boolean allowUpdatesAutoInstall;
+    private boolean allowForceInstall;
     private int nativeInterfaceVersion;
 
     private ChcpXmlConfig() {
         configUrl = "";
         allowUpdatesAutoDownload = true;
         allowUpdatesAutoInstall = true;
+        allowForceInstall = false;
         nativeInterfaceVersion = 1;
     }
 
@@ -98,6 +100,25 @@ public class ChcpXmlConfig {
      * */
     void setNativeInterfaceVersion(int version) {
         nativeInterfaceVersion = version > 0 ? version : 1;
+    }
+
+    /**
+     * Setter for the flag if force install is allowed.
+     *
+     * @param isAllowed set to <code>true</code> to allow the local www version to be preferred over the already copied version
+     */
+    public void allowForceInstall(boolean isAllowed) {
+        allowForceInstall = isAllowed;
+    }
+
+    /**
+     * Getter for the flag if force install is allowed.
+     * By default it is off, but you can turn it on in the config.xml.
+     *
+     * @return <code>true</code> if local override is enabled, <code>false</code> - otherwise.
+     */
+    public boolean isForceInstallIsAllowed() {
+        return allowForceInstall;
     }
 
     /**

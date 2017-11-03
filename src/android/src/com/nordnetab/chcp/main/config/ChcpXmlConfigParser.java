@@ -72,6 +72,12 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
             return;
         }
 
+        // parse force install preference
+        if (XmlTags.FORCE_INSTALL_TAG.equals(name)) {
+            processForceInstallBlock(xml);
+            return;
+        }
+
         // parse native navigation interface version
         if (XmlTags.NATIVE_INTERFACE_TAG.equals(name)) {
             processNativeInterfaceBlock(xml);
@@ -112,5 +118,10 @@ class ChcpXmlConfigParser extends ConfigXmlParser {
         final int nativeVersion = Integer.parseInt(nativeVersionStr);
 
         chcpConfig.setNativeInterfaceVersion(nativeVersion);
+    }
+
+    private void processForceInstallBlock(final XmlPullParser xml) {
+        boolean isEnabled = xml.getAttributeValue(null, XmlTags.FORCE_INSTALL_ENABLED_ATTRIBUTE).equals("true");
+        chcpConfig.allowForceInstall(isEnabled);
     }
 }

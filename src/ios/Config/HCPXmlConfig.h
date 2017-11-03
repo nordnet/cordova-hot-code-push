@@ -32,6 +32,13 @@
 @property (nonatomic, getter=isUpdatesAutoInstallationAllowed) BOOL allowUpdatesAutoInstallation;
 
 /**
+ *  Flag that indicates if updates auto installation is allowed. By default - <code>YES</code>.
+ *
+ *  @return <code>YES</code> if auto installation is allowed; <code>NO</code> if auto installation is disabled
+ */
+@property (nonatomic, getter=isForceInstallAllowed) BOOL allowForceInstall;
+
+/**
  *  Current native interface version of the application.
  */
 @property (nonatomic) NSUInteger nativeInterfaceVersion;

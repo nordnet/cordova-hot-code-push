@@ -131,11 +131,11 @@ function prepareWithCustomBuildOption(ctx, optionName, chcpXmlOptions) {
 
   var buildConfig = chcpBuildOptions.getBuildConfigurationByName(ctx, optionName);
   if (buildConfig == null) {
-    console.warn('Build configuration for "' + optionName + '" not found in chcp.options. Ignoring it.');
+    console.warn('Build configuration for "' + optionName + '" not found in chcpbuild.options. Ignoring it.');
     return false;
   }
 
-  console.log('Using config from chcp.options:');
+  console.log('Using config from chcpbuild.options:');
   console.log(JSON.stringify(buildConfig, null, 2));
 
   mergeBuildOptions(chcpXmlOptions, buildConfig);

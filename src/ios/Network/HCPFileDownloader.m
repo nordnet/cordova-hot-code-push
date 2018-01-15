@@ -8,6 +8,7 @@
 #import "HCPManifestFile.h"
 #import "NSData+HCPMD5.h"
 #import "NSError+HCPExtension.h"
+#import "HCPEvents.h"
 
 @interface HCPFileDownloader()<NSURLSessionDownloadDelegate> {
     NSArray *_filesList;

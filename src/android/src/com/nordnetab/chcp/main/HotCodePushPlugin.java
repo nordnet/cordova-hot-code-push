@@ -17,6 +17,7 @@ import com.nordnetab.chcp.main.events.BeforeInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToInstallEvent;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.main.events.UpdateDownloadErrorEvent;
+import com.nordnetab.chcp.main.events.UpdateDownloadProgressEvent;
 import com.nordnetab.chcp.main.events.UpdateInstallationErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateInstalledEvent;
 import com.nordnetab.chcp.main.events.UpdateIsReadyToInstallEvent;
@@ -765,6 +766,32 @@ public class HotCodePushPlugin extends CordovaPlugin {
         if (downloadJsCallback != null) {
             downloadJsCallback.sendPluginResult(jsResult);
             downloadJsCallback = null;
+        }
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    /**
+     * Listener for event that there is update of its progress at the moment.
+     *
+     * @param event event information
+     * @see EventBus
+     * @see UpdateDownloadProgressEvent
+     * @see UpdatesLoader
+     * @see com.nordnetab.chcp.main.network.FileDownloader
+     */
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onEvent(UpdateDownloadProgressEvent event) {
+        Log.d("CHCP", "Download Progress of update");
+        
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+        jsResult.setKeepCallback(true);
+
+        //notify JS
+        if (downloadJsCallback != null) {
+            downloadJsCallback.sendPluginResult(jsResult);
+            //downloadJsCallback = null;
         }
 
         sendMessageToDefaultCallback(jsResult);

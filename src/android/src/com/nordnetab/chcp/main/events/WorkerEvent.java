@@ -18,6 +18,11 @@ public class WorkerEvent extends PluginEventImpl {
 
     private static final String CONFIG_KEY = "config";
 
+    private static final String PROGRESS_KEY = "progress";
+    private static final String PROGRESS_COMPLETED_KEY = "progress_completed";
+    private static final String PROGRESS_OUTSTANDING_KEY = "progress_outstanding";
+
+
     /**
      * Class constructor
      *
@@ -48,5 +53,21 @@ public class WorkerEvent extends PluginEventImpl {
         }
 
         return (ApplicationConfig) eventData.get(CONFIG_KEY);
+    }
+
+    /**
+     * Class constructor
+     *
+     * @param eventName   string identifier of the event
+     * @param error       error information
+     * @param progress    progress of an event
+     * @param completed   completed progress count
+     * @param outstanding outstanding progress count
+     */
+    protected WorkerEvent(String eventName, ChcpError error, double progress, double completed, double outstanding) {
+        super(eventName, error);
+        data().put(PROGRESS_KEY, progress);
+        data().put(PROGRESS_COMPLETED_KEY, completed);
+        data().put(PROGRESS_OUTSTANDING_KEY, outstanding);
     }
 }

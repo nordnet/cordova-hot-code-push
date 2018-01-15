@@ -177,6 +177,7 @@ var chcp = {
 
     NOTHING_TO_UPDATE: 'chcp_nothingToUpdate',
     UPDATE_LOAD_FAILED: 'chcp_updateLoadFailed',
+    UPDATE_LOAD_PROGRESS: 'chcp_updateLoadProgress',
     UPDATE_IS_READY_TO_INSTALL: 'chcp_updateIsReadyToInstall',
 
     BEFORE_UPDATE_INSTALLATION: 'chcp_beforeInstall',

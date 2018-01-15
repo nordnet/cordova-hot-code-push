@@ -13,6 +13,11 @@
 extern NSString *const kHCPUpdateDownloadErrorEvent;
 
 /**
+ *  Event is dispatched when progress require to be updated during the update download.
+ */
+extern NSString *const kHCPUpdateDownloadProgressEvent;
+
+/**
  *  Event is dispathed when there is nothing new to download from the server. 
  *  Web content is up-to-date.
  */
@@ -77,6 +82,19 @@ extern NSString *const kHCPEventUserInfoApplicationConfigKey;
  *  Helper class tor create plugin specific notifications about work process (download or installation).
  */
 @interface HCPEvents : NSObject
+
+/**
+ *  Create instance of the NSNotification.
+ *  Object is then dispatched through the NSNotificationCenter.
+ *
+ *  @param name                 name of the event
+ *  @param progress             progress of an event in percentage
+ *  @param progressCompleted    completed progress count
+ *  @param progressCompleted    outstanding progress count
+ *
+ *  @return instance of the NSNotification
+ */
++ (NSNotification *)notificationWithName:(NSString *)name progress:(double)progress progressCompleted:(double)progressCompleted progressOutstanding:(double)progressOutstanding;
 
 /**
  *  Create instance of the NSNotification.

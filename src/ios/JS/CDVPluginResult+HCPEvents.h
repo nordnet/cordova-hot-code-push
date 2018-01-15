@@ -26,6 +26,8 @@
 
 + (CDVPluginResult *)pluginResultWithActionName:(NSString *)action applicationConfig:(HCPApplicationConfig *)appConfig error:(NSError *)error;
 
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action progress:(double)progress progressCompleted:(double)progressCompleted progressOutstanding:(double)progressOutstanding;
+
 /**
  *  Construct plugin result.
  *

@@ -16,6 +16,10 @@ static NSString *const ACTION_KEY = @"action";
 static NSString *const DATA_KEY = @"data";
 static NSString *const DATA_USER_INFO_CONFIG = @"config";
 
+static NSString *const DATA_USER_INFO_PROGRESS = @"progress";
+static NSString *const DATA_USER_INFO_PROGRESS_COMPLETED = @"progress_completed";
+static NSString *const DATA_USER_INFO_PROGRESS_OUTSTANDING = @"progress_outstanding";
+
 static NSString *const ERROR_KEY = @"error";
 static NSString *const ERROR_USER_INFO_CODE = @"code";
 static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
@@ -36,6 +40,19 @@ static NSString *const ERROR_USER_INFO_DESCRIPTION = @"description";
     NSDictionary *data = nil;
     if (appConfig) {
         data = @{DATA_USER_INFO_CONFIG: [appConfig toJson]};
+    }
+    
+    return [self pluginResultWithActionName:action data:data error:error];
+}
+
++ (CDVPluginResult *)pluginResultWithActionName:(NSString *)action progress:(double)progress progressCompleted:(double)progressCompleted progressOutstanding:(double)progressOutstanding{
+    NSDictionary *data = nil;
+    if (progress) {
+        data = @{
+            DATA_USER_INFO_PROGRESS: progress,
+            DATA_USER_INFO_PROGRESS_COMPLETED: progressCompleted,
+            DATA_USER_INFO_PROGRESS_OUTSTANDING: progressCompleted,
+        };
     }
     
     return [self pluginResultWithActionName:action data:data error:error];

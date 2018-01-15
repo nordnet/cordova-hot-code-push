@@ -18,6 +18,7 @@
     NSURLSession *_session;
     HCPFileDownloadCompletionBlock _complitionHandler;
     NSUInteger _downloadCounter;
+    NSUInteger _downloadTotal;
 }
 
 @end
@@ -35,6 +36,7 @@ static NSUInteger const TIMEOUT = 300;
         _contentURL = contentURL;
         _folderURL = folderURL;
         _headers = headers;
+        _downloadTotal = _filesList.count;
     }
     
     return self;
@@ -147,9 +149,32 @@ static NSUInteger const TIMEOUT = 300;
            withIntermediateDirectories:YES
                             attributes:nil
                                  error:nil];
+
+    int downloaded = (int)_downloadCounter;
+    int total = (int)_downloadTotal;
+    double progress = (downloaded / total) * 100.00;
+    double completed = downloaded * 1.00;
+    double outstanding = (total - downloaded) * 1.00;
+
+    [self dispatchProgress:progress:completed:outstanding];
     
     // write data
     return [fileManager moveItemAtURL:loadedFile toURL:filePath error: error];
+}
+
+/**
+ *  update progress
+ *
+ *  @param progress             progress of an event in percentage
+ *  @param progressCompleted    completed progress count
+ *  @param progressOutstanding  outstanding progress count
+ */
+- (void)dispatchProgress:(double)progress :(double)progressCompleted :(double)progressOutstanding {
+    NSNotification *notification = [HCPEvents   notificationWithName:kHCPUpdateDownloadProgressEvent
+                                                progress:progress
+                                                progressCompleted:progressCompleted
+                                                progressOutstanding:progressOutstanding];
+    [[NSNotificationCenter defaultCenter] postNotification:notification];
 }
 
 

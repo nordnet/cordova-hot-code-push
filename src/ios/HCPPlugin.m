@@ -106,6 +106,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         _pluginInternalPrefs.currentReleaseVersionName = config.contentConfig.releaseVersion;
         
         [_pluginInternalPrefs saveToUserDefaults];
+
+        _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
     }
     
     [HCPAssetsFolderHelper installWwwFolderToExternalStorageFolder:_filesStructure.wwwFolder];

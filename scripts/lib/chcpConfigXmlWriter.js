@@ -1,7 +1,7 @@
 /**
-Helper module to work with config.xml file.
-We will use it to inject plugin-specific options.
-*/
+ Helper module to work with config.xml file.
+ We will use it to inject plugin-specific options.
+ */
 
 
 var path = require('path');
@@ -82,6 +82,9 @@ function pathToIosConfigXml() {
  * @return {String} absolute path to config.xml file
  */
 function pathToAndroidConfigXml() {
+  if (cordovaContext.opts.cordova.version >= "7.0.0") {
+    return path.join(projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'res', 'xml', 'config.xml');
+  }
   return path.join(projectRoot, 'platforms', 'android', 'res', 'xml', 'config.xml');
 }
 
@@ -94,16 +97,14 @@ function pathToAndroidConfigXml() {
 function getPlatformSpecificConfigXml(platform) {
   var configFilePath = null;
   switch (platform) {
-    case 'ios':
-      {
-        configFilePath = pathToIosConfigXml();
-        break;
-      }
-    case 'android':
-      {
-        configFilePath = pathToAndroidConfigXml();
-        break;
-      }
+    case 'ios': {
+      configFilePath = pathToIosConfigXml();
+      break;
+    }
+    case 'android': {
+      configFilePath = pathToAndroidConfigXml();
+      break;
+    }
   }
 
   return configFilePath;
@@ -115,7 +116,7 @@ function getPlatformSpecificConfigXml(platform) {
  * @param {Object} options - plugin options
  */
 function injectOptions(options) {
-  platforms.forEach(function(platform) {
+  platforms.forEach(function (platform) {
     var configXmlFilePath = getPlatformSpecificConfigXml(platform);
     if (configXmlFilePath == null) {
       return;

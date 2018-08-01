@@ -2,3 +2,4 @@
 node_modules
 .npmInstalled
 package-lock.json
+.idea

@@ -82,10 +82,7 @@ function pathToIosConfigXml() {
  * @return {String} absolute path to config.xml file
  */
 function pathToAndroidConfigXml() {
-  if (cordovaContext.opts.cordova.version >= "7.0.0") {
-    return path.join(projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'res', 'xml', 'config.xml');
-  }
-  return path.join(projectRoot, 'platforms', 'android', 'res', 'xml', 'config.xml');
+  return path.join(projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'res', 'xml', 'config.xml');
 }
 
 /**

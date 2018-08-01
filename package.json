@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nordnet/cordova-hot-code-push.git"
+    "url": "git+https://github.com/henotia/cordova-hot-code-push.git"
   },
   "keywords": [
     "cordova",
@@ -27,7 +27,7 @@
   "engines": [
     {
       "name": "cordova-android",
-      "version": ">=4"
+      "version": ">=7"
     },
     {
       "name": "cordova-plugman",
@@ -37,10 +37,10 @@
   "dependencies": {
     "xml2js": "^0.4"
   },
-  "author": "Nikolay Demyankov for Nordnet Bank AB",
+  "author": "henotia",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nordnet/cordova-hot-code-push/issues"
+    "url": "https://github.com/henotia/cordova-hot-code-push/issues"
   },
-  "homepage": "https://github.com/nordnet/cordova-hot-code-push#readme"
+  "homepage": "https://github.com/henotia/cordova-hot-code-push#readme"
 }

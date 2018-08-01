@@ -18,7 +18,10 @@ import com.nordnetab.chcp.main.storage.PluginInternalPreferencesStorage;
 import com.nordnetab.chcp.main.updater.UpdateDownloadRequest;
 import com.nordnetab.chcp.main.updater.UpdatesInstaller;
 import com.nordnetab.chcp.main.updater.UpdatesLoader;
-import com.nordnetab.chcp.main.utils.*;
+import com.nordnetab.chcp.main.utils.AssetsHelper;
+import com.nordnetab.chcp.main.utils.CleanUpHelper;
+import com.nordnetab.chcp.main.utils.Paths;
+import com.nordnetab.chcp.main.utils.VersionHelper;
 import com.nordnetab.chcp.main.view.AppUpdateRequestDialog;
 import org.apache.cordova.*;
 import org.greenrobot.eventbus.EventBus;
@@ -59,6 +62,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
   private List<PluginResult> defaultCallbackStoredResults;
   private FetchUpdateOptions defaultFetchUpdateOptions;
+  private boolean isSuccessUpdated = false;
 
   // region Plugin lifecycle
 
@@ -68,6 +72,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @Override
   public void initialize(final CordovaInterface cordova, final CordovaWebView webView) {
     super.initialize(cordova, webView);
+    Log.d("CHCP", "onLoad로 인한 init");
 
     // Cordova config.xml을 파싱함
     parseCordovaConfigXml();
@@ -125,6 +130,10 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // udpate를 설치한다
     Log.d("CHCP", "업데이트 설치 확인");
+    Log.d("CHCP", "자동설치 허용 : " + chcpXmlConfig.isAutoInstallIsAllowed());
+    Log.d("CHCP", "설치진행여부 : " + UpdatesInstaller.isInstalling());
+    Log.d("CHCP", "업데이트 다운로드여부 : " + UpdatesLoader.isExecuting());
+    Log.d("CHCP", "내부설정 : " + pluginInternalPrefs.toString());
 
     if (chcpXmlConfig.isAutoInstallIsAllowed() &&
       !UpdatesInstaller.isInstalling() &&
@@ -233,6 +242,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
     // 환경설정이 없거나 현재 릴리즈 버전명이 없으면
     if (config == null || TextUtils.isEmpty(config.getCurrentReleaseVersionName())) {
       // 디폴트 환경설정 생성
+      Log.d("CHCP", "디폴트 환경설정 생성");
       config = PluginInternalPreferences.createDefault(cordova.getActivity());
       // sharedPreference에 저장
       pluginInternalPrefsStorage.storeInPreference(config);
@@ -256,6 +266,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @Override
   public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
     boolean cmdProcessed = true;
+    Log.d("CHCP", "execute 호출 : " + action);
     // Cordova Ready가 되면 exec로 Init 호출
     if (JSAction.INIT.equals(action)) {
       jsInit(callbackContext);
@@ -667,9 +678,8 @@ public class HotCodePushPlugin extends CordovaPlugin {
 
     // load index page from the external source
     external = Paths.get(fileStructure.getWwwFolder(), indexPage);
+    Log.d("CHCP", "업데이트 성공여부 : " + isSuccessUpdated);
     webView.loadUrlIntoView(FILE_PREFIX + external, false);
-
-    Log.d("CHCP", "Loading external page: " + external);
   }
 
   /**
@@ -877,6 +887,7 @@ public class HotCodePushPlugin extends CordovaPlugin {
   @SuppressWarnings("unused")
   @Subscribe
   public void onEvent(UpdateInstalledEvent event) {
+    isSuccessUpdated = true;
     Log.d("CHCP", "Update is installed");
     Log.d("CHCP", "업데이트 설치 된 뒤 이벤트를 보내면 onEvent에서 처리함");
 

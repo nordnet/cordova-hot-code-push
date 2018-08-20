@@ -48,23 +48,27 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 #pragma mark Lifecycle
 
+// 어플 시작시 Plugin Init
 -(void)pluginInitialize {
+    // 초기화 프로세스 시작
     [self doLocalInit];
+    // 이벤트 등록
     [self subscribeToEvents];
-    
-    // install www folder if it is needed
+
+    // www폴더 설치여부 확인
     if ([self isWWwFolderNeedsToBeInstalled]) {
+        // www폴더 인스톨
         [self installWwwFolder];
         return;
     }
-    
+
     // cleanup file system: remove older releases, except current and the previous one
     [self cleanupFileSystemFromOldReleases];
-    
+
     _isPluginReadyForWork = YES;
     [self resetIndexPageToExternalStorage];
     [self loadApplicationConfig];
-    
+
     // install update if any exists
     if (_pluginXmlConfig.isUpdatesAutoInstallationAllowed &&
         _pluginInternalPrefs.readyForInstallationReleaseVersionName.length > 0) {
@@ -81,12 +85,12 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
         _pluginInternalPrefs.readyForInstallationReleaseVersionName.length == 0) {
         return;
     }
-    
+
     // load app config from update folder and check, if we are allowed to install it
     HCPFilesStructure *fs = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.readyForInstallationReleaseVersionName];
     id<HCPConfigFileStorage> configStorage = [[HCPApplicationConfigStorage alloc] initWithFileStructure:fs];
     HCPApplicationConfig *configFromNewRelease = [configStorage loadFromFolder:fs.downloadFolder];
-        
+
     if (configFromNewRelease.contentConfig.updateTime == HCPUpdateOnResume ||
         configFromNewRelease.contentConfig.updateTime == HCPUpdateNow) {
         [self _installUpdate:nil];
@@ -97,14 +101,16 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 - (void)installWwwFolder {
     _isPluginReadyForWork = NO;
+
     // reset www folder installed flag
+    // www 폴더 설치 플래그를 리셋한다
     if (_pluginInternalPrefs.isWwwFolderInstalled) {
         _pluginInternalPrefs.wwwFolderInstalled = NO;
         _pluginInternalPrefs.readyForInstallationReleaseVersionName = @"";
         _pluginInternalPrefs.previousReleaseVersionName = @"";
         HCPApplicationConfig *config = [HCPApplicationConfig configFromBundle:[HCPFilesStructure defaultConfigFileName]];
         _pluginInternalPrefs.currentReleaseVersionName = config.contentConfig.releaseVersion;
-        
+
         [_pluginInternalPrefs saveToUserDefaults];
     }
     
@@ -121,36 +127,40 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 /**
  *  Check if www folder already exists on the external storage.
+ *  www폴더가 외부 저장소에 이미 존재하는지 확인
  *
- *  @return <code>YES</code> - www folder doesn't exist, we need to install it; <code>NO</code> - folder already installed
+ *  @return <code>YES</code> - www/ 가 없는 경우; <code>NO</code> - 이미 존재함
  */
 - (BOOL)isWWwFolderNeedsToBeInstalled {
     NSFileManager *fileManager = [NSFileManager defaultManager];
     BOOL isApplicationUpdated = ![[NSBundle applicationBuildVersion] isEqualToString:_pluginInternalPrefs.appBuildVersion];
     BOOL isWWwFolderExists = [fileManager fileExistsAtPath:_filesStructure.wwwFolder.path];
     BOOL isWWwFolderInstalled = _pluginInternalPrefs.isWwwFolderInstalled;
-    
+
     return isApplicationUpdated || !isWWwFolderExists || !isWWwFolderInstalled;
 }
 
-/**
- *  Perform initialization of the plugin variables.
- */
+// 플러그인에서 사용되는 변수 초기화
 - (void)doLocalInit {
     _defaultCallbackStoredResults = [[NSMutableArray alloc] init];
-    
-    // init plugin config from xml
+
+    // config.xml에서 데이터를 받아와 Plugin 초기화
     _pluginXmlConfig = [HCPXmlConfig loadFromCordovaConfigXml];
-    
-    // load plugin internal preferences
+
+    // 플러그인 내부 환경설정 로드 (HCPPluginInternalPreferences+UserDefaults.m)
     _pluginInternalPrefs = [HCPPluginInternalPreferences loadFromUserDefaults];
+
+    // 환경설정이 없거나 현재 버전 정보가 없으면
     if (_pluginInternalPrefs == nil || _pluginInternalPrefs.currentReleaseVersionName.length == 0) {
+        // default Config를 만들어서
         _pluginInternalPrefs = [HCPPluginInternalPreferences defaultConfig];
+
+        // 저장함
         [_pluginInternalPrefs saveToUserDefaults];
     }
-    
+
     NSLog(@"Currently running release version %@", _pluginInternalPrefs.currentReleaseVersionName);
-    
+
     // init file structure for www files
     _filesStructure = [[HCPFilesStructure alloc] initWithReleaseVersion:_pluginInternalPrefs.currentReleaseVersionName];
 }
@@ -209,8 +219,10 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (!_isPluginReadyForWork) {
         return NO;
     }
-    
+
+    // 새로운 버전
     NSString *newVersion = _pluginInternalPrefs.readyForInstallationReleaseVersionName;
+    // 현재 버전
     NSString *currentVersion = _pluginInternalPrefs.currentReleaseVersionName;
     
     NSError *error = nil;
@@ -261,7 +273,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 }
 
 /**
- *  Redirect user to the index page that is located on the external storage.
+ *  외부 저장소의 www폴더의 index 페이지로 리다이렉트
  */
 - (void)resetIndexPageToExternalStorage {
     NSString *indexPageStripped = [self indexPageFromConfigXml];
@@ -362,6 +374,7 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
 
 /**
  *  Subscribe to different events: lifecycle, plugin specific.
+ *  플러그인 내부 이벤트와 라이프사이클 이벤트 등록
  */
 - (void)subscribeToEvents {
     [self subscribeToLifecycleEvents];
@@ -429,6 +442,8 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
                            selector:@selector(onNothingToInstallEvent:)
                                name:kHCPNothingToInstallEvent
                              object:nil];
+
+    // TODO: 추후 backup관련 이벤트도 등록해야 할 수 있음
 }
 
 /**
@@ -703,10 +718,20 @@ static NSString *const DEFAULT_STARTING_PAGE = @"index.html";
     if (!_pluginInternalPrefs.currentReleaseVersionName.length) {
         return;
     }
-    
+
+    // TODO: backup remove 옵션에 따라 해당 부분에 if로 수정해주면 됨
+    //백업 삭제가 허용되었을 경우
+    if (_pluginXmlConfig.isUpdatesRemoveBackupAllowed) {
+    [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
+                                                   _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
+    // default로 초기화
+    _pluginInternalPrefs.previousReleaseVersionName = @"";
+    } else {
+    // 백업 삭제가 허용되지 않을 경우
     [HCPCleanupHelper removeUnusedReleasesExcept:@[_pluginInternalPrefs.currentReleaseVersionName,
                                                    _pluginInternalPrefs.previousReleaseVersionName,
                                                    _pluginInternalPrefs.readyForInstallationReleaseVersionName]];
+    }
 }
 
 #pragma mark Methods, invoked from Javascript

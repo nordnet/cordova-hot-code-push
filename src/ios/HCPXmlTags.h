@@ -23,6 +23,10 @@ extern NSString *const kHCPAutoInstallEnabledXmlAttribute;
 extern NSString *const kHCPNativeInterfaceXmlTag;
 extern NSString *const kHCPNativeInterfaceVersionXmlAttribute;
 
+// remove backup 부분 옵션
+extern NSString *const kHCPRemoveBackupXmlTag;
+extern NSString *const kHCPRemoveBackupXmlEnabledXmlAttribute;
+
 @interface HCPXmlTags : NSObject
 
 @end

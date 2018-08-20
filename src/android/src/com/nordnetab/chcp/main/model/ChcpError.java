@@ -11,7 +11,9 @@ public enum ChcpError {
 
     // region Actual errors
 
+    // 서버에서 새 application config를 다운로드 하지 못함. 파일이 없거나, 인터넷 연결 문제
     FAILED_TO_DOWNLOAD_APPLICATION_CONFIG(-1, "Failed to download application configuration file"),
+
     APPLICATION_BUILD_VERSION_TOO_LOW(-2, "Application build version is too low for this update"),
     FAILED_TO_DOWNLOAD_CONTENT_MANIFEST(-3, "Failed to download content manifest file"),
     FAILED_TO_DOWNLOAD_UPDATE_FILES(-4, "Failed to download update files"),
@@ -34,7 +36,9 @@ public enum ChcpError {
 
     // region Kind of warnings
 
+    // 플러그인 인스톨 요청은 들어 왔지만 설치할 내용이 없는 경우
     NOTHING_TO_INSTALL(1, "Nothing to install"),
+    // 새로운 내용을 다운로드 할 것이 없는 경우
     NOTHING_TO_UPDATE(2, "Nothing new to load from server");
 
     // endregion

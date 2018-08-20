@@ -35,14 +35,14 @@
 - (BOOL)installVersion:(NSString *)newVersion currentVersion:(NSString *)currentVersion error:(NSError **)error {
     *error = nil;
     
-    // if installing - exit
+    // 인스톨 진행중이면 종료
     if (_isInstallationInProgress) {
         *error = [NSError errorWithCode:kHCPInstallationAlreadyInProgressErorrCode
                             description:@"Installation is already in progress"];
         return NO;
     }
     
-    // if download in progress - exit
+    // 다운로드 진행중이면 종료
     if ([HCPUpdateLoader sharedInstance].isDownloadInProgress) {
         *error = [NSError errorWithCode:kHCPCantInstallWhileDownloadInProgressErrorCode
                             description:@"Can't perform the installation, while update download in progress"];
@@ -51,14 +51,14 @@
     
     HCPFilesStructure *newVersionFS = [[HCPFilesStructure alloc] initWithReleaseVersion:newVersion];
     
-    // check if there is anything to install
+    // 설치할 것이 있는지 확인
     if (![[NSFileManager defaultManager] fileExistsAtPath:newVersionFS.downloadFolder.path] ||
             [newVersion isEqualToString:currentVersion]) {
         *error = [NSError errorWithCode:kHCPNothingToInstallErrorCode description:@"Nothing to install"];
         return NO;
     }
     
-    // launch installation
+    // 설치작업 수행
     id<HCPWorker> installationTask = [[HCPInstallationWorker alloc] initWithNewVersion:newVersion currentVersion:currentVersion];
     [self execute:installationTask];
     

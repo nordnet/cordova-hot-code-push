@@ -71,30 +71,8 @@ function loadProjectFile() {
     return loadProjectFile_cordova_7_and_above();
   } catch(e) {
   }
-  
-  try {
-    return loadProjectFile_cordova_5_and_6();
-  } catch(e) {
-  }
-
-  try {
-    return loadProjectFile_cordova_pre_5();
-  } catch (e) {
-  }
 
   throw new Error('Failed to load iOS project file. Maybe your Cordova version is not supported?');
-}
-
-function loadProjectFile_cordova_pre_5() {
-  var platformIos = context.requireCordovaModule('cordova-lib/src/plugman/platforms')['ios'];
-
-  return platformIos.parseProjectFile(iosPlatformPath);
-}
-
-function loadProjectFile_cordova_5_and_6() {
-  var platformIos = context.requireCordovaModule('cordova-lib/src/plugman/platforms/ios');
-  
-  return platformIos.parseProjectFile(iosPlatformPath);
 }
 
 function loadProjectFile_cordova_7_and_above() {

@@ -27,6 +27,7 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
 #pragma mark Public API
 
+// 릴리즈 버전으로 초기화
 - (instancetype)initWithReleaseVersion:(NSString *)releaseVersion {
     self = [super init];
     if (self) {
@@ -37,7 +38,7 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 }
 
 + (NSURL *)pluginRootFolder {
-    // static decleration gets executed only once
+    // static declaration gets executed only once
     static NSURL *_pluginRootFolder = nil;
     if (_pluginRootFolder != nil) {
         return _pluginRootFolder;
@@ -45,13 +46,17 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
 
     // construct path to the folder, where we will store our plugin's files
     NSFileManager *fileManager = [NSFileManager defaultManager];
+    // 서포트 디렉토리의 경로를 가져옴
     NSURL *supportDir = [fileManager applicationSupportDirectory];
     _pluginRootFolder = [supportDir URLByAppendingPathComponent:CHCP_FOLDER isDirectory:YES];
+
+    // 플러그인 루트폴더(서포트 디렉토리에 CHCP_FOLDER) 의 경로에 파일이 없으면
     if (![fileManager fileExistsAtPath:_pluginRootFolder.path]) {
+        // 해당 경로에 폴더 만들기
         [fileManager createDirectoryAtURL:_pluginRootFolder withIntermediateDirectories:YES attributes:nil error:nil];
     }
-    
-    // we need to exclude plugin's root folder from the iCloud backup, or it can become too big and Apple will reject the app.
+
+    // 플러그인 루트 폴더를 iCloud backup에서 제외함. 어플리케이션이 너무 커지면 애플이 어플을 거절 할 수 있음
     // https://developer.apple.com/library/ios/qa/qa1719/_index.html
     NSError *error = nil;
     BOOL success = [_pluginRootFolder setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:&error];
@@ -62,6 +67,7 @@ static NSString *const CHCP_MANIFEST_FILE_PATH = @"chcp.manifest";
     return _pluginRootFolder;
 }
 
+// 릴리즈버전의 content folder 주소 저장
 - (void)localInitWithReleaseVersion:(NSString *)releaseVersion {
     _contentFolder = [[HCPFilesStructure pluginRootFolder]
                       URLByAppendingPathComponent:releaseVersion isDirectory:YES];

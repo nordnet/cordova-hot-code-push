@@ -1,3 +1,7 @@
+# THIS PROJECT IS DEPRECATED
+
+We are not using this repo anymore, and we lack the manpower and the experience needed to maintain it. We are aware of the inconveniece that this may cause you. Feel free to use it as is, or create your own fork. See https://github.com/nordnet/cordova-hot-code-push/issues/371 for more information.
+
 # Cordova Hot Code Push Plugin
 
 This plugin provides functionality to perform automatic updates of the web based content in your application. Basically, everything that is stored in `www` folder of your Cordova project can be updated using this plugin.
